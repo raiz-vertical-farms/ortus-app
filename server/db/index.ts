@@ -5,7 +5,7 @@ import { LibsqlDialect } from "@libsql/kysely-libsql";
 import { DB } from "./types";
 
 function createDb() {
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV == "production") {
     return new Kysely<DB>({
       dialect: new LibsqlDialect({
         url: process.env.TURSO_DB_URL!,

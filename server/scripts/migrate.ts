@@ -78,7 +78,7 @@ if (!dbPathOrUrl || !migrationsDir) {
 }
 
 runMigrations(
-  process.env.NODE_ENV !== "production"
+  process.env.NODE_ENV == "production"
     ? process.env.TURSO_DB_URL!
     : `file:${dbPathOrUrl}`,
   migrationsDir,
