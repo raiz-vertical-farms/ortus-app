@@ -1,0 +1,94 @@
+/* Text.module.css */
+.text {
+  margin: 0;
+  font-family: var(--font-family-body);
+}
+
+/* Alignment */
+.align-left {
+  text-align: left;
+}
+.align-center {
+  text-align: center;
+}
+.align-right {
+  text-align: right;
+}
+
+/* Size (font-size) */
+.size-xs {
+  font-size: var(--font-size-xs);
+}
+.size-sm {
+  font-size: var(--font-size-sm);
+}
+.size-base {
+  font-size: var(--font-size-base);
+}
+.size-lg {
+  font-size: var(--font-size-lg);
+}
+.size-xl {
+  font-size: var(--font-size-xl);
+}
+.size-2xl {
+  font-size: var(--font-size-2xl);
+}
+.size-3xl {
+  font-size: var(--font-size-3xl);
+}
+.size-4xl {
+  font-size: var(--font-size-4xl);
+}
+.size-5xl {
+  font-size: var(--font-size-5xl);
+}
+.size-6xl {
+  font-size: var(--font-size-6xl);
+}
+.size-7xl {
+  font-size: var(--font-size-7xl);
+}
+.size-8xl {
+  font-size: var(--font-size-8xl);
+}
+.size-9xl {
+  font-size: var(--font-size-9xl);
+}
+
+/* Color */
+.color-strong {
+  color: var(--color-text-strong);
+}
+.color-normal {
+  color: var(--color-text);
+}
+.color-muted {
+  color: var(--color-text-muted);
+}
+
+/* Variant */
+.variant-heading {
+  font-family: var(--font-family-heading);
+}
+.variant-subheading {
+  font-family: var(--font-family-heading);
+  opacity: var(--opacity-80);
+}
+.variant-body {
+  font-family: var(--font-family-body);
+}
+
+/* Font weight */
+.weight-normal {
+  font-weight: 400;
+}
+.weight-bold {
+  font-weight: 700;
+}
+.weight-semibold {
+  font-weight: 600;
+}
+.weight-light {
+  font-weight: 300;
+}

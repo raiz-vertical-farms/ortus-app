@@ -1,0 +1,62 @@
+.phoneInput:focus-within {
+  --react-international-phone-border-color: var(--color-ring);
+  --react-international-phone-background-color: var(--color-background-hover);
+}
+
+.phoneInput {
+  --react-international-phone-height: var(--element-lg);
+  --react-international-phone-background-color: var(--color-background);
+  --react-international-phone-text-color: var(--color-text);
+  --react-international-phone-font-size: var(--font-size-lg);
+  --react-international-phone-border-radius: var(--radius-xl);
+  --react-international-phone-border-color: var(--color-border);
+  --react-international-phone-disabled-background-color: var(
+    --color-foreground
+  );
+  --react-international-phone-disabled-text-color: var(--color-text-muted);
+
+  --react-international-phone-country-selector-background-color: var(
+    --react-international-phone-background-color
+  );
+  --react-international-phone-country-selector-background-color-hover: var(
+    --color-background-hover
+  );
+  --react-international-phone-disabled-country-selector-background-color: var(
+    --react-international-phone-disabled-background-color
+  );
+  --react-international-phone-country-selector-border-color: var(
+    --react-international-phone-border-color
+  );
+  --react-international-phone-country-selector-arrow-size: 4px;
+  --react-international-phone-country-selector-arrow-color: var(--color-text);
+  --react-international-phone-disabled-country-selector-arrow-color: #999;
+
+  --react-international-phone-dropdown-item-font-size: var(--font-size-sm);
+  --react-international-phone-dropdown-item-text-color: var(
+    --react-international-phone-text-color
+  );
+  --react-international-phone-dropdown-item-height: 1.75rem;
+  --react-international-phone-dropdown-item-background-color: var(
+    --react-international-phone-background-color
+  );
+  --react-international-phone-dropdown-item-dial-code-color: gray;
+  --react-international-phone-selected-dropdown-item-text-color: var(
+    --react-international-phone-text-color
+  );
+  --react-international-phone-selected-dropdown-item-background-color: var(
+    --color-background-hover
+  );
+  --react-international-phone-selected-dropdown-item-dial-code-color: var(
+    --react-international-phone-dropdown-item-dial-code-color
+  );
+  --react-international-phone-focused-dropdown-item-background-color: var(
+    --react-international-phone-selected-dropdown-item-background-color
+  );
+  --react-international-phone-dropdown-shadow: 2px 2px 16px rgb(0 0 0 / 25%);
+  --react-international-phone-dropdown-left: 0;
+  --react-international-phone-dropdown-top: 2.75rem;
+  --react-international-phone-dropdown-preferred-list-divider-color: var(
+    --react-international-phone-border-color
+  );
+  --react-international-phone-dropdown-preferred-list-divider-margin: 0;
+}

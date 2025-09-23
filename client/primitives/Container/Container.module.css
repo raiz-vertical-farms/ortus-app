@@ -1,0 +1,26 @@
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sm {
+  max-width: var(--breakpoint-sm); /* breakpoint-sm */
+}
+
+.md {
+  max-width: var(--breakpoint-md); /* breakpoint-md */
+}
+
+.lg {
+  max-width: var(--breakpoint-lg); /* breakpoint-lg */
+}
+
+.full {
+  max-width: 100%;
+}
+
+.gutter {
+  padding-left: var(--spacing-4);
+  padding-right: var(--spacing-4);
+}
