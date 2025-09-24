@@ -7,6 +7,7 @@ import { DB } from "./types";
 function createDb() {
   if (process.env.NODE_ENV == "production") {
     console.log("Using production database at:", process.env.TURSO_DB_URL);
+    console.log("Using production database token:", process.env.TURSO_DB_TOKEN);
 
     return new Kysely<DB>({
       dialect: new LibsqlDialect({
