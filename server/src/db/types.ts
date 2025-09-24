@@ -18,8 +18,14 @@ export interface _Migrations {
 export interface Devices {
   created_at: Generated<string | null>;
   id: Generated<number | null>;
+  last_seen: string | null;
+  light_brightness: number | null;
+  light_state: Generated<string | null>;
   name: string;
+  online: Generated<number | null>;
   organization_id: number;
+  switch_state: Generated<string | null>;
+  unique_id: string;
 }
 
 export interface Organizations {

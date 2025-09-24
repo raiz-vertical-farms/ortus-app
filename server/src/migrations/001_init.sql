@@ -31,8 +31,17 @@ CREATE TABLE user_organization_memberships (
 CREATE TABLE devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     organization_id INTEGER NOT NULL,
+    unique_id TEXT UNIQUE NOT NULL, -- e.g. ESP32 chip id or MAC address
     name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Device state
+    online BOOLEAN DEFAULT 0,
+    last_seen TIMESTAMP,
+    switch_state TEXT CHECK (switch_state IN ('ON', 'OFF')) DEFAULT 'OFF',
+    light_state TEXT CHECK (light_state IN ('ON', 'OFF')) DEFAULT 'OFF',
+    light_brightness INTEGER CHECK (
+        light_brightness BETWEEN 0 AND 100
+    ),
     FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE
 );
 

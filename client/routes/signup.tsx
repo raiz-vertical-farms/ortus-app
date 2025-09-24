@@ -9,10 +9,7 @@ import { Group } from "../primitives/Group/Group";
 import { Text } from "../primitives/Text/Text";
 import Box from "../primitives/Box/Box";
 import { useState } from "react";
-
-const url = import.meta.env.VITE_BACKEND_URL;
-
-const client = hc<AppType>(url || "http://localhost:3000");
+import { apiClient } from "../lib/hono-client";
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
@@ -27,17 +24,17 @@ function Signup() {
     mutate: login,
     loading: isLoggingIn,
     error: loginError,
-  } = useMutation(client.api.login.$post);
+  } = useMutation(apiClient.auth.login.$post);
 
   const {
     mutate: signup,
     loading: isSigningUp,
     error: signupError,
-  } = useMutation(client.api.signup.$post);
+  } = useMutation(apiClient.auth.signup.$post);
 
   function handleSignup() {
-    signup(formState).then((res) => {
-      if ("jwt" in res) {
+    signup({ json: formState }).then((res) => {
+      if (res.success) {
         localStorage.setItem("token", res.jwt);
         router.navigate({ to: "/" });
       } else {
@@ -45,6 +42,8 @@ function Signup() {
       }
     });
   }
+
+  console.log({ isLoggingIn, isSigningUp, loginError, signupError });
 
   return (
     <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
@@ -86,6 +85,8 @@ function Signup() {
           <Button onClick={handleSignup} full>
             Log In
           </Button>
+
+          {signupError && <Text align="center">Try again...</Text>}
         </Group>
       </Container>
     </div>
