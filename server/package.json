@@ -1,13 +1,26 @@
 {
   "name": "app",
   "version": "1.0.0",
-  "main": "index.js",
   "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    },
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
-    "dev": "npm run codegen && tsx index.ts",
-    "build": "codegen",
-    "codegen": "kysely-codegen --out-file ./db/types.ts",
-    "migrate": "tsx ./scripts/migrate.ts db.sqlite ./migrations"
+    "dev": "npm run codegen && tsx ./src/index.ts",
+    "build": "npm run codegen && npm run compile",
+    "codegen": "kysely-codegen --out-file ./src/db/types.ts",
+    "compile": "tsc ./src/index.ts --outDir dist",
+    "migrate": "tsx ./src/scripts/migrate.ts db.sqlite ./src/migrations"
   },
   "keywords": [],
   "author": "",
@@ -25,15 +38,18 @@
     "dotenv": "^17.2.1",
     "hono": "^4.8.4",
     "jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "kysely": "^0.28.7",
     "mqtt": "^5.14.1",
     "openai": "^5.11.0",
+    "pkgroll": "^2.15.4",
+    "tsc": "^2.0.4",
+    "typescript": "^5.9.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tanstack/router-cli": "^1.131.47",
     "@tanstack/router-plugin": "^1.131.47",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.1.0",
     "kysely-codegen": "^0.19.0",
     "tsx": "^4.20.5"
