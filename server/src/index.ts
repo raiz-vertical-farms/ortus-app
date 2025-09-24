@@ -193,6 +193,12 @@ const routes = app
 
 export type AppType = typeof routes;
 
+if (process.env.NODE_ENV !== "production") {
+  serve({ fetch: app.fetch, port: 3000 });
+}
+
 export default app;
 
-serve({ fetch: app.fetch, port: 3000 });
+export const config = {
+  runtime: "nodejs20",
+};
