@@ -1,5 +1,5 @@
 import { hc } from "hono/client";
-import type { AppType } from "../../server/index";
+import type { AppType } from "../../server";
 import { useMutation } from "../hooks/index";
 import { useRouter, createFileRoute } from "@tanstack/react-router";
 import Input from "../primitives/Input/Input";
@@ -10,7 +10,9 @@ import { Text } from "../primitives/Text/Text";
 import Box from "../primitives/Box/Box";
 import { useState } from "react";
 
-const client = hc<AppType>(process.env.BACKEND_URL || "http://localhost:3000");
+const url = import.meta.env.VITE_BACKEND_URL;
+
+const client = hc<AppType>(url || "http://localhost:3000");
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
