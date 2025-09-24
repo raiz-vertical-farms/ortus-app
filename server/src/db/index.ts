@@ -6,6 +6,8 @@ import { DB } from "./types";
 
 function createDb() {
   if (process.env.NODE_ENV == "production") {
+    console.log("Using production database at:", process.env.TURSO_DB_URL);
+
     return new Kysely<DB>({
       dialect: new LibsqlDialect({
         url: process.env.TURSO_DB_URL!,
@@ -13,6 +15,7 @@ function createDb() {
       }),
     });
   } else {
+    console.log("Using local SQLite database at: ./db.sqlite");
     return new Kysely<DB>({
       dialect: new SqliteDialect({
         database: new SQLite("./db.sqlite"),
