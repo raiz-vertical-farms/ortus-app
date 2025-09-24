@@ -19,7 +19,7 @@
     "dev": "npm run codegen && tsx ./src/index.ts",
     "build": "npm run codegen && npm run compile",
     "codegen": "kysely-codegen --out-file ./src/db/types.ts",
-    "compile": "tsc ./src/index.ts --outDir dist",
+    "compile": "pkgroll",
     "migrate": "tsx ./src/scripts/migrate.ts db.sqlite ./src/migrations"
   },
   "keywords": [],
