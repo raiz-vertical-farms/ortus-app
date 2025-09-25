@@ -34,7 +34,7 @@ function Index() {
   return (
     <Container
       style={{
-        minHeight: "calc(100vh - 60px)",
+        minHeight: "calc(100dvh - 60px)",
         display: "grid",
         placeItems: "center",
       }}
