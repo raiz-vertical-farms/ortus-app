@@ -24,26 +24,34 @@ mqttClient.on("connect", () => {
   });
 });
 
-mqttClient.on("message", (topic: string, message: Buffer) => {
-  console.log(`Received on ${topic}: ${message.toString()}`);
-});
-
-mqttClient.subscribe("presence/1", async (err) => {
+mqttClient.subscribe("presence/#", async (err) => {
   if (err) {
     console.error("Subscribe error:", err);
   } else {
-    try {
-      await db
-        .updateTable("devices")
-        .set({
-          last_seen: new Date().toISOString(),
-        })
-        .where("id", "=", 1)
-        .execute();
+    console.log("Subscribed to presence topic");
+  }
+});
 
-      console.log("Updated last_seen for device 1");
-    } catch (dbErr) {
-      console.error("DB update error:", dbErr);
+mqttClient.on("message", async (topic, message) => {
+  try {
+    const parts = topic.split("/"); // ["presence", "123"]
+    const deviceId = parts[1]; // "123"
+
+    const deviceIdNumber = Number(deviceId);
+
+    if (isNaN(deviceIdNumber)) {
+      console.error("Invalid device ID:", deviceId);
+      return;
     }
+
+    await db
+      .updateTable("devices")
+      .set({ last_seen: new Date().toISOString() })
+      .where("id", "=", deviceIdNumber)
+      .execute();
+
+    console.log(`Updated last_seen for device ${deviceId}`);
+  } catch (err) {
+    console.error("DB update error:", err);
   }
 });
