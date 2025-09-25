@@ -21,7 +21,6 @@ export default function DeviceCard({
   number_of_plants,
 }: Device) {
   let statusDot = null;
-  let timeAgo = "never";
 
   if (last_seen) {
     const seenDate = new Date(last_seen);
@@ -33,27 +32,14 @@ export default function DeviceCard({
       <span
         style={{
           display: "inline-block",
-          width: "10px",
-          height: "10px",
+          width: "8px",
+          height: "8px",
           borderRadius: "50%",
           backgroundColor: isOnline ? "green" : "red",
           marginRight: "6px",
         }}
       />
     );
-
-    if (diffSec < 60) {
-      timeAgo = `${diffSec} second${diffSec !== 1 ? "s" : ""} ago`;
-    } else if (diffSec < 3600) {
-      const minutes = Math.floor(diffSec / 60);
-      timeAgo = `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-    } else if (diffSec < 86400) {
-      const hours = Math.floor(diffSec / 3600);
-      timeAgo = `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    } else {
-      const days = Math.floor(diffSec / 86400);
-      timeAgo = `${days} day${days !== 1 ? "s" : ""} ago`;
-    }
   }
 
   return (
@@ -64,8 +50,9 @@ export default function DeviceCard({
       params={{ id: id.toString() }}
     >
       <Group direction="column" spacing="2">
-        <Text size="sm" color="muted">
-          {statusDot} {timeAgo}
+        <Text size="xs" color="muted">
+          {statusDot}{" "}
+          {last_seen ? `Online ${formatLastSeen(last_seen)}` : "Offline"}
         </Text>
 
         <Group align="center">
@@ -81,4 +68,42 @@ export default function DeviceCard({
       </Group>
     </Link>
   );
+}
+
+function formatLastSeen(last_seen: string | number | Date | null): string {
+  if (!last_seen) return "Offline";
+
+  const date = new Date(last_seen);
+  const now = new Date();
+
+  // Calculate difference in days
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const startOfDate = new Date(date);
+  startOfDate.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.floor(
+    (startOfToday.getTime() - startOfDate.getTime()) / 86400000
+  );
+
+  // Time part without seconds
+  const time = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (diffDays === 0) return `today ${time}`;
+  if (diffDays === 1) return `yesterday ${time}`;
+  if (diffDays < 7) {
+    const weekday = new Intl.DateTimeFormat([], { weekday: "long" }).format(
+      date
+    );
+    return `${weekday} ${time}`;
+  }
+
+  const formattedDate = new Intl.DateTimeFormat([], {
+    dateStyle: "medium",
+  }).format(date);
+  return `${formattedDate} ${time}`;
 }
