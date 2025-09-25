@@ -50,7 +50,7 @@ export function useMutation<TEndpoint extends (req: any) => Promise<Response>>(
 export function useQuery<TEndpoint extends (req: any) => Promise<Response>>(
   endpoint: TEndpoint,
   req: InferRequestType<TEndpoint> | null,
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean; pollInterval?: number } // + pollInterval
 ) {
   type Req = InferRequestType<TEndpoint>;
   type Res = InferResponseType<TEndpoint>;
@@ -90,32 +90,55 @@ export function useQuery<TEndpoint extends (req: any) => Promise<Response>>(
     } finally {
       setLoading(false);
     }
-  }, []); // stable
+  }, []); // <-- stays stable
 
-  // Memoize a stable key for effect deps
+  // Stable key for initial fetch
   const key = useMemo(
     () => JSON.stringify([req, options?.enabled !== false]),
     [req, options?.enabled]
   );
 
+  // Initial/one-off fetch when req/enabled change
   useEffect(() => {
     if (!req || options?.enabled === false) return;
 
     let cancelled = false;
     (async () => {
       try {
-        const result = await fetchData(req as Req);
-        if (cancelled) return;
-        // data is already set inside fetchData; nothing else here
-      } catch {
-        if (cancelled) return;
-      }
+        await fetchData(req as Req);
+      } catch {}
+      if (cancelled) return;
     })();
 
     return () => {
       cancelled = true;
     };
   }, [key, fetchData]);
+
+  // Simple polling (no overlaps, no extra deps shenanigans)
+  useEffect(() => {
+    if (!req || options?.enabled === false) return;
+    const interval = options?.pollInterval ?? 0;
+    if (interval <= 0) return;
+
+    let cancelled = false;
+    let inFlight = false;
+
+    const tick = async () => {
+      if (cancelled || inFlight) return;
+      inFlight = true;
+      try {
+        await fetchData(req as Req);
+      } catch {}
+      inFlight = false;
+    };
+
+    const id = setInterval(tick, interval);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [req, options?.enabled, options?.pollInterval, fetchData]);
 
   const refetch = useCallback(() => {
     if (req) {

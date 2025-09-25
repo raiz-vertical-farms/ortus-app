@@ -25,7 +25,11 @@ function Index() {
   );
   const { mutate: createDevice } = useMutation(apiClient.device.create.$post);
 
-  const { data, refetch } = useQuery(apiClient.device.devices.$get, {});
+  const { data, refetch } = useQuery(
+    apiClient.device.devices.$get,
+    {},
+    { pollInterval: 3000 }
+  );
 
   return (
     <Container
