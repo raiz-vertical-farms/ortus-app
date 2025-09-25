@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Text } from "../primitives/Text/Text";
 import Container from "../primitives/Container/Container";
 import Button from "../primitives/Button/Button";
@@ -8,6 +8,8 @@ import { apiClient } from "../lib/hono-client";
 import Modal from "../primitives/Modal/Modal";
 import { useState } from "react";
 import Input from "../primitives/Input/Input";
+import Box from "../primitives/Box/Box";
+import DeviceCard from "../components/DeviceCard/DeviceCard";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -29,26 +31,25 @@ function Index() {
     <Container
       style={{ height: "100vh", display: "grid", placeItems: "center" }}
     >
-      <Group direction="column" align="center" spacing="10">
-        {data?.devices.map((device) => (
-          <Text key={device.id}>
-            {device.name} - {device.unique_id} - {device.light_state}
-            <Button
-              onClick={() => {
-                if (device.id && device.light_state) {
-                  const newState = device.light_state === "ON" ? "OFF" : "ON";
-                  changeLight({
-                    param: { id: device.id.toString(), lightId: "light" },
-                    json: { state: newState },
-                  }).then(() => refetch());
-                }
-              }}
-            >
-              Toggle
-            </Button>
-          </Text>
-        ))}
-        <Button onClick={() => setOpen(true)}>Add an Ortus</Button>
+      <Group direction="column" align="center" spacing="5">
+        {data?.devices.map((device) => {
+          if (!device.id) return null;
+
+          return (
+            <DeviceCard
+              key={device.id}
+              id={device.id}
+              name={device.name}
+              unique_id={device.unique_id}
+              light_state={device.light_state}
+              last_seen={device.last_seen}
+            />
+          );
+        })}
+
+        <Button size="lg" full onClick={() => setOpen(true)}>
+          Add an Ortus
+        </Button>
       </Group>
       <Modal open={open} onClose={() => setOpen(false)} title="Add a new Ortus">
         <Group direction="column" spacing="5">

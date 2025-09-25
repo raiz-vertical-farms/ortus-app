@@ -1,13 +1,13 @@
 :root {
   /* Colors */
-  --color-background: rgb(255, 255, 255);
+  --color-background: rgb(241 240 233);
   --color-background-hover: rgb(239, 239, 239);
   --color-foreground: rgb(43, 43, 43);
 
-  --color-primary: #2bed00;
+  --color-primary: #0a8270;
   --color-primary-foreground: #ffffff;
-  --color-primary-hover: #16e000;
-  --color-primary-active: #02c512;
+  --color-primary-hover: #0a927e;
+  --color-primary-active: #0a8270;
 
   --color-text-strong: #000000;
   --color-text: #2f2f2f;
@@ -28,12 +28,14 @@
   --color-destructive-hover: #ea1237;
   --color-destructive-active: #b91c1c;
 
+  --color-card-background: #ffffff;
+  --color-card-background-hover: #f9fafb;
+  --color-card-border: #959595;
+  --color-card-shadow: rgba(0, 0, 0, 0.1);
+
   --color-border: #515151;
   --color-input: #d1d5db;
-  --color-ring: #ffffff;
-
-  --color-card: #ffffff;
-  --color-card-foreground: #111827;
+  --color-ring: #0a8270;
 
   /* Font Sizes */
   --font-size-xs: 0.75rem;
@@ -51,8 +53,8 @@
   --font-size-9xl: 8rem;
 
   /* Font Families */
-  --font-family-heading: sans-serif;
-  --font-family-body: sans-serif;
+  --font-family-heading: "Manrope", sans-serif;
+  --font-family-body: "Manrope", sans-serif;
 
   /* Element Sizes */
   --element-sm: 2rem;

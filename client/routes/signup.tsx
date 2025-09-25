@@ -82,7 +82,7 @@ function Signup() {
             inputSize="lg"
           />
 
-          <Button onClick={handleSignup} full>
+          <Button size="lg" onClick={handleSignup} full>
             Log In
           </Button>
 

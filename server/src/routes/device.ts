@@ -152,6 +152,13 @@ const app = new Hono()
         "light_state",
         "light_brightness",
       ])
+      .select((eb) =>
+        eb
+          .selectFrom("plants")
+          .whereRef("plants.device_id", "=", "devices.id")
+          .select((eb2) => eb2.fn.countAll().as("number_of_plants"))
+          .as("number_of_plants")
+      )
       .where("id", "=", device_id)
       .executeTakeFirst();
 
