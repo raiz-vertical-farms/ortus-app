@@ -18,7 +18,11 @@ function Page() {
 
   return (
     <Container
-      style={{ height: "100vh", display: "grid", placeItems: "center" }}
+      style={{
+        minHeight: "calc(100vh - 60px)",
+        display: "grid",
+        placeItems: "center",
+      }}
     >
       <Group direction="column" align="center" spacing="10">
         <Text size="2xl" align="center">

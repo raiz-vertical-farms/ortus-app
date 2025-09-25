@@ -63,11 +63,16 @@ export default function DeviceCard({
       to="/device/$id"
       params={{ id: id.toString() }}
     >
-      <Group align="center" spacing="5">
-        <Text size="lg">{name}</Text>
+      <Group direction="column" spacing="2">
         <Text size="sm" color="muted">
-          {statusDot} - {timeAgo}
+          {statusDot} {timeAgo}
         </Text>
+
+        <Group align="center">
+          <Text size="lg">{name}</Text>
+          <Text size="xs"> - {unique_id}</Text>
+        </Group>
+
         <Text size="sm" color="muted">
           {number_of_plants
             ? `${number_of_plants} plant(s)`

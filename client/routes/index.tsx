@@ -29,7 +29,11 @@ function Index() {
 
   return (
     <Container
-      style={{ height: "100vh", display: "grid", placeItems: "center" }}
+      style={{
+        minHeight: "calc(100vh - 60px)",
+        display: "grid",
+        placeItems: "center",
+      }}
     >
       <Group direction="column" align="center" spacing="5">
         {data?.devices.map((device) => {
