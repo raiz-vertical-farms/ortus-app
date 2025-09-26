@@ -3,12 +3,14 @@ import {
   checkIfBluetoothIsEnabled,
   scan,
   initializeBluetooth,
+  provisionDevice as provisionDeviceUtil,
   checkIfBluetoothIsSupported,
 } from "../utils/bluetooth";
 import { ScanResult } from "@capacitor-community/bluetooth-le";
 import { set } from "zod/v4";
 
 export function useBluetooth() {
+  const [isProvisioning, setIsProvisioning] = useState(false);
   const [devices, setDevices] = useState<ScanResult[]>([]);
   const [isSupported, setIsSupported] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
@@ -56,5 +58,29 @@ export function useBluetooth() {
     setIsScanning(false);
   }
 
-  return { startScan, isEnabled, devices, isSupported, isScanning };
+  async function provisionDevice(
+    deviceId: string,
+    ssid: string,
+    password: string
+  ) {
+    setIsProvisioning(true);
+    try {
+      await provisionDeviceUtil(deviceId, ssid, password);
+    } catch (error) {
+      console.error("Error provisioning device:", error);
+      throw error;
+    } finally {
+      setIsProvisioning(false);
+    }
+  }
+
+  return {
+    startScan,
+    isEnabled,
+    devices,
+    isSupported,
+    isScanning,
+    provisionDevice,
+    isProvisioning,
+  };
 }

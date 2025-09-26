@@ -8,6 +8,7 @@ import Modal from "../primitives/Modal/Modal";
 import { useState } from "react";
 import Input from "../primitives/Input/Input";
 import DeviceCard from "../components/DeviceCard/DeviceCard";
+import BluetoothDeviceCard from "../components/BluetoothDeviceCard/BluetoothDeviceCard";
 import { useBluetooth } from "../hooks/useBluetooth";
 
 export const Route = createFileRoute("/")({
@@ -18,8 +19,14 @@ function Index() {
   const [uniqueId, setUniqueId] = useState("");
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
+  const [openProvision, setOpenProvision] = useState(false);
+  const [provisioningDeviceId, setProvisioningDeviceId] = useState<
+    string | null
+  >(null);
+  const [ssid, setSsid] = useState("");
+  const [password, setPassword] = useState("");
 
-  const { isEnabled, startScan, devices, isSupported, isScanning } =
+  const { startScan, devices, isSupported, isScanning, provisionDevice } =
     useBluetooth();
 
   console.log("Is Bluetooth supported?", isSupported);
@@ -48,25 +55,14 @@ function Index() {
           <>
             <h2>Discovered Devices</h2>
             {devices.map((device) => (
-              <div
+              <BluetoothDeviceCard
                 key={device.device.deviceId}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  padding: "10px",
-                  marginBottom: "10px",
-                  width: "100%",
-                  maxWidth: "400px",
+                result={device}
+                onClick={() => {
+                  setProvisioningDeviceId(device.device.deviceId);
+                  setOpenProvision(true);
                 }}
-              >
-                <p>
-                  <strong>Name:</strong>{" "}
-                  {device.device.name || "Unknown Device"}
-                </p>
-                <p>
-                  <strong>ID:</strong> {device.device.deviceId}
-                </p>
-              </div>
+              />
             ))}
           </>
         )}
@@ -124,6 +120,44 @@ function Index() {
             }
           >
             Add
+          </Button>
+        </Group>
+      </Modal>
+      <Modal
+        open={openProvision}
+        onClose={() => setOpenProvision(false)}
+        title="Connect the Ortus to your WiFi network"
+      >
+        <Group direction="column" spacing="5">
+          <Input
+            full
+            onChange={(e) => setSsid(e.target.value)}
+            value={ssid}
+            label="WiFi SSID"
+            placeholder="MyWiFiNetwork"
+          />
+          <Input
+            full
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+            label="WiFi Password"
+            placeholder="••••••••"
+          />
+          <Button
+            full
+            onClick={async () => {
+              if (!provisioningDeviceId) return;
+
+              try {
+                await provisionDevice(provisioningDeviceId, ssid, password);
+                setOpenProvision(false);
+              } catch (error) {
+                console.error("Provisioning failed:", error);
+              }
+            }}
+          >
+            Provision
           </Button>
         </Group>
       </Modal>
