@@ -50,23 +50,23 @@ function Index() {
         placeItems: "center",
       }}
     >
-      <Group direction="column" align="center" spacing="5">
-        {devices.length > 0 && (
-          <>
-            <h2>Discovered Devices</h2>
-            {devices.map((device) => (
-              <BluetoothDeviceCard
-                key={device.device.deviceId}
-                result={device}
-                onClick={() => {
-                  setProvisioningDeviceId(device.device.deviceId);
-                  setOpenProvision(true);
-                }}
-              />
-            ))}
-          </>
-        )}
-      </Group>
+      {devices.length > 0 && (
+        <Group direction="column" align="center" spacing="5">
+          <h2>Discovered Devices</h2>
+
+          {devices.map((device) => (
+            <BluetoothDeviceCard
+              key={device.device.deviceId}
+              result={device}
+              onClick={() => {
+                setProvisioningDeviceId(device.device.deviceId);
+                setOpenProvision(true);
+              }}
+            />
+          ))}
+        </Group>
+      )}
+
       <Group direction="column" align="center" spacing="5">
         {data?.devices.map((device) => {
           if (!device.id) return null;
