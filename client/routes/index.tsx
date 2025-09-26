@@ -1,5 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Text } from "../primitives/Text/Text";
+import { createFileRoute } from "@tanstack/react-router";
 import Container from "../primitives/Container/Container";
 import Button from "../primitives/Button/Button";
 import { Group } from "../primitives/Group/Group";
@@ -8,8 +7,8 @@ import { apiClient } from "../lib/hono-client";
 import Modal from "../primitives/Modal/Modal";
 import { useState } from "react";
 import Input from "../primitives/Input/Input";
-import Box from "../primitives/Box/Box";
 import DeviceCard from "../components/DeviceCard/DeviceCard";
+import { useBluetooth } from "../hooks/useBluetooth";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -19,6 +18,11 @@ function Index() {
   const [uniqueId, setUniqueId] = useState("");
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
+
+  const { isEnabled, startScan, devices, isSupported, isScanning } =
+    useBluetooth();
+
+  console.log("Is Bluetooth supported?", isSupported);
 
   const { mutate: changeLight } = useMutation(
     apiClient.device[":id"].light[":lightId"].$post
@@ -40,6 +44,34 @@ function Index() {
       }}
     >
       <Group direction="column" align="center" spacing="5">
+        {devices.length > 0 && (
+          <>
+            <h2>Discovered Devices</h2>
+            {devices.map((device) => (
+              <div
+                key={device.device.deviceId}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  marginBottom: "10px",
+                  width: "100%",
+                  maxWidth: "400px",
+                }}
+              >
+                <p>
+                  <strong>Name:</strong>{" "}
+                  {device.device.name || "Unknown Device"}
+                </p>
+                <p>
+                  <strong>ID:</strong> {device.device.deviceId}
+                </p>
+              </div>
+            ))}
+          </>
+        )}
+      </Group>
+      <Group direction="column" align="center" spacing="5">
         {data?.devices.map((device) => {
           if (!device.id) return null;
 
@@ -54,10 +86,15 @@ function Index() {
             />
           );
         })}
-
-        <Button size="lg" full onClick={() => setOpen(true)}>
-          Add an Ortus
-        </Button>
+        {isSupported ? (
+          <Button size="lg" full onClick={startScan}>
+            {isScanning ? "Scanning..." : "Scan for Ortus devices"}
+          </Button>
+        ) : (
+          <Button size="lg" full onClick={() => setOpen(true)}>
+            Add an Ortus
+          </Button>
+        )}
       </Group>
       <Modal open={open} onClose={() => setOpen(false)} title="Add a new Ortus">
         <Group direction="column" spacing="5">
