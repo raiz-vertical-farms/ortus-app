@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import Button from "../primitives/Button/Button";
 import { Group } from "../primitives/Group/Group";
-import { useQuery } from "../hooks";
+import { useQuery } from "../hooks/useQuery";
 import { apiClient } from "../lib/hono-client";
 import DeviceCard from "../components/DeviceCard/DeviceCard";
 
