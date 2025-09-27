@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import Container from "../primitives/Container/Container";
 import Button from "../primitives/Button/Button";
 import { Group } from "../primitives/Group/Group";
@@ -8,32 +8,22 @@ import Modal from "../primitives/Modal/Modal";
 import { useState } from "react";
 import Input from "../primitives/Input/Input";
 import DeviceCard from "../components/DeviceCard/DeviceCard";
-import BluetoothDeviceCard from "../components/BluetoothDeviceCard/BluetoothDeviceCard";
-import { useBluetooth } from "../hooks/useBluetooth";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  staticData: {
+    layout: {
+      center: true,
+    },
+  },
 });
 
 function Index() {
+  const router = useRouter();
   const [uniqueId, setUniqueId] = useState("");
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
-  const [openProvision, setOpenProvision] = useState(false);
-  const [provisioningDeviceId, setProvisioningDeviceId] = useState<
-    string | null
-  >(null);
-  const [ssid, setSsid] = useState("");
-  const [password, setPassword] = useState("");
 
-  const { startScan, devices, isSupported, isScanning, provisionDevice } =
-    useBluetooth();
-
-  console.log("Is Bluetooth supported?", isSupported);
-
-  const { mutate: changeLight } = useMutation(
-    apiClient.device[":id"].light[":lightId"].$post
-  );
   const { mutate: createDevice } = useMutation(apiClient.device.create.$post);
 
   const { data, refetch } = useQuery(
@@ -43,30 +33,7 @@ function Index() {
   );
 
   return (
-    <Container
-      style={{
-        minHeight: "calc(100dvh - 60px)",
-        display: "grid",
-        placeItems: "center",
-      }}
-    >
-      {devices.length > 0 && (
-        <Group direction="column" align="center" spacing="5">
-          <h2>Discovered Devices</h2>
-
-          {devices.map((device) => (
-            <BluetoothDeviceCard
-              key={device.device.deviceId}
-              result={device}
-              onClick={() => {
-                setProvisioningDeviceId(device.device.deviceId);
-                setOpenProvision(true);
-              }}
-            />
-          ))}
-        </Group>
-      )}
-
+    <>
       <Group direction="column" align="center" spacing="5">
         {data?.devices.map((device) => {
           if (!device.id) return null;
@@ -82,15 +49,13 @@ function Index() {
             />
           );
         })}
-        {isSupported ? (
-          <Button size="lg" full onClick={startScan}>
-            {isScanning ? "Scanning..." : "Scan for Ortus devices"}
-          </Button>
-        ) : (
-          <Button size="lg" full onClick={() => setOpen(true)}>
-            Add an Ortus
-          </Button>
-        )}
+        <Button
+          size="lg"
+          full
+          onClick={() => router.navigate({ to: "/device/connect" })}
+        >
+          Connect to new Ortus
+        </Button>
       </Group>
       <Modal open={open} onClose={() => setOpen(false)} title="Add a new Ortus">
         <Group direction="column" spacing="5">
@@ -123,44 +88,6 @@ function Index() {
           </Button>
         </Group>
       </Modal>
-      <Modal
-        open={openProvision}
-        onClose={() => setOpenProvision(false)}
-        title="Connect the Ortus to your WiFi network"
-      >
-        <Group direction="column" spacing="5">
-          <Input
-            full
-            onChange={(e) => setSsid(e.target.value)}
-            value={ssid}
-            label="WiFi SSID"
-            placeholder="MyWiFiNetwork"
-          />
-          <Input
-            full
-            type="password"
-            onChange={(e) => setPassword(e.target.value)}
-            value={password}
-            label="WiFi Password"
-            placeholder="••••••••"
-          />
-          <Button
-            full
-            onClick={async () => {
-              if (!provisioningDeviceId) return;
-
-              try {
-                await provisionDevice(provisioningDeviceId, ssid, password);
-                setOpenProvision(false);
-              } catch (error) {
-                console.error("Provisioning failed:", error);
-              }
-            }}
-          >
-            Provision
-          </Button>
-        </Group>
-      </Modal>
-    </Container>
+    </>
   );
 }

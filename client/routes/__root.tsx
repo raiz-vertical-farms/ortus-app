@@ -1,4 +1,12 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  Link,
+  Outlet,
+  useMatch,
+  useMatches,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useCheckJWT } from "../hooks/useCheckJwt";
 import Container from "../primitives/Container/Container";
@@ -8,7 +16,7 @@ import { HouseSimpleIcon, UserCircleIcon } from "@phosphor-icons/react";
 function NavBar() {
   return (
     <Container>
-      <Group align="center" justify="between" style={{ height: 60 }}>
+      <Group align="center" justify="between" style={{ height: 100 }}>
         <Link to="/">
           <HouseSimpleIcon size={32} />
         </Link>
@@ -23,10 +31,22 @@ function NavBar() {
 function RootLayout() {
   const isvalid = useCheckJWT();
 
+  const match = useMatches({});
+
+  const isCentered = match.some((m) => m.staticData?.layout?.center);
+
   return (
     <div>
       {isvalid && <NavBar />}
-      <Outlet />
+      <Container
+        style={{
+          minHeight: "calc(100dvh - 100px)",
+          display: "grid",
+          placeItems: isCentered ? "center" : "unset",
+        }}
+      >
+        <Outlet />
+      </Container>
       <TanStackRouterDevtools />
     </div>
   );
