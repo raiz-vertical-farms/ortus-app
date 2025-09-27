@@ -6,6 +6,9 @@ import { Group } from "../primitives/Group/Group";
 
 export const Route = createFileRoute("/account")({
   component: Page,
+  staticData: {
+    layout: { center: true },
+  },
 });
 
 function Page() {
@@ -17,19 +20,11 @@ function Page() {
   }
 
   return (
-    <Container
-      style={{
-        minHeight: "calc(100dvh - 60px)",
-        display: "grid",
-        placeItems: "center",
-      }}
-    >
-      <Group direction="column" align="center" spacing="10">
-        <Text size="2xl" align="center">
-          Account page
-        </Text>
-        <Button onClick={handleLogout}>Logout</Button>
-      </Group>
-    </Container>
+    <Group direction="column" align="center" spacing="10">
+      <Text size="2xl" align="center">
+        Account page
+      </Text>
+      <Button onClick={handleLogout}>Logout</Button>
+    </Group>
   );
 }

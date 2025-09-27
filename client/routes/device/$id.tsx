@@ -1,6 +1,5 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { apiClient } from "../../lib/hono-client";
-import Container from "../../primitives/Container/Container";
 import { useQuery } from "../../hooks";
 import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
@@ -21,18 +20,16 @@ function RouteComponent() {
   });
 
   if (!data) {
-    return <Container>Loading...</Container>;
+    return "Loading...";
   }
 
   if (!data.success) {
-    return <Container>{data.error}</Container>;
+    return data.error;
   }
 
   return (
-    <Container>
-      <Box pt="10">
-        <Text size="xl"> {data.state.name}</Text>
-      </Box>
-    </Container>
+    <Box pt="10">
+      <Text size="xl"> {data.state.name}</Text>
+    </Box>
   );
 }

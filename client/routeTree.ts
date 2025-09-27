@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DeviceConnectRouteImport } from './routes/device/connect'
 import { Route as DeviceIdRouteImport } from './routes/device/$id'
 
 const SignupRoute = SignupRouteImport.update({
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeviceConnectRoute = DeviceConnectRouteImport.update({
+  id: '/device/connect',
+  path: '/device/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeviceIdRoute = DeviceIdRouteImport.update({
   id: '/device/$id',
   path: '/device/$id',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/signup': typeof SignupRoute
   '/device/$id': typeof DeviceIdRoute
+  '/device/connect': typeof DeviceConnectRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/signup': typeof SignupRoute
   '/device/$id': typeof DeviceIdRoute
+  '/device/connect': typeof DeviceConnectRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/signup': typeof SignupRoute
   '/device/$id': typeof DeviceIdRoute
+  '/device/connect': typeof DeviceConnectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/signup' | '/device/$id'
+  fullPaths: '/' | '/account' | '/signup' | '/device/$id' | '/device/connect'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/signup' | '/device/$id'
-  id: '__root__' | '/' | '/account' | '/signup' | '/device/$id'
+  to: '/' | '/account' | '/signup' | '/device/$id' | '/device/connect'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/signup'
+    | '/device/$id'
+    | '/device/connect'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +82,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   SignupRoute: typeof SignupRoute
   DeviceIdRoute: typeof DeviceIdRoute
+  DeviceConnectRoute: typeof DeviceConnectRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/device/connect': {
+      id: '/device/connect'
+      path: '/device/connect'
+      fullPath: '/device/connect'
+      preLoaderRoute: typeof DeviceConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/device/$id': {
       id: '/device/$id'
       path: '/device/$id'
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   SignupRoute: SignupRoute,
   DeviceIdRoute: DeviceIdRoute,
+  DeviceConnectRoute: DeviceConnectRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
