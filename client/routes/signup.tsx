@@ -13,6 +13,7 @@ import { apiClient } from "../lib/hono-client";
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
+  staticData: { layout: { center: true, hideNav: true } },
 });
 
 function Signup() {
@@ -46,49 +47,43 @@ function Signup() {
   console.log({ isLoggingIn, isSigningUp, loginError, signupError });
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-      <Container>
-        <Group direction="column" spacing="5">
-          <Box style={{ width: "100%" }} pb="10">
-            <Text size="4xl" align="center" color="strong">
-              Raiz.
-            </Text>
-            <Text size="xl" align="center" color="muted">
-              Get growing
-            </Text>
-          </Box>
+    <Group direction="column" spacing="5">
+      <Box style={{ width: "100%" }} pb="10">
+        <Text size="4xl" align="center" color="strong">
+          Raiz.
+        </Text>
+        <Text size="xl" align="center" color="muted">
+          Get growing
+        </Text>
+      </Box>
 
-          <Input
-            label="Email"
-            type="email"
-            full
-            onChange={(e) =>
-              setFormState((s) => ({ ...s, email: e.target.value }))
-            }
-            value={formState.email}
-            placeholder=""
-            inputSize="lg"
-          />
+      <Input
+        label="Email"
+        type="email"
+        full
+        onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
+        value={formState.email}
+        placeholder=""
+        inputSize="lg"
+      />
 
-          <Input
-            label="Password"
-            type="password"
-            full
-            onChange={(e) =>
-              setFormState((s) => ({ ...s, password: e.target.value }))
-            }
-            value={formState.password}
-            placeholder=""
-            inputSize="lg"
-          />
+      <Input
+        label="Password"
+        type="password"
+        full
+        onChange={(e) =>
+          setFormState((s) => ({ ...s, password: e.target.value }))
+        }
+        value={formState.password}
+        placeholder=""
+        inputSize="lg"
+      />
 
-          <Button size="lg" onClick={handleSignup} full>
-            Log In
-          </Button>
+      <Button size="lg" onClick={handleSignup} full>
+        Log In
+      </Button>
 
-          {signupError && <Text align="center">Try again...</Text>}
-        </Group>
-      </Container>
-    </div>
+      {signupError && <Text align="center">Try again...</Text>}
+    </Group>
   );
 }

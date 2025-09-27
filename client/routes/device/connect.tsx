@@ -9,6 +9,8 @@ import { useState } from "react";
 import { provisionDevice } from "../../utils/bluetooth";
 import { useBluetooth } from "../../hooks/useBluetooth";
 import { match } from "ts-pattern";
+import { useMutation } from "../../hooks";
+import { apiClient } from "../../lib/hono-client";
 
 export const Route = createFileRoute("/device/connect")({
   component: Page,
@@ -18,13 +20,23 @@ function Page() {
   const router = useRouter();
 
   const [deviceId, setDeviceId] = useState("");
-  const [view, setView] = useState<"main" | "provision">("main");
+  const [view, setView] = useState<"main" | "provision" | "save">("main");
 
   const { isSupported } = useBluetooth();
 
   return match({ view, isSupported })
     .with({ view: "main", isSupported: false }, () => (
-      <Text>Here we should have wifi provisioning option.</Text>
+      <>
+        <Text>Here we need WIFI provision setup explanation.</Text>
+        <button
+          onClick={() => {
+            setDeviceId("test-device-id");
+            setView("save");
+          }}
+        >
+          Add Test device
+        </button>
+      </>
     ))
     .with({ view: "main", isSupported: true }, () => (
       <FindDevice
@@ -43,6 +55,7 @@ function Page() {
         }}
       />
     ))
+    .with({ view: "save" }, () => <SaveDevice deviceId={deviceId} />)
     .exhaustive();
 }
 
@@ -123,13 +136,33 @@ function ProvisionDevice({
   );
 }
 
-function Success() {
+function SaveDevice({ deviceId }: { deviceId: string }) {
   const router = useRouter();
 
+  const [name, setName] = useState("");
+
+  const { mutate: createDevice } = useMutation(apiClient.device.create.$post);
+
+  function onCreateDevice() {
+    createDevice({
+      json: { name, unique_id: deviceId, organization_id: 1 },
+    }).then(() => {
+      router.navigate({ to: "/" });
+    });
+  }
+
   return (
-    <Group>
-      <Text>Device successfully provisioned!</Text>
-      <Button onClick={() => router.navigate({ to: "/" })}>Done</Button>
+    <Group direction="column" spacing="5">
+      <Input
+        full
+        onChange={(e) => setName(e.target.value)}
+        value={name}
+        label="Name"
+        placeholder="My Ortus"
+      />
+      <Button full onClick={onCreateDevice}>
+        Save
+      </Button>
     </Group>
   );
 }

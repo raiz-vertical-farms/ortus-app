@@ -29,15 +29,16 @@ function NavBar() {
 }
 
 function RootLayout() {
-  const isvalid = useCheckJWT();
+  useCheckJWT();
 
   const match = useMatches({});
 
   const isCentered = match.some((m) => m.staticData?.layout?.center);
+  const hideNav = match.some((m) => m.staticData?.layout?.hideNav);
 
   return (
     <div>
-      {isvalid && <NavBar />}
+      {!hideNav && <NavBar />}
       <Container
         style={{
           minHeight: "calc(100dvh - 100px)",
@@ -45,7 +46,9 @@ function RootLayout() {
           placeItems: isCentered ? "center" : "unset",
         }}
       >
-        <Outlet />
+        <div style={{ width: "100%" }}>
+          <Outlet />
+        </div>
       </Container>
       <TanStackRouterDevtools />
     </div>

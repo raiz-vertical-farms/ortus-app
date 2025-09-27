@@ -17,6 +17,7 @@ declare module "@tanstack/react-router" {
   interface StaticDataRouteOption {
     layout?: {
       center?: boolean;
+      hideNav?: boolean;
     };
   }
 }
