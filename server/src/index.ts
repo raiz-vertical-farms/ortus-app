@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
+import { openAPIRouteHandler } from "hono-openapi";
 import "dotenv/config";
 import routes from "./routes";
 
@@ -14,6 +15,19 @@ app.use(
     origin: "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+app.get(
+  "/openapi.json",
+  openAPIRouteHandler(routes, {
+    documentation: {
+      info: {
+        title: "Raiz API",
+        version: "1.0.0",
+        description: "API for the Raiz platform",
+      },
+    },
   })
 );
 

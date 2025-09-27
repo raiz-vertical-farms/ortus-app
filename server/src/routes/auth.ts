@@ -1,20 +1,59 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import * as z from "zod";
 import { db } from "../db";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import { generateToken } from "../utils/jwt";
 
+const credentialsSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const authSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  jwt: z.string(),
+});
+
+const authErrorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.string(),
+});
+
 const auth = new Hono()
   .post(
     "/login",
-    zValidator(
-      "json",
-      z.object({
-        email: z.string().email("Invalid email address"),
-        password: z.string().min(6, "Password must be at least 6 characters"),
-      })
-    ),
+    describeRoute({
+      summary: "Authenticate an existing user",
+      tags: ["Auth"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: resolver(credentialsSchema),
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "Successful login",
+          content: {
+            "application/json": {
+              schema: resolver(authSuccessResponseSchema),
+            },
+          },
+        },
+        401: {
+          description: "Invalid credentials",
+          content: {
+            "application/json": {
+              schema: resolver(authErrorResponseSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator("json", credentialsSchema),
     async (c) => {
       const { email, password } = c.req.valid("json");
 
@@ -49,13 +88,37 @@ const auth = new Hono()
   )
   .post(
     "/signup",
-    zValidator(
-      "json",
-      z.object({
-        email: z.string().email("Invalid email address"),
-        password: z.string().min(6, "Password must be at least 6 characters"),
-      })
-    ),
+    describeRoute({
+      summary: "Register a new user",
+      tags: ["Auth"],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: resolver(credentialsSchema),
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "User created or already existed with matching password",
+          content: {
+            "application/json": {
+              schema: resolver(authSuccessResponseSchema),
+            },
+          },
+        },
+        400: {
+          description: "User already exists with a different password",
+          content: {
+            "application/json": {
+              schema: resolver(authErrorResponseSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator("json", credentialsSchema),
     async (c) => {
       const { email, password } = c.req.valid("json");
 
