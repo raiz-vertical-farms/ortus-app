@@ -14,6 +14,13 @@ import { getErrorMessage } from "../../utils/error";
 
 export const Route = createFileRoute("/device/connect")({
   component: Page,
+  staticData: {
+    layout: {
+      pageTitle: "Connect to Ortus",
+      hideNav: true,
+      closeButton: true,
+    },
+  },
 });
 
 function Page() {

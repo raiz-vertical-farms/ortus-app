@@ -14,6 +14,7 @@ import {
   HouseSimpleIcon,
   PlantIcon,
   UserCircleIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import { Text } from "../primitives/Text/Text";
 
@@ -62,6 +63,7 @@ function RootLayout() {
   const isCentered = match.some((m) => getLayout(m)?.center);
   const hideNav = match.some((m) => getLayout(m)?.hideNav);
   const backButton = match.some((m) => getLayout(m)?.backButton);
+  const closeButton = match.some((m) => getLayout(m)?.closeButton);
   const pageTitle = match.find((m) => getLayout(m)?.pageTitle)
     ? getLayout(match.find((m) => getLayout(m)?.pageTitle)!)?.pageTitle
     : undefined;
@@ -88,7 +90,19 @@ function RootLayout() {
                 <div style={{ width: 24 }} />
               )}
               <Text size="lg">{pageTitle ? pageTitle : ""}</Text>
-              <div style={{ width: 32 }} />
+              {closeButton ? (
+                <XIcon
+                  size={24}
+                  onClick={() =>
+                    router.navigate({
+                      to: "/",
+                      viewTransition: { types: ["slide-down"] },
+                    })
+                  }
+                />
+              ) : (
+                <div style={{ width: 24 }} />
+              )}
             </Group>
           </Container>
         </header>
