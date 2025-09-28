@@ -19,6 +19,8 @@ declare module "@tanstack/react-router" {
     layout?: {
       center?: boolean;
       hideNav?: boolean;
+      pageTitle?: string;
+      backButton?: boolean;
     };
   }
 }
