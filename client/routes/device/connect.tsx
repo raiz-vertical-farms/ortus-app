@@ -24,39 +24,43 @@ function Page() {
 
   const { isSupported } = useBluetooth();
 
-  return match({ view, isSupported })
-    .with({ view: "main", isSupported: false }, () => (
-      <>
-        <Text>Here we need WIFI provision setup explanation.</Text>
-        <button
-          onClick={() => {
-            setDeviceId("test-device-id");
-            setView("save");
-          }}
-        >
-          Add Test device
-        </button>
-      </>
-    ))
-    .with({ view: "main", isSupported: true }, () => (
-      <FindDevice
-        onDeviceSelected={(deviceId) => {
-          setDeviceId(deviceId);
-          setView("provision");
-        }}
-      />
-    ))
-    .with({ view: "provision" }, () => (
-      <ProvisionDevice
-        deviceId={deviceId}
-        onSuccess={() => {
-          setView("main");
-          router.navigate({ to: "/" });
-        }}
-      />
-    ))
-    .with({ view: "save" }, () => <SaveDevice deviceId={deviceId} />)
-    .exhaustive();
+  return (
+    <div style={{ viewTransitionName: "main-content" }}>
+      {match({ view, isSupported })
+        .with({ view: "main", isSupported: false }, () => (
+          <div>
+            <Text>Here we need WIFI provision setup explanation.</Text>
+            <button
+              onClick={() => {
+                setDeviceId("test-device-id");
+                setView("save");
+              }}
+            >
+              Add Test device
+            </button>
+          </div>
+        ))
+        .with({ view: "main", isSupported: true }, () => (
+          <FindDevice
+            onDeviceSelected={(deviceId) => {
+              setDeviceId(deviceId);
+              setView("provision");
+            }}
+          />
+        ))
+        .with({ view: "provision" }, () => (
+          <ProvisionDevice
+            deviceId={deviceId}
+            onSuccess={() => {
+              setView("main");
+              router.navigate({ to: "/" });
+            }}
+          />
+        ))
+        .with({ view: "save" }, () => <SaveDevice deviceId={deviceId} />)
+        .exhaustive()}
+    </div>
+  );
 }
 
 function FindDevice({

@@ -27,7 +27,7 @@ function NavBar() {
           spacing="32"
           style={{ height: 100 }}
         >
-          <Link to="/">
+          <Link to="/" viewTransition={{ types: ["slide-right"] }}>
             {({ isActive }) => (
               <PlantIcon
                 color={isActive ? "var(--color-primary)" : "currentColor"}
@@ -35,7 +35,7 @@ function NavBar() {
               />
             )}
           </Link>
-          <Link to="/account">
+          <Link to="/account" viewTransition={{ types: ["slide-left"] }}>
             {({ isActive }) => (
               <UserCircleIcon
                 color={isActive ? "var(--color-primary)" : "currentColor"}
@@ -81,14 +81,9 @@ function RootLayout() {
           <Container>
             <Group justify="between" align="center">
               {backButton ? (
-                <a
-                  onClick={(e) => {
-                    e.preventDefault();
-                    router.history.back();
-                  }}
-                >
+                <Link to="/" viewTransition={{ types: ["slide-right"] }}>
                   <ArrowLeftIcon size={24} />
-                </a>
+                </Link>
               ) : (
                 <div style={{ width: 24 }} />
               )}
@@ -102,8 +97,6 @@ function RootLayout() {
         style={{
           height: showHeader ? "calc(100dvh - 200px)" : "calc(100dvh - 100px)",
           overflow: "auto",
-          display: "grid",
-          placeItems: isCentered ? "center" : "unset",
         }}
       >
         <div style={{ width: "100%" }}>

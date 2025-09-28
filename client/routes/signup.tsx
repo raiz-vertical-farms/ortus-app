@@ -10,7 +10,7 @@ import { getErrorMessage } from "../utils/error";
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
-  staticData: { layout: { center: true, hideNav: true } },
+  staticData: { layout: { hideNav: true } },
 });
 
 function Signup() {
@@ -35,45 +35,49 @@ function Signup() {
   console.log("Signup error", signupError);
 
   return (
-    <Group direction="column" spacing="5">
-      <Box style={{ width: "100%" }} pb="10">
-        <Text size="4xl" align="center" color="strong">
-          Raiz.
-        </Text>
-        <Text size="xl" align="center" color="muted">
-          Get growing
-        </Text>
-      </Box>
+    <div style={{ height: "100dvh", display: "grid", placeItems: "center" }}>
+      <Group direction="column" spacing="5">
+        <Box style={{ width: "100%" }} pb="10">
+          <Text size="4xl" align="center" color="strong">
+            Raiz.
+          </Text>
+          <Text size="xl" align="center" color="muted">
+            Get growing
+          </Text>
+        </Box>
 
-      <Input
-        label="Email"
-        type="email"
-        full
-        onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
-        value={formState.email}
-        placeholder=""
-        inputSize="lg"
-      />
+        <Input
+          label="Email"
+          type="email"
+          full
+          onChange={(e) =>
+            setFormState((s) => ({ ...s, email: e.target.value }))
+          }
+          value={formState.email}
+          placeholder=""
+          inputSize="lg"
+        />
 
-      <Input
-        label="Password"
-        type="password"
-        full
-        onChange={(e) =>
-          setFormState((s) => ({ ...s, password: e.target.value }))
-        }
-        value={formState.password}
-        placeholder=""
-        inputSize="lg"
-      />
+        <Input
+          label="Password"
+          type="password"
+          full
+          onChange={(e) =>
+            setFormState((s) => ({ ...s, password: e.target.value }))
+          }
+          value={formState.password}
+          placeholder=""
+          inputSize="lg"
+        />
 
-      <Button size="lg" onClick={() => signup({ ...formState })} full>
-        Log In
-      </Button>
+        <Button size="lg" onClick={() => signup({ ...formState })} full>
+          Log In
+        </Button>
 
-      {signupError ? (
-        <Text align="center">{getErrorMessage(signupError)}</Text>
-      ) : null}
-    </Group>
+        {signupError ? (
+          <Text align="center">{getErrorMessage(signupError)}</Text>
+        ) : null}
+      </Group>
+    </div>
   );
 }

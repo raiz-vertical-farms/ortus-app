@@ -47,6 +47,7 @@ export default function DeviceCard({
       className={styles.card}
       key={id}
       to="/device/$id"
+      viewTransition={{ types: ["slide-left"] }}
       params={{ id: id.toString() }}
     >
       <Group direction="column" spacing="2">
