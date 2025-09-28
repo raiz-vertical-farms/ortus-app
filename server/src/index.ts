@@ -36,22 +36,21 @@ app.route("/", routes);
 
 if (process.env.NODE_ENV !== "production") {
   serve({ fetch: app.fetch, port: 3000 });
+  generateSpecs(app, {
+    documentation: {
+      info: {
+        title: "Raiz API",
+        version: "1.0.0",
+        description: "API for the Raiz platform",
+      },
+    },
+  }).then((specs) => {
+    fs.writeFileSync("../client/openapi.json", JSON.stringify(specs, null, 2));
+    console.log("Generated OpenAPI specs:");
+  });
 }
 
 export default app;
-
-generateSpecs(app, {
-  documentation: {
-    info: {
-      title: "Raiz API",
-      version: "1.0.0",
-      description: "API for the Raiz platform",
-    },
-  },
-}).then((specs) => {
-  fs.writeFileSync("../client/openapi.json", JSON.stringify(specs, null, 2));
-  console.log("Generated OpenAPI specs:");
-});
 
 export const config = {
   runtime: "nodejs20",
