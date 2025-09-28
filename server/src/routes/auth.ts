@@ -107,7 +107,7 @@ const auth = new Hono()
         }
 
         throw new HTTPException(400, {
-          res: c.json({ message: "User already exists" }, 400),
+          res: c.json({ message: "Wrong password." }, 400),
         });
       }
 
