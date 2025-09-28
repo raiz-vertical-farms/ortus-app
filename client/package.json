@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run codegen && vite dev",
-    "build": "vite build",
+    "build": "npm run codegen && vite build",
     "iphone": "VITE_BACKEND_URL=https://ortus-pi.vercel.app npm run build && npx cap sync ios && npx cap open ios",
     "codegen": "openapi-qraft --plugin tanstack-query-react --plugin openapi-typescript ./openapi.json --output-dir api"
   },
