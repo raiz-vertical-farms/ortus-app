@@ -1,30 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { apiClient } from "../../lib/hono-client";
-import { useQuery } from "../../hooks";
+import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
+import { client } from "../../lib/apiClient";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
-  loader: async ({ params }) => {
-    console.log("Loader for /device/$id", params);
-    return apiClient.device[":id"].state.$get({ param: { id: params.id } });
-  },
 });
 
 function RouteComponent() {
   const { id } = Route.useParams();
 
-  const { data } = useQuery(apiClient.device[":id"].state.$get, {
-    param: { id },
+  const { data, error, isLoading } = client.api.deviceState.useQuery({
+    path: { id },
   });
 
-  if (!data) {
+  if (isLoading || !data) {
     return "Loading...";
   }
 
-  if (!data.success) {
-    return data.error;
+  if (error) {
+    return getErrorMessage(error);
   }
 
   return (

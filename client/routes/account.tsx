@@ -1,6 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Text } from "../primitives/Text/Text";
-import Container from "../primitives/Container/Container";
 import Button from "../primitives/Button/Button";
 import { Group } from "../primitives/Group/Group";
 

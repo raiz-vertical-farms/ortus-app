@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "npm run codegen && tsx ./src/index.ts",
     "build": "npm run codegen && npm run compile",
-    "codegen": "kysely-codegen --out-file ./src/db/types.ts --dialect sqlite",
+    "codegen": "npm run codegen:kysely",
+    "codegen:kysely": "kysely-codegen --out-file ./src/db/types.ts --dialect sqlite",
     "compile": "pkgroll",
     "deploy": "npm run migrate && npm run build",
     "migrate": "tsx ./src/scripts/migrate.ts db.sqlite ./src/migrations"

@@ -17,23 +17,15 @@ const plantSchema = z.object({
 });
 
 const createPlantResponseSchema = z.object({
-  success: z.literal(true),
   plant: plantSchema,
 });
 
 const plants = new Hono().post(
   "/plant/create",
   describeRoute({
+    operationId: "createPlant",
     summary: "Create a new plant",
     tags: ["Plants"],
-    requestBody: {
-      required: true,
-      content: {
-        "application/json": {
-          schema: resolver(createPlantRequestSchema),
-        },
-      },
-    },
     responses: {
       200: {
         description: "Plant created",
@@ -61,7 +53,7 @@ const plants = new Hono().post(
       .returning(["id", "device_id", "plant_type_id", "location"])
       .executeTakeFirstOrThrow();
 
-    return c.json({ success: true, plant });
+    return c.json({ plant });
   }
 );
 

@@ -2,10 +2,7 @@ import {
   createRootRoute,
   Link,
   Outlet,
-  useMatch,
   useMatches,
-  useRouter,
-  useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useCheckJWT } from "../hooks/useCheckJwt";

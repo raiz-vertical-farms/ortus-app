@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { z } from "zod";
 import { mqttClient } from "../services/mqtt";
@@ -17,13 +18,11 @@ const deviceSummarySchema = z.object({
 });
 
 const createDeviceResponseSchema = z.object({
-  success: z.literal(true),
   device: deviceSummarySchema,
 });
 
-const deviceErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string(),
+const errorResponseSchema = z.object({
+  message: z.string(),
 });
 
 const switchCommandRequestSchema = z.object({
@@ -31,7 +30,6 @@ const switchCommandRequestSchema = z.object({
 });
 
 const commandSuccessResponseSchema = z.object({
-  success: z.literal(true),
   message: z.string(),
 });
 
@@ -66,14 +64,12 @@ const deviceStateSchema = z.object({
 });
 
 const deviceStateResponseSchema = z.object({
-  success: z.literal(true),
   state: deviceStateSchema,
 });
 
 const deviceListItemSchema = deviceStateSchema.omit({ number_of_plants: true });
 
 const deviceListResponseSchema = z.object({
-  success: z.literal(true),
   devices: z.array(deviceListItemSchema),
 });
 
@@ -81,16 +77,9 @@ const app = new Hono()
   .post(
     "/create",
     describeRoute({
+      operationId: "createDevice",
       summary: "Register a new device",
       tags: ["Devices"],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: resolver(createDeviceRequestSchema),
-          },
-        },
-      },
       responses: {
         200: {
           description: "Device created",
@@ -113,52 +102,21 @@ const app = new Hono()
         .returning(["id", "name", "organization_id"])
         .executeTakeFirstOrThrow();
 
-      return c.json({ success: true, device });
+      return c.json({ device });
     }
   )
   .post(
     "/:id/switch/:switchId",
     describeRoute({
+      operationId: "deviceSwitch",
       summary: "Send a switch command to a device",
       tags: ["Devices"],
-      parameters: [
-        {
-          in: "path",
-          name: "id",
-          required: true,
-          schema: { type: "string" },
-          description: "Device identifier",
-        },
-        {
-          in: "path",
-          name: "switchId",
-          required: true,
-          schema: { type: "string" },
-          description: "Switch channel identifier",
-        },
-      ],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: resolver(switchCommandRequestSchema),
-          },
-        },
-      },
       responses: {
         200: {
           description: "Command enqueued",
           content: {
             "application/json": {
               schema: resolver(commandSuccessResponseSchema),
-            },
-          },
-        },
-        400: {
-          description: "Invalid device identifier",
-          content: {
-            "application/json": {
-              schema: resolver(deviceErrorResponseSchema),
             },
           },
         },
@@ -171,7 +129,9 @@ const app = new Hono()
       const { state } = c.req.valid("json");
 
       if (isNaN(device_id)) {
-        return c.json({ success: false, error: "Invalid device ID" }, 400);
+        throw new HTTPException(400, {
+          res: c.json({ message: "Invalid device ID" }, 400),
+        });
       }
 
       const topic = `${device_id}/switch/${switchId}/command`;
@@ -187,7 +147,6 @@ const app = new Hono()
       });
 
       return c.json({
-        success: true,
         message: `Switch ${switchId} set to ${state}`,
       });
     }
@@ -195,46 +154,15 @@ const app = new Hono()
   .post(
     "/:id/light/:lightId",
     describeRoute({
+      operationId: "deviceLight",
       summary: "Send a light command to a device",
       tags: ["Devices"],
-      parameters: [
-        {
-          in: "path",
-          name: "id",
-          required: true,
-          schema: { type: "string" },
-          description: "Device identifier",
-        },
-        {
-          in: "path",
-          name: "lightId",
-          required: true,
-          schema: { type: "string" },
-          description: "Light channel identifier",
-        },
-      ],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: resolver(lightCommandRequestSchema),
-          },
-        },
-      },
       responses: {
         200: {
           description: "Command enqueued",
           content: {
             "application/json": {
               schema: resolver(lightCommandResponseSchema),
-            },
-          },
-        },
-        400: {
-          description: "Invalid device identifier",
-          content: {
-            "application/json": {
-              schema: resolver(deviceErrorResponseSchema),
             },
           },
         },
@@ -247,7 +175,9 @@ const app = new Hono()
       const { state, brightness } = c.req.valid("json");
 
       if (isNaN(device_id)) {
-        return c.json({ success: false, error: "Invalid device ID" }, 400);
+        throw new HTTPException(400, {
+          res: c.json({ message: "Invalid device ID" }, 400),
+        });
       }
 
       const topic = `${device_id}/light/${lightId}/command`;
@@ -277,7 +207,6 @@ const app = new Hono()
       });
 
       return c.json({
-        success: true,
         message: `Light command sent`,
         payload,
       });
@@ -286,46 +215,15 @@ const app = new Hono()
   .post(
     "/:id/number/:numberId",
     describeRoute({
+      operationId: "deviceNumber",
       summary: "Send a numeric command to a device",
       tags: ["Devices"],
-      parameters: [
-        {
-          in: "path",
-          name: "id",
-          required: true,
-          schema: { type: "string" },
-          description: "Device identifier",
-        },
-        {
-          in: "path",
-          name: "numberId",
-          required: true,
-          schema: { type: "string" },
-          description: "Numeric channel identifier",
-        },
-      ],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: resolver(numberCommandRequestSchema),
-          },
-        },
-      },
       responses: {
         200: {
           description: "Command enqueued",
           content: {
             "application/json": {
               schema: resolver(numberCommandResponseSchema),
-            },
-          },
-        },
-        400: {
-          description: "Invalid device identifier",
-          content: {
-            "application/json": {
-              schema: resolver(deviceErrorResponseSchema),
             },
           },
         },
@@ -338,7 +236,9 @@ const app = new Hono()
       const { value } = c.req.valid("json");
 
       if (isNaN(device_id)) {
-        return c.json({ success: false, error: "Invalid device ID" }, 400);
+        throw new HTTPException(400, {
+          res: c.json({ message: "Invalid device ID" }, 400),
+        });
       }
 
       const topic = `${device_id}/number/${numberId}/command`;
@@ -346,7 +246,6 @@ const app = new Hono()
       mqttClient.publish(topic, String(value));
 
       return c.json({
-        success: true,
         message: `Number ${numberId} updated`,
         value,
       });
@@ -355,17 +254,9 @@ const app = new Hono()
   .get(
     "/:id/state",
     describeRoute({
+      operationId: "deviceState",
       summary: "Retrieve the latest state for a specific device",
       tags: ["Devices"],
-      parameters: [
-        {
-          in: "path",
-          name: "id",
-          required: true,
-          schema: { type: "string" },
-          description: "Device identifier",
-        },
-      ],
       responses: {
         200: {
           description: "Device state",
@@ -375,29 +266,15 @@ const app = new Hono()
             },
           },
         },
-        400: {
-          description: "Invalid device identifier",
-          content: {
-            "application/json": {
-              schema: resolver(deviceErrorResponseSchema),
-            },
-          },
-        },
-        404: {
-          description: "Device not found",
-          content: {
-            "application/json": {
-              schema: resolver(deviceErrorResponseSchema),
-            },
-          },
-        },
       },
     }),
     async (c) => {
       const device_id = Number(c.req.param("id"));
 
       if (isNaN(device_id)) {
-        return c.json({ success: false, error: "Invalid device ID" }, 400);
+        throw new HTTPException(400, {
+          res: c.json({ message: "Invalid device ID" }, 400),
+        });
       }
 
       const device = await db
@@ -424,11 +301,12 @@ const app = new Hono()
         .executeTakeFirst();
 
       if (!device) {
-        return c.json({ success: false, error: "Device not found" }, 404);
+        throw new HTTPException(404, {
+          res: c.json({ message: "Device not found" }, 404),
+        });
       }
 
       return c.json({
-        success: true,
         state: device,
       });
     }
@@ -436,6 +314,7 @@ const app = new Hono()
   .get(
     "/devices",
     describeRoute({
+      operationId: "allDevices",
       summary: "List devices",
       tags: ["Devices"],
       responses: {
@@ -466,7 +345,6 @@ const app = new Hono()
         .execute();
 
       return c.json({
-        success: true,
         devices,
       });
     }

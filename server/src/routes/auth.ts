@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import * as z from "zod";
 import { db } from "../db";
@@ -11,43 +12,26 @@ const credentialsSchema = z.object({
 });
 
 const authSuccessResponseSchema = z.object({
-  success: z.literal(true),
   jwt: z.string(),
 });
 
 const authErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string(),
+  message: z.string(),
 });
 
 const auth = new Hono()
   .post(
     "/login",
     describeRoute({
+      operationId: "login",
       summary: "Authenticate an existing user",
       tags: ["Auth"],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: resolver(credentialsSchema),
-          },
-        },
-      },
       responses: {
         200: {
           description: "Successful login",
           content: {
             "application/json": {
               schema: resolver(authSuccessResponseSchema),
-            },
-          },
-        },
-        401: {
-          description: "Invalid credentials",
-          content: {
-            "application/json": {
-              schema: resolver(authErrorResponseSchema),
             },
           },
         },
@@ -64,10 +48,9 @@ const auth = new Hono()
         .executeTakeFirst();
 
       if (!user) {
-        return c.json(
-          { success: false, error: "Invalid email or password" },
-          401
-        );
+        throw new HTTPException(401, {
+          res: c.json({ message: "Invalid email or password" }, 401),
+        });
       }
 
       const isPasswordValid = verifyPassword(
@@ -77,42 +60,26 @@ const auth = new Hono()
       );
 
       if (!isPasswordValid) {
-        return c.json(
-          { success: false, error: "Invalid email or password" },
-          401
-        );
+        throw new HTTPException(401, {
+          res: c.json({ message: "Invalid email or password" }, 401),
+        });
       }
 
-      return c.json({ success: true, jwt: generateToken({ email }) });
+      return c.json({ jwt: generateToken({ email }) });
     }
   )
   .post(
     "/signup",
     describeRoute({
+      operationId: "signup",
       summary: "Register a new user",
       tags: ["Auth"],
-      requestBody: {
-        required: true,
-        content: {
-          "application/json": {
-            schema: resolver(credentialsSchema),
-          },
-        },
-      },
       responses: {
         200: {
           description: "User created or already existed with matching password",
           content: {
             "application/json": {
               schema: resolver(authSuccessResponseSchema),
-            },
-          },
-        },
-        400: {
-          description: "User already exists with a different password",
-          content: {
-            "application/json": {
-              schema: resolver(authErrorResponseSchema),
             },
           },
         },
@@ -126,7 +93,7 @@ const auth = new Hono()
         .selectFrom("users")
         .selectAll()
         .where("email", "=", email)
-        .executeTakeFirst();
+        .executeTakeFirstOrThrow();
 
       if (existingUser) {
         const passwordMatch = verifyPassword(
@@ -136,10 +103,12 @@ const auth = new Hono()
         );
 
         if (passwordMatch) {
-          return c.json({ success: true, jwt: generateToken({ email }) });
+          return c.json({ jwt: generateToken({ email }) });
         }
 
-        return c.json({ error: "User already exists", success: false }, 400);
+        throw new HTTPException(400, {
+          res: c.json({ message: "User already exists" }, 400),
+        });
       }
 
       const { hash, salt } = hashPassword(password);
@@ -178,7 +147,7 @@ const auth = new Hono()
           .execute();
       });
 
-      return c.json({ success: true, jwt: generateToken({ email }) });
+      return c.json({ jwt: generateToken({ email }) });
     }
   );
 
