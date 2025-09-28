@@ -1,15 +1,12 @@
-import { hc } from "hono/client";
-import type { AppType } from "../../server";
-import { useMutation } from "../hooks/index";
 import { useRouter, createFileRoute } from "@tanstack/react-router";
 import Input from "../primitives/Input/Input";
-import Container from "../primitives/Container/Container";
 import Button from "../primitives/Button/Button";
 import { Group } from "../primitives/Group/Group";
 import { Text } from "../primitives/Text/Text";
 import Box from "../primitives/Box/Box";
 import { useState } from "react";
-import { apiClient } from "../lib/hono-client";
+import { client } from "../lib/apiClient";
+import { getErrorMessage } from "../utils/error";
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
@@ -22,29 +19,20 @@ function Signup() {
   const [formState, setFormState] = useState({ email: "", password: "" });
 
   const {
-    mutate: login,
-    loading: isLoggingIn,
-    error: loginError,
-  } = useMutation(apiClient.auth.login.$post);
-
-  const {
     mutate: signup,
-    loading: isSigningUp,
+    isPending: isSigningUp,
     error: signupError,
-  } = useMutation(apiClient.auth.signup.$post);
-
-  function handleSignup() {
-    signup({ json: formState }).then((res) => {
-      if (res.success) {
+  } = client.api.signup.useMutation(
+    {},
+    {
+      onSuccess: (res) => {
         localStorage.setItem("token", res.jwt);
         router.navigate({ to: "/" });
-      } else {
-        console.error("Signup failed:", res);
-      }
-    });
-  }
+      },
+    }
+  );
 
-  console.log({ isLoggingIn, isSigningUp, loginError, signupError });
+  console.log("Signup error", signupError);
 
   return (
     <Group direction="column" spacing="5">
@@ -79,11 +67,13 @@ function Signup() {
         inputSize="lg"
       />
 
-      <Button size="lg" onClick={handleSignup} full>
+      <Button size="lg" onClick={() => signup({ ...formState })} full>
         Log In
       </Button>
 
-      {signupError && <Text align="center">Try again...</Text>}
+      {signupError ? (
+        <Text align="center">{getErrorMessage(signupError)}</Text>
+      ) : null}
     </Group>
   );
 }

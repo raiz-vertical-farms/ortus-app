@@ -1,0 +1,712 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Raiz API",
+    "description": "API for the Raiz platform",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "operationId": "login",
+        "summary": "Authenticate an existing user",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jwt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "jwt"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "operationId": "signup",
+        "summary": "Register a new user",
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "User created or already existed with matching password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jwt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "jwt"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/plant/plant/create": {
+      "post": {
+        "operationId": "createPlant",
+        "summary": "Create a new plant",
+        "tags": [
+          "Plants"
+        ],
+        "responses": {
+          "200": {
+            "description": "Plant created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plant": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "device_id": {
+                          "type": "number"
+                        },
+                        "plant_type_id": {
+                          "type": "number"
+                        },
+                        "location": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "device_id",
+                        "plant_type_id",
+                        "location"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "plant"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "device_id": {
+                    "type": "number"
+                  },
+                  "plant_type_id": {
+                    "type": "number"
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "device_id",
+                  "plant_type_id",
+                  "location"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/create": {
+      "post": {
+        "operationId": "createDevice",
+        "summary": "Register a new device",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Device created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "device": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "organization_id": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "organization_id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "device"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "unique_id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "organization_id": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "unique_id",
+                  "name",
+                  "organization_id"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/{id}/switch/{switchId}": {
+      "post": {
+        "operationId": "deviceSwitch",
+        "summary": "Send a switch command to a device",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command enqueued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "ON",
+                      "OFF"
+                    ]
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "switchId",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/light/{lightId}": {
+      "post": {
+        "operationId": "deviceLight",
+        "summary": "Send a light command to a device",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command enqueued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "payload": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "ON",
+                            "OFF"
+                          ]
+                        },
+                        "brightness": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "payload"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "ON",
+                      "OFF"
+                    ]
+                  },
+                  "brightness": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "lightId",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/number/{numberId}": {
+      "post": {
+        "operationId": "deviceNumber",
+        "summary": "Send a numeric command to a device",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Command enqueued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "value"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "numberId",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/state": {
+      "get": {
+        "operationId": "deviceState",
+        "summary": "Retrieve the latest state for a specific device",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Device state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "unique_id": {
+                          "type": "string"
+                        },
+                        "organization_id": {
+                          "type": "number"
+                        },
+                        "online": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_seen": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "switch_state": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "light_state": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "light_brightness": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "number_of_plants": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "unique_id",
+                        "organization_id",
+                        "online",
+                        "last_seen",
+                        "switch_state",
+                        "light_state",
+                        "light_brightness",
+                        "number_of_plants"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "state"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/devices": {
+      "get": {
+        "operationId": "allDevices",
+        "summary": "List devices",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "devices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "unique_id": {
+                            "type": "string"
+                          },
+                          "organization_id": {
+                            "type": "number"
+                          },
+                          "online": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_seen": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "switch_state": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "light_state": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "light_brightness": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "unique_id",
+                          "organization_id",
+                          "online",
+                          "last_seen",
+                          "switch_state",
+                          "light_state",
+                          "light_brightness"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "devices"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {}
+}

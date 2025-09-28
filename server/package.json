@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "npm run codegen && tsx ./src/index.ts",
     "build": "npm run codegen && npm run compile",
-    "codegen": "kysely-codegen --out-file ./src/db/types.ts --dialect sqlite",
+    "codegen": "npm run codegen:kysely",
+    "codegen:kysely": "kysely-codegen --out-file ./src/db/types.ts --dialect sqlite",
     "compile": "pkgroll",
     "deploy": "npm run migrate && npm run build",
     "migrate": "tsx ./src/scripts/migrate.ts db.sqlite ./src/migrations"
@@ -29,6 +30,7 @@
   "description": "",
   "dependencies": {
     "@hono/node-server": "^1.17.1",
+    "@hono/standard-validator": "^0.1.5",
     "@hono/vite-build": "^1.6.2",
     "@hono/vite-dev-server": "^0.20.0",
     "@hono/zod-validator": "^0.7.2",
@@ -39,6 +41,7 @@
     "better-sqlite3": "^12.2.0",
     "dotenv": "^17.2.1",
     "hono": "^4.8.4",
+    "hono-openapi": "^1.0.8",
     "jsonwebtoken": "^9.0.2",
     "kysely": "^0.28.7",
     "mqtt": "^5.14.1",

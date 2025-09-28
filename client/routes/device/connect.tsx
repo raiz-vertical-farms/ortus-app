@@ -1,5 +1,4 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import Container from "../../primitives/Container/Container";
 import Button from "../../primitives/Button/Button";
 import { Group } from "../../primitives/Group/Group";
 import { Text } from "../../primitives/Text/Text";
@@ -10,7 +9,8 @@ import { provisionDevice } from "../../utils/bluetooth";
 import { useBluetooth } from "../../hooks/useBluetooth";
 import { match } from "ts-pattern";
 import { useMutation } from "../../hooks";
-import { apiClient } from "../../lib/hono-client";
+import { client } from "../../lib/apiClient";
+import { getErrorMessage } from "../../utils/error";
 
 export const Route = createFileRoute("/device/connect")({
   component: Page,
@@ -141,15 +141,14 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
 
   const [name, setName] = useState("");
 
-  const { mutate: createDevice } = useMutation(apiClient.device.create.$post);
-
-  function onCreateDevice() {
-    createDevice({
-      json: { name, unique_id: deviceId, organization_id: 1 },
-    }).then(() => {
-      router.navigate({ to: "/" });
-    });
-  }
+  const { mutate: createDevice, error } = client.api.createDevice.useMutation(
+    undefined,
+    {
+      onSuccess: () => {
+        router.navigate({ to: "/" });
+      },
+    }
+  );
 
   return (
     <Group direction="column" spacing="5">
@@ -160,9 +159,17 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
         label="Name"
         placeholder="My Ortus"
       />
-      <Button full onClick={onCreateDevice}>
+      <Button
+        full
+        onClick={() => {
+          createDevice({
+            body: { name, unique_id: deviceId, organization_id: 1 },
+          });
+        }}
+      >
         Save
       </Button>
+      {error ? getErrorMessage(error) : null}
     </Group>
   );
 }

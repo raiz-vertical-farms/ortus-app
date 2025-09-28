@@ -1,9 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import Button from "../primitives/Button/Button";
 import { Group } from "../primitives/Group/Group";
-import { useQuery } from "../hooks/useQuery";
-import { apiClient } from "../lib/hono-client";
 import DeviceCard from "../components/DeviceCard/DeviceCard";
+import { client } from "../lib/apiClient";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -17,17 +16,13 @@ export const Route = createFileRoute("/")({
 function Index() {
   const router = useRouter();
 
-  const { data } = useQuery(
-    apiClient.device.devices.$get,
-    {},
-    { pollInterval: 3000 }
-  );
+  const { data } = client.api.allDevices.useQuery(undefined, {
+    refetchInterval: 30000,
+  });
 
   return (
     <Group direction="column" align="center" spacing="5">
       {data?.devices.map((device) => {
-        if (!device.id) return null;
-
         return (
           <DeviceCard
             key={device.id}

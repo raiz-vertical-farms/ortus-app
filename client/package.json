@@ -4,9 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "iphone": "VITE_BACKEND_URL=https://ortus-pi.vercel.app npm run build && npx cap sync ios && npx cap open ios"
+    "dev": "npm run codegen && vite dev",
+    "build": "npm run codegen && vite build",
+    "iphone": "VITE_BACKEND_URL=https://ortus-pi.vercel.app npm run build && npx cap sync ios && npx cap open ios",
+    "codegen": "openapi-qraft --plugin tanstack-query-react --plugin openapi-typescript ./openapi.json --output-dir api"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,10 @@
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "@openapi-qraft/react": "^2.12.0",
+    "@openapi-qraft/tanstack-query-react-types": "^2.12.0",
     "@phosphor-icons/react": "^2.1.10",
+    "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-router": "^1.131.47",
     "@tanstack/react-router-devtools": "^1.131.47",
     "dotenv": "^17.2.1",
@@ -30,11 +34,13 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.3",
+    "@openapi-qraft/cli": "^2.12.0",
     "@tanstack/router-cli": "^1.131.47",
     "@tanstack/router-plugin": "^1.131.47",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.7.0",
+    "orval": "^7.12.2",
     "vite": "^7.0.6"
   }
 }

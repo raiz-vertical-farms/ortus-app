@@ -1,20 +1,43 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
+import { HTTPException } from "hono/http-exception";
+import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import * as z from "zod";
 import { db } from "../db";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import { generateToken } from "../utils/jwt";
 
+const credentialsSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const authSuccessResponseSchema = z.object({
+  jwt: z.string(),
+});
+
+const authErrorResponseSchema = z.object({
+  message: z.string(),
+});
+
 const auth = new Hono()
   .post(
     "/login",
-    zValidator(
-      "json",
-      z.object({
-        email: z.string().email("Invalid email address"),
-        password: z.string().min(6, "Password must be at least 6 characters"),
-      })
-    ),
+    describeRoute({
+      operationId: "login",
+      summary: "Authenticate an existing user",
+      tags: ["Auth"],
+      responses: {
+        200: {
+          description: "Successful login",
+          content: {
+            "application/json": {
+              schema: resolver(authSuccessResponseSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator("json", credentialsSchema),
     async (c) => {
       const { email, password } = c.req.valid("json");
 
@@ -25,10 +48,9 @@ const auth = new Hono()
         .executeTakeFirst();
 
       if (!user) {
-        return c.json(
-          { success: false, error: "Invalid email or password" },
-          401
-        );
+        throw new HTTPException(401, {
+          res: c.json({ message: "Invalid email or password" }, 401),
+        });
       }
 
       const isPasswordValid = verifyPassword(
@@ -38,24 +60,32 @@ const auth = new Hono()
       );
 
       if (!isPasswordValid) {
-        return c.json(
-          { success: false, error: "Invalid email or password" },
-          401
-        );
+        throw new HTTPException(401, {
+          res: c.json({ message: "Invalid email or password" }, 401),
+        });
       }
 
-      return c.json({ success: true, jwt: generateToken({ email }) });
+      return c.json({ jwt: generateToken({ email }) });
     }
   )
   .post(
     "/signup",
-    zValidator(
-      "json",
-      z.object({
-        email: z.string().email("Invalid email address"),
-        password: z.string().min(6, "Password must be at least 6 characters"),
-      })
-    ),
+    describeRoute({
+      operationId: "signup",
+      summary: "Register a new user",
+      tags: ["Auth"],
+      responses: {
+        200: {
+          description: "User created or already existed with matching password",
+          content: {
+            "application/json": {
+              schema: resolver(authSuccessResponseSchema),
+            },
+          },
+        },
+      },
+    }),
+    zValidator("json", credentialsSchema),
     async (c) => {
       const { email, password } = c.req.valid("json");
 
@@ -63,7 +93,7 @@ const auth = new Hono()
         .selectFrom("users")
         .selectAll()
         .where("email", "=", email)
-        .executeTakeFirst();
+        .executeTakeFirstOrThrow();
 
       if (existingUser) {
         const passwordMatch = verifyPassword(
@@ -73,10 +103,12 @@ const auth = new Hono()
         );
 
         if (passwordMatch) {
-          return c.json({ success: true, jwt: generateToken({ email }) });
+          return c.json({ jwt: generateToken({ email }) });
         }
 
-        return c.json({ error: "User already exists", success: false }, 400);
+        throw new HTTPException(400, {
+          res: c.json({ message: "User already exists" }, 400),
+        });
       }
 
       const { hash, salt } = hashPassword(password);
@@ -115,7 +147,7 @@ const auth = new Hono()
           .execute();
       });
 
-      return c.json({ success: true, jwt: generateToken({ email }) });
+      return c.json({ jwt: generateToken({ email }) });
     }
   );
 
