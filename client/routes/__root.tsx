@@ -58,9 +58,6 @@ function RootLayout() {
 
   const getLayout = (m: any) => m.context?.layout ?? m.staticData?.layout;
 
-  console.log({ match });
-
-  const isCentered = match.some((m) => getLayout(m)?.center);
   const hideNav = match.some((m) => getLayout(m)?.hideNav);
   const backButton = match.some((m) => getLayout(m)?.backButton);
   const closeButton = match.some((m) => getLayout(m)?.closeButton);

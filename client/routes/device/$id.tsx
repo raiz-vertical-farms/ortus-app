@@ -5,6 +5,9 @@ import Box from "../../primitives/Box/Box";
 import { client } from "../../lib/apiClient";
 import { useState } from "react";
 import { match } from "ts-pattern";
+import { Group } from "../../primitives/Group/Group";
+import Button from "../../primitives/Button/Button";
+import Tabs from "../../primitives/Tabs/Tabs";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -39,5 +42,34 @@ function RouteComponent() {
     return getErrorMessage(error);
   }
 
-  return <Box pt="10"></Box>;
+  return (
+    <Box pt="10">
+      <Group spacing="8" justify="center">
+        <Tabs
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "control", label: "Control" },
+            { value: "plants", label: "Plants" },
+          ]}
+        />
+      </Group>
+      {match(view)
+        .with("control", () => <ControlView deviceId={id} />)
+        .with("plants", () => <Text>Plants view coming soon!</Text>)
+        .exhaustive()}
+    </Box>
+  );
+}
+
+function ControlView({ deviceId }: { deviceId: string }) {
+  const { data, error, isLoading } = client.api.deviceState.useQuery({
+    path: { id: deviceId },
+  });
+
+  return (
+    <>
+      <Text>State is {JSON.stringify(data?.state)}</Text>
+    </>
+  );
 }
