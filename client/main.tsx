@@ -8,6 +8,12 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree";
 
+// Check if view transitions are supported
+if ("startViewTransition" in document === false) {
+  // @ts-ignore
+  import("view-transitions-polyfill");
+}
+
 const router = createRouter({ routeTree });
 
 // Register the router instance for type safety
