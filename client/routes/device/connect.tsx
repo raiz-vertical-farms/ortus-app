@@ -36,6 +36,11 @@ function Page() {
         .with({ view: "main", isSupported: false }, () => (
           <div>
             <Text>Here we need WIFI provision setup explanation.</Text>
+            <Input
+              full
+              value={macAddress}
+              onChange={(e) => setMacAddress(e.target.value)}
+            />
             <button
               onClick={() => {
                 setMacAddress("test-device-id");
