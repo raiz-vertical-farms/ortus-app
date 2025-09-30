@@ -7,7 +7,6 @@ import {
   checkIfBluetoothIsSupported,
 } from "../utils/bluetooth";
 import { ScanResult } from "@capacitor-community/bluetooth-le";
-import { set } from "zod/v4";
 
 export function useBluetooth() {
   const [isProvisioning, setIsProvisioning] = useState(false);

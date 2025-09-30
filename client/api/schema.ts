@@ -72,57 +72,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/switch/{switchId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Send a switch command to a device */
-        post: operations["deviceSwitch"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/device/{id}/light/{lightId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Send a light command to a device */
-        post: operations["deviceLight"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/device/{id}/number/{numberId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Send a numeric command to a device */
-        post: operations["deviceNumber"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/device/{id}/state": {
         parameters: {
             query?: never;
@@ -140,7 +89,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/devices": {
+    "/api/device/all": {
         parameters: {
             query?: never;
             header?: never;
@@ -274,7 +223,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    unique_id: string;
+                    mac_address: string;
                     name: string;
                     organization_id: number;
                 };
@@ -293,108 +242,6 @@ export interface operations {
                             name: string;
                             organization_id: number;
                         };
-                    };
-                };
-            };
-        };
-    };
-    deviceSwitch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                switchId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    state: "ON" | "OFF";
-                };
-            };
-        };
-        responses: {
-            /** @description Command enqueued */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        message: string;
-                    };
-                };
-            };
-        };
-    };
-    deviceLight: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                lightId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    state?: "ON" | "OFF";
-                    brightness?: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Command enqueued */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        message: string;
-                        payload: {
-                            /** @enum {string} */
-                            state?: "ON" | "OFF";
-                            brightness?: number;
-                        };
-                    };
-                };
-            };
-        };
-    };
-    deviceNumber: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                numberId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    value: number;
-                };
-            };
-        };
-        responses: {
-            /** @description Command enqueued */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        message: string;
-                        value: number;
                     };
                 };
             };
@@ -421,13 +268,12 @@ export interface operations {
                         state: {
                             id: number;
                             name: string;
-                            unique_id: string;
+                            mac_address: string;
                             organization_id: number;
-                            online: number | null;
                             last_seen: string | null;
-                            switch_state: string | null;
-                            light_state: string | null;
-                            light_brightness: number | null;
+                            left_light: string | null;
+                            right_light: string | null;
+                            water_level: string | null;
                             number_of_plants: number;
                         };
                     };
@@ -454,13 +300,9 @@ export interface operations {
                         devices: {
                             id: number;
                             name: string;
-                            unique_id: string;
+                            mac_address: string;
                             organization_id: number;
-                            online: number | null;
                             last_seen: string | null;
-                            switch_state: string | null;
-                            light_state: string | null;
-                            light_brightness: number | null;
                         }[];
                     };
                 };

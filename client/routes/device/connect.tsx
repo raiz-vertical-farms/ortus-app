@@ -25,7 +25,7 @@ export const Route = createFileRoute("/device/connect")({
 function Page() {
   const router = useRouter();
 
-  const [deviceId, setDeviceId] = useState("");
+  const [macAddress, setMacAddress] = useState("");
   const [view, setView] = useState<"main" | "provision" | "save">("main");
 
   const { isSupported } = useBluetooth();
@@ -38,7 +38,7 @@ function Page() {
             <Text>Here we need WIFI provision setup explanation.</Text>
             <button
               onClick={() => {
-                setDeviceId("test-device-id");
+                setMacAddress("test-device-id");
                 setView("save");
               }}
             >
@@ -48,22 +48,22 @@ function Page() {
         ))
         .with({ view: "main", isSupported: true }, () => (
           <FindDevice
-            onDeviceSelected={(deviceId) => {
-              setDeviceId(deviceId);
+            onDeviceSelected={(macAddress) => {
+              setMacAddress(macAddress);
               setView("provision");
             }}
           />
         ))
         .with({ view: "provision" }, () => (
           <ProvisionDevice
-            deviceId={deviceId}
+            deviceId={macAddress}
             onSuccess={() => {
               setView("main");
               router.navigate({ to: "/" });
             }}
           />
         ))
-        .with({ view: "save" }, () => <SaveDevice deviceId={deviceId} />)
+        .with({ view: "save" }, () => <SaveDevice deviceId={macAddress} />)
         .exhaustive()}
     </div>
   );
@@ -173,7 +173,7 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
         full
         onClick={() => {
           createDevice({
-            body: { name, unique_id: deviceId, organization_id: 1 },
+            body: { name, mac_address: deviceId, organization_id: 1 },
           });
         }}
       >

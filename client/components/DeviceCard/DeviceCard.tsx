@@ -6,8 +6,7 @@ import { Group } from "../../primitives/Group/Group";
 type Device = {
   id: number;
   name: string;
-  unique_id: string;
-  light_state: string | null;
+  mac_address: string;
   last_seen: string | null;
   number_of_plants?: number | null;
 };
@@ -15,8 +14,7 @@ type Device = {
 export default function DeviceCard({
   id,
   name,
-  unique_id,
-  light_state,
+  mac_address,
   last_seen,
   number_of_plants,
 }: Device) {
@@ -50,7 +48,7 @@ export default function DeviceCard({
       viewTransition={{ types: ["slide-left"] }}
       params={{ id: id.toString() }}
     >
-      <Group direction="column" spacing="2">
+      <Group direction="column" spacing="md">
         <Text size="xs" color="muted">
           {statusDot}{" "}
           {last_seen ? `Online ${formatLastSeen(last_seen)}` : "Offline"}
@@ -58,7 +56,7 @@ export default function DeviceCard({
 
         <Group align="center">
           <Text size="lg">{name}</Text>
-          <Text size="xs"> - {unique_id}</Text>
+          <Text size="xs"> - {mac_address}</Text>
         </Group>
 
         <Text size="sm" color="muted">

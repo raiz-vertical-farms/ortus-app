@@ -236,7 +236,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "unique_id": {
+                  "mac_address": {
                     "type": "string"
                   },
                   "name": {
@@ -248,7 +248,7 @@
                   }
                 },
                 "required": [
-                  "unique_id",
+                  "mac_address",
                   "name",
                   "organization_id"
                 ]
@@ -256,230 +256,6 @@
             }
           }
         }
-      }
-    },
-    "/api/device/{id}/switch/{switchId}": {
-      "post": {
-        "operationId": "deviceSwitch",
-        "summary": "Send a switch command to a device",
-        "tags": [
-          "Devices"
-        ],
-        "responses": {
-          "200": {
-            "description": "Command enqueued",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "state": {
-                    "type": "string",
-                    "enum": [
-                      "ON",
-                      "OFF"
-                    ]
-                  }
-                },
-                "required": [
-                  "state"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "switchId",
-            "required": true
-          }
-        ]
-      }
-    },
-    "/api/device/{id}/light/{lightId}": {
-      "post": {
-        "operationId": "deviceLight",
-        "summary": "Send a light command to a device",
-        "tags": [
-          "Devices"
-        ],
-        "responses": {
-          "200": {
-            "description": "Command enqueued",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "payload": {
-                      "type": "object",
-                      "properties": {
-                        "state": {
-                          "type": "string",
-                          "enum": [
-                            "ON",
-                            "OFF"
-                          ]
-                        },
-                        "brightness": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 100
-                        }
-                      }
-                    }
-                  },
-                  "required": [
-                    "message",
-                    "payload"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "state": {
-                    "type": "string",
-                    "enum": [
-                      "ON",
-                      "OFF"
-                    ]
-                  },
-                  "brightness": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 100
-                  }
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "lightId",
-            "required": true
-          }
-        ]
-      }
-    },
-    "/api/device/{id}/number/{numberId}": {
-      "post": {
-        "operationId": "deviceNumber",
-        "summary": "Send a numeric command to a device",
-        "tags": [
-          "Devices"
-        ],
-        "responses": {
-          "200": {
-            "description": "Command enqueued",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "message",
-                    "value"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "value": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "value"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "numberId",
-            "required": true
-          }
-        ]
       }
     },
     "/api/device/{id}/state": {
@@ -506,21 +282,11 @@
                         "name": {
                           "type": "string"
                         },
-                        "unique_id": {
+                        "mac_address": {
                           "type": "string"
                         },
                         "organization_id": {
                           "type": "number"
-                        },
-                        "online": {
-                          "anyOf": [
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
                         },
                         "last_seen": {
                           "anyOf": [
@@ -532,7 +298,7 @@
                             }
                           ]
                         },
-                        "switch_state": {
+                        "left_light": {
                           "anyOf": [
                             {
                               "type": "string"
@@ -542,7 +308,7 @@
                             }
                           ]
                         },
-                        "light_state": {
+                        "right_light": {
                           "anyOf": [
                             {
                               "type": "string"
@@ -552,10 +318,10 @@
                             }
                           ]
                         },
-                        "light_brightness": {
+                        "water_level": {
                           "anyOf": [
                             {
-                              "type": "number"
+                              "type": "string"
                             },
                             {
                               "type": "null"
@@ -569,13 +335,12 @@
                       "required": [
                         "id",
                         "name",
-                        "unique_id",
+                        "mac_address",
                         "organization_id",
-                        "online",
                         "last_seen",
-                        "switch_state",
-                        "light_state",
-                        "light_brightness",
+                        "left_light",
+                        "right_light",
+                        "water_level",
                         "number_of_plants"
                       ]
                     }
@@ -600,7 +365,7 @@
         ]
       }
     },
-    "/api/device/devices": {
+    "/api/device/all": {
       "get": {
         "operationId": "allDevices",
         "summary": "List devices",
@@ -626,21 +391,11 @@
                           "name": {
                             "type": "string"
                           },
-                          "unique_id": {
+                          "mac_address": {
                             "type": "string"
                           },
                           "organization_id": {
                             "type": "number"
-                          },
-                          "online": {
-                            "anyOf": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
                           },
                           "last_seen": {
                             "anyOf": [
@@ -651,48 +406,14 @@
                                 "type": "null"
                               }
                             ]
-                          },
-                          "switch_state": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "light_state": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "light_brightness": {
-                            "anyOf": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
                           }
                         },
                         "required": [
                           "id",
                           "name",
-                          "unique_id",
+                          "mac_address",
                           "organization_id",
-                          "online",
-                          "last_seen",
-                          "switch_state",
-                          "light_state",
-                          "light_brightness"
+                          "last_seen"
                         ]
                       }
                     }

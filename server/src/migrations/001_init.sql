@@ -31,18 +31,36 @@ CREATE TABLE user_organization_memberships (
 CREATE TABLE devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     organization_id INTEGER NOT NULL,
-    unique_id TEXT UNIQUE NOT NULL, -- e.g. ESP32 chip id or MAC address
+    mac_address TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- Device state
-    online BOOLEAN DEFAULT 0,
     last_seen TIMESTAMP,
-    switch_state TEXT CHECK (switch_state IN ('ON', 'OFF')) DEFAULT 'OFF',
-    light_state TEXT CHECK (light_state IN ('ON', 'OFF')) DEFAULT 'OFF',
-    light_brightness INTEGER CHECK (
-        light_brightness BETWEEN 0 AND 100
-    ),
     FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE
+);
+
+CREATE TABLE device_timeseries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mac_address TEXT NOT NULL,
+    metric TEXT NOT NULL,
+    value_type TEXT NOT NULL CHECK (
+        value_type IN (
+            'float',
+            'int',
+            'text',
+            'json',
+            'boolean'
+        )
+    ),
+    value_text TEXT NOT NULL,
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (mac_address) REFERENCES devices (mac_address) ON DELETE CASCADE
+);
+
+-- Index for fast lookups of latest metrics per device
+CREATE INDEX idx_device_metric_time ON device_timeseries (
+    mac_address,
+    metric,
+    recorded_at DESC
 );
 
 -- Plant Types (catalog of species)

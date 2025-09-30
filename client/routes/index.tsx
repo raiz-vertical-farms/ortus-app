@@ -57,8 +57,7 @@ function Index() {
               key={device.id}
               id={device.id}
               name={device.name}
-              unique_id={device.unique_id}
-              light_state={device.light_state}
+              mac_address={device.mac_address}
               last_seen={device.last_seen}
             />
           );

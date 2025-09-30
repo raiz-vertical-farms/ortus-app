@@ -93,7 +93,7 @@ const auth = new Hono()
         .selectFrom("users")
         .selectAll()
         .where("email", "=", email)
-        .executeTakeFirstOrThrow();
+        .executeTakeFirst();
 
       if (existingUser) {
         const passwordMatch = verifyPassword(

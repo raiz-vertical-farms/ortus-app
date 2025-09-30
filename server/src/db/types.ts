@@ -19,13 +19,18 @@ export interface Devices {
   created_at: Generated<string | null>;
   id: Generated<number | null>;
   last_seen: string | null;
-  light_brightness: number | null;
-  light_state: Generated<string | null>;
+  mac_address: string;
   name: string;
-  online: Generated<number | null>;
   organization_id: number;
-  switch_state: Generated<string | null>;
-  unique_id: string;
+}
+
+export interface DeviceTimeseries {
+  id: Generated<number | null>;
+  mac_address: string;
+  metric: string;
+  recorded_at: Generated<string | null>;
+  value_text: string;
+  value_type: string;
 }
 
 export interface Organizations {
@@ -68,6 +73,7 @@ export interface Users {
 
 export interface DB {
   _migrations: _Migrations;
+  device_timeseries: DeviceTimeseries;
   devices: Devices;
   organizations: Organizations;
   plant_types: PlantTypes;
