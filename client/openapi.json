@@ -311,38 +311,35 @@
                         "left_light_schedule": {
                           "anyOf": [
                             {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "from_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "from_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  },
-                                  "to_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "to_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  }
+                              "type": "object",
+                              "properties": {
+                                "from_hour": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 23
                                 },
-                                "required": [
-                                  "from_hour",
-                                  "from_minute",
-                                  "to_hour",
-                                  "to_minute"
-                                ]
-                              }
+                                "from_minute": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 59
+                                },
+                                "to_hour": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 23
+                                },
+                                "to_minute": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 59
+                                }
+                              },
+                              "required": [
+                                "from_hour",
+                                "from_minute",
+                                "to_hour",
+                                "to_minute"
+                              ]
                             },
                             {
                               "type": "null"
@@ -362,38 +359,35 @@
                         "right_light_schedule": {
                           "anyOf": [
                             {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "from_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "from_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  },
-                                  "to_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "to_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  }
+                              "type": "object",
+                              "properties": {
+                                "from_hour": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 23
                                 },
-                                "required": [
-                                  "from_hour",
-                                  "from_minute",
-                                  "to_hour",
-                                  "to_minute"
-                                ]
-                              }
+                                "from_minute": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 59
+                                },
+                                "to_hour": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 23
+                                },
+                                "to_minute": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 59
+                                }
+                              },
+                              "required": [
+                                "from_hour",
+                                "from_minute",
+                                "to_hour",
+                                "to_minute"
+                              ]
                             },
                             {
                               "type": "null"
@@ -494,38 +488,35 @@
                           "left_light_schedule": {
                             "anyOf": [
                               {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "from_hour": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 23
-                                    },
-                                    "from_minute": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 59
-                                    },
-                                    "to_hour": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 23
-                                    },
-                                    "to_minute": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 59
-                                    }
+                                "type": "object",
+                                "properties": {
+                                  "from_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
                                   },
-                                  "required": [
-                                    "from_hour",
-                                    "from_minute",
-                                    "to_hour",
-                                    "to_minute"
-                                  ]
-                                }
+                                  "from_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  },
+                                  "to_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
+                                  },
+                                  "to_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  }
+                                },
+                                "required": [
+                                  "from_hour",
+                                  "from_minute",
+                                  "to_hour",
+                                  "to_minute"
+                                ]
                               },
                               {
                                 "type": "null"
@@ -535,38 +526,35 @@
                           "right_light_schedule": {
                             "anyOf": [
                               {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "from_hour": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 23
-                                    },
-                                    "from_minute": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 59
-                                    },
-                                    "to_hour": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 23
-                                    },
-                                    "to_minute": {
-                                      "type": "number",
-                                      "minimum": 0,
-                                      "maximum": 59
-                                    }
+                                "type": "object",
+                                "properties": {
+                                  "from_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
                                   },
-                                  "required": [
-                                    "from_hour",
-                                    "from_minute",
-                                    "to_hour",
-                                    "to_minute"
-                                  ]
-                                }
+                                  "from_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  },
+                                  "to_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
+                                  },
+                                  "to_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  }
+                                },
+                                "required": [
+                                  "from_hour",
+                                  "from_minute",
+                                  "to_hour",
+                                  "to_minute"
+                                ]
                               },
                               {
                                 "type": "null"

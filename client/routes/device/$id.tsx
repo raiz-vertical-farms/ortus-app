@@ -62,13 +62,39 @@ function RouteComponent() {
 }
 
 function ControlView({ deviceId }: { deviceId: string }) {
-  const { data, error, isLoading } = client.api.deviceState.useQuery({
+  const { data, error, isLoading, refetch } = client.api.deviceState.useQuery({
     path: { id: deviceId },
   });
 
+  const { mutate: toggleLeftLight } = client.api.toggleLeftLight.useMutation(
+    undefined,
+    { onSuccess: () => refetch() }
+  );
+
   return (
     <>
-      <Text>State is {JSON.stringify(data?.state)}</Text>
+      <Text>Left Light</Text>
+      <Tabs
+        value={data?.state.left_light ? "on" : "off"}
+        onChange={(value) => {
+          toggleLeftLight({ path: { id: deviceId }, body: { state: value } });
+        }}
+        options={[
+          { value: "on", label: "ON" },
+          { value: "off", label: "OFF" },
+        ]}
+      />
+      <Text>Right Light</Text>
+      <Tabs
+        value={data?.state.left_light ? "on" : "off"}
+        onChange={(value) => {
+          toggleLeftLight({ path: { id: deviceId }, body: { state: value } });
+        }}
+        options={[
+          { value: "on", label: "ON" },
+          { value: "off", label: "OFF" },
+        ]}
+      />
     </>
   );
 }

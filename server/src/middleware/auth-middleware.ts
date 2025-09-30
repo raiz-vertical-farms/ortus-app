@@ -12,7 +12,6 @@ export const authMiddleware = createMiddleware<{
     };
   };
 }>(async (c, next) => {
-  console.log("IS THIS RUN");
   const authHeader = c.req.header("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

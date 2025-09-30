@@ -39,9 +39,9 @@ const deviceStateSchema = z.object({
   organization_id: z.number(),
   last_seen: z.string().nullable(),
   left_light: z.string().nullable(),
-  left_light_schedule: z.array(lightScheduleSchema).nullable(),
+  left_light_schedule: lightScheduleSchema.nullable(),
   right_light: z.string().nullable(),
-  right_light_schedule: z.array(lightScheduleSchema).nullable(),
+  right_light_schedule: lightScheduleSchema.nullable(),
   water_level: z.string().nullable(),
   number_of_plants: z.number(),
 });

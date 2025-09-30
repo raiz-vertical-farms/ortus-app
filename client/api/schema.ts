@@ -345,14 +345,14 @@ export interface operations {
                                 from_minute: number;
                                 to_hour: number;
                                 to_minute: number;
-                            }[] | null;
+                            } | null;
                             right_light: string | null;
                             right_light_schedule: {
                                 from_hour: number;
                                 from_minute: number;
                                 to_hour: number;
                                 to_minute: number;
-                            }[] | null;
+                            } | null;
                             water_level: string | null;
                             number_of_plants: number;
                         };
@@ -388,13 +388,13 @@ export interface operations {
                                 from_minute: number;
                                 to_hour: number;
                                 to_minute: number;
-                            }[] | null;
+                            } | null;
                             right_light_schedule: {
                                 from_hour: number;
                                 from_minute: number;
                                 to_hour: number;
                                 to_minute: number;
-                            }[] | null;
+                            } | null;
                         }[];
                     };
                 };
