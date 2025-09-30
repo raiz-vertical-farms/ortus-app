@@ -1,29 +1,7 @@
 import React from "react";
 import styles from "./Group.module.css";
 import { classNames } from "../../utils/classnames";
-
-type Spacing =
-  | "0"
-  | "0_5"
-  | "1"
-  | "1_5"
-  | "2"
-  | "2_5"
-  | "3"
-  | "3_5"
-  | "4"
-  | "5"
-  | "6"
-  | "7"
-  | "8"
-  | "9"
-  | "10"
-  | "12"
-  | "16"
-  | "20"
-  | "24"
-  | "32"
-  | "40";
+import type { Spacing } from "../../styles/style-types";
 
 type Direction = "row" | "column";
 type Align = "start" | "center" | "end" | "stretch";
@@ -65,7 +43,14 @@ export const Group: React.FC<GroupProps> = ({
   );
 
   return (
-    <div className={classes} {...props}>
+    <div
+      className={classes}
+      {...props}
+      style={{
+        ...props.style,
+        gap: spacing ? `var(--spacing-${spacing})` : undefined,
+      }}
+    >
       {children}
     </div>
   );

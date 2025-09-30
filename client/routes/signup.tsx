@@ -32,12 +32,10 @@ function Signup() {
     }
   );
 
-  console.log("Signup error", signupError);
-
   return (
     <div style={{ height: "100dvh", display: "grid", placeItems: "center" }}>
-      <Group direction="column" spacing="5">
-        <Box style={{ width: "100%" }} pb="10">
+      <Group direction="column" spacing="xl">
+        <Box style={{ width: "100%" }} pb="xl">
           <Text size="4xl" align="center" color="strong">
             Raiz.
           </Text>

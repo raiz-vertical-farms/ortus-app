@@ -22,6 +22,9 @@ declare module "@tanstack/react-router" {
       pageTitle?: string;
       backButton?: boolean;
       closeButton?: boolean;
+      leftSection?: () => React.ReactNode;
+      middleSection?: () => React.ReactNode;
+      rightSection?: () => React.ReactNode;
     };
   }
 }

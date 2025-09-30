@@ -4,9 +4,41 @@ import { Group } from "../primitives/Group/Group";
 import DeviceCard from "../components/DeviceCard/DeviceCard";
 import { client } from "../lib/apiClient";
 import Box from "../primitives/Box/Box";
+import { PlusCircleIcon } from "@phosphor-icons/react";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  beforeLoad: async () => {
+    return {
+      layout: {
+        pageTitle: "Home",
+        center: true,
+        rightSection: () => {
+          const router = useRouter();
+
+          return (
+            <Button
+              size="sm"
+              variant="ghost"
+              square
+              onClick={() =>
+                router.navigate({
+                  to: "/device/connect",
+                  viewTransition: { types: ["slide-up"] },
+                })
+              }
+            >
+              <PlusCircleIcon
+                fill="currentColor"
+                size={24}
+                style={{ marginLeft: 8 }}
+              />
+            </Button>
+          );
+        },
+      },
+    };
+  },
 });
 
 function Index() {
@@ -17,13 +49,8 @@ function Index() {
   });
 
   return (
-    <Box pt="10">
-      <Group
-        style={{ viewTransitionName: "main-content" }}
-        direction="column"
-        align="center"
-        spacing="5"
-      >
+    <Box pt="6xl">
+      <Group direction="column" align="center" spacing="lg">
         {data?.devices.map((device) => {
           return (
             <DeviceCard
@@ -36,18 +63,6 @@ function Index() {
             />
           );
         })}
-        <Button
-          size="lg"
-          full
-          onClick={() =>
-            router.navigate({
-              to: "/device/connect",
-              viewTransition: { types: ["slide-down"] },
-            })
-          }
-        >
-          Connect to new Ortus
-        </Button>
       </Group>
     </Box>
   );

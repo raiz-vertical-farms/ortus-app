@@ -8,7 +8,6 @@ import { useState } from "react";
 import { provisionDevice } from "../../utils/bluetooth";
 import { useBluetooth } from "../../hooks/useBluetooth";
 import { match } from "ts-pattern";
-import { useMutation } from "../../hooks";
 import { client } from "../../lib/apiClient";
 import { getErrorMessage } from "../../utils/error";
 
@@ -16,7 +15,7 @@ export const Route = createFileRoute("/device/connect")({
   component: Page,
   staticData: {
     layout: {
-      pageTitle: "Connect to Ortus",
+      pageTitle: "Connect device",
       hideNav: true,
       closeButton: true,
     },
@@ -80,7 +79,7 @@ function FindDevice({
   return (
     <>
       {devices.length > 0 && (
-        <Group direction="column" align="center" spacing="5">
+        <Group direction="column" align="center" spacing="xl">
           <h2>Discovered Devices</h2>
 
           {devices.map((device) => (
@@ -114,7 +113,7 @@ function ProvisionDevice({
   const [password, setPassword] = useState("");
 
   return (
-    <Group direction="column" spacing="5">
+    <Group direction="column" spacing="xl">
       <Input
         full
         onChange={(e) => setSsid(e.target.value)}
@@ -162,7 +161,7 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
   );
 
   return (
-    <Group direction="column" spacing="5">
+    <Group direction="column" spacing="xl">
       <Input
         full
         onChange={(e) => setName(e.target.value)}

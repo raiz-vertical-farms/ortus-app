@@ -6,6 +6,11 @@ import Box from "../primitives/Box/Box";
 
 export const Route = createFileRoute("/account")({
   component: Page,
+  staticData: {
+    layout: {
+      pageTitle: "Account",
+    },
+  },
 });
 
 function Page() {
@@ -17,16 +22,8 @@ function Page() {
   }
 
   return (
-    <Box pt="10">
-      <Group
-        style={{ viewTransitionName: "main-content" }}
-        direction="column"
-        align="center"
-        spacing="10"
-      >
-        <Text size="2xl" align="center">
-          Account page
-        </Text>
+    <Box pt="xl">
+      <Group direction="column" align="center" spacing="xl">
         <Button onClick={handleLogout}>Logout</Button>
       </Group>
     </Box>

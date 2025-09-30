@@ -4,7 +4,7 @@ import styles from "./Text.module.css";
 import { classNames } from "../../utils/classnames";
 
 export type TextProps = {
-  tag?: keyof JSX.IntrinsicElements;
+  tag?: keyof React.JSX.IntrinsicElements;
   align?: "left" | "center" | "right";
   size?:
     | "xs"
@@ -29,7 +29,7 @@ export type TextProps = {
 
 export const Text: React.FC<TextProps> = ({
   tag = "p",
-  align = "left",
+  align = "",
   size = "base",
   color = "normal",
   variant = "body",

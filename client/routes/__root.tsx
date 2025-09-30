@@ -5,18 +5,21 @@ import {
   useMatches,
   useRouter,
 } from "@tanstack/react-router";
+import { StaticDataRouteOption } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useCheckJWT } from "../hooks/useCheckJwt";
 import Container from "../primitives/Container/Container";
 import { Group } from "../primitives/Group/Group";
 import {
   ArrowLeftIcon,
-  HouseSimpleIcon,
   PlantIcon,
   UserCircleIcon,
   XIcon,
 } from "@phosphor-icons/react";
 import { Text } from "../primitives/Text/Text";
+
+const NAV_HEIGHT = 80;
+const HEADER_HEIGHT = 60;
 
 function NavBar() {
   return (
@@ -25,8 +28,8 @@ function NavBar() {
         <Group
           align="center"
           justify="center"
-          spacing="32"
-          style={{ height: 100 }}
+          spacing="3xl"
+          style={{ height: NAV_HEIGHT }}
         >
           <Link to="/" viewTransition={{ types: ["slide-right"] }}>
             {({ isActive }) => (
@@ -58,55 +61,105 @@ function RootLayout() {
 
   const getLayout = (m: any) => m.context?.layout ?? m.staticData?.layout;
 
-  const hideNav = match.some((m) => getLayout(m)?.hideNav);
-  const backButton = match.some((m) => getLayout(m)?.backButton);
-  const closeButton = match.some((m) => getLayout(m)?.closeButton);
-  const pageTitle = match.find((m) => getLayout(m)?.pageTitle)
-    ? getLayout(match.find((m) => getLayout(m)?.pageTitle)!)?.pageTitle
-    : undefined;
+  const layout = match.reduce(
+    (acc, m) => {
+      return { ...acc, ...getLayout(m) };
+    },
+    {} as StaticDataRouteOption["layout"]
+  );
 
-  const showHeader = pageTitle || backButton;
+  console.log("layout", layout);
+
+  const {
+    pageTitle,
+    hideNav,
+    leftSection,
+    rightSection,
+    middleSection,
+    backButton,
+    closeButton,
+  } = layout || {};
+
+  const left = leftSection ? (
+    typeof leftSection === "function" ? (
+      leftSection()
+    ) : (
+      leftSection
+    )
+  ) : backButton ? (
+    <Link to="/" viewTransition={{ types: ["slide-right"] }}>
+      <ArrowLeftIcon size={24} />
+    </Link>
+  ) : null;
+
+  const middle = middleSection ? (
+    typeof middleSection === "function" ? (
+      middleSection()
+    ) : (
+      middleSection
+    )
+  ) : (
+    <Text size="lg">{pageTitle ? pageTitle : ""}</Text>
+  );
+
+  const right = rightSection ? (
+    typeof rightSection === "function" ? (
+      rightSection()
+    ) : (
+      rightSection
+    )
+  ) : closeButton ? (
+    <XIcon
+      size={24}
+      onClick={() =>
+        router.navigate({
+          to: "/",
+          viewTransition: { types: ["slide-down"] },
+        })
+      }
+    />
+  ) : null;
+
+  const showHeader =
+    pageTitle ||
+    backButton ||
+    closeButton ||
+    leftSection ||
+    middleSection ||
+    rightSection;
+
+  const mainHeight =
+    showHeader && !hideNav
+      ? `calc(100dvh - ${NAV_HEIGHT + HEADER_HEIGHT}px)`
+      : showHeader || !hideNav
+        ? `calc(100dvh - ${NAV_HEIGHT}px)`
+        : "100dvh";
 
   return (
     <div>
       {showHeader && (
         <header
           style={{
-            height: 100,
+            height: HEADER_HEIGHT,
             display: "flex",
             alignItems: "center",
           }}
         >
           <Container>
             <Group justify="between" align="center">
-              {backButton ? (
-                <Link to="/" viewTransition={{ types: ["slide-right"] }}>
-                  <ArrowLeftIcon size={24} />
-                </Link>
-              ) : (
-                <div style={{ width: 24 }} />
-              )}
-              <Text size="lg">{pageTitle ? pageTitle : ""}</Text>
-              {closeButton ? (
-                <XIcon
-                  size={24}
-                  onClick={() =>
-                    router.navigate({
-                      to: "/",
-                      viewTransition: { types: ["slide-down"] },
-                    })
-                  }
-                />
-              ) : (
-                <div style={{ width: 24 }} />
-              )}
+              <div style={{ width: "30%", textAlign: "left" }}>{left}</div>
+              <div style={{ flex: 1, width: "100%", textAlign: "center" }}>
+                {middle}
+              </div>
+              <div style={{ width: "30%", textAlign: "right" }}>{right}</div>
             </Group>
           </Container>
         </header>
       )}
       <Container
         style={{
-          height: showHeader ? "calc(100dvh - 200px)" : "calc(100dvh - 100px)",
+          viewTransitionName: "main-content",
+          height: mainHeight,
           overflow: "auto",
         }}
       >

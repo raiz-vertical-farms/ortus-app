@@ -6,7 +6,6 @@ import { client } from "../../lib/apiClient";
 import { useState } from "react";
 import { match } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
-import Button from "../../primitives/Button/Button";
 import Tabs from "../../primitives/Tabs/Tabs";
 
 export const Route = createFileRoute("/device/$id")({
@@ -43,8 +42,8 @@ function RouteComponent() {
   }
 
   return (
-    <Box pt="10">
-      <Group spacing="8" justify="center">
+    <Box pt="xl">
+      <Group spacing="xl" justify="center">
         <Tabs
           value={view}
           onChange={setView}
