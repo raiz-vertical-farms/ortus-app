@@ -106,6 +106,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/device/{id}/left-light/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Turn left light on/off */
+        post: operations["toggleLeftLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/right-light/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Turn right light on/off */
+        post: operations["toggleRightLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/left-light/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set a schedule for left light */
+        post: operations["scheduleLeftLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/right-light/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set a schedule for right light */
+        post: operations["scheduleRightLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -272,7 +340,19 @@ export interface operations {
                             organization_id: number;
                             last_seen: string | null;
                             left_light: string | null;
+                            left_light_schedule: {
+                                from_hour: number;
+                                from_minute: number;
+                                to_hour: number;
+                                to_minute: number;
+                            }[] | null;
                             right_light: string | null;
+                            right_light_schedule: {
+                                from_hour: number;
+                                from_minute: number;
+                                to_hour: number;
+                                to_minute: number;
+                            }[] | null;
                             water_level: string | null;
                             number_of_plants: number;
                         };
@@ -303,10 +383,102 @@ export interface operations {
                             mac_address: string;
                             organization_id: number;
                             last_seen: string | null;
+                            left_light_schedule: {
+                                from_hour: number;
+                                from_minute: number;
+                                to_hour: number;
+                                to_minute: number;
+                            }[] | null;
+                            right_light_schedule: {
+                                from_hour: number;
+                                from_minute: number;
+                                to_hour: number;
+                                to_minute: number;
+                            }[] | null;
                         }[];
                     };
                 };
             };
         };
+    };
+    toggleLeftLight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    state: "on" | "off";
+                };
+            };
+        };
+        responses: never;
+    };
+    toggleRightLight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    state: "on" | "off";
+                };
+            };
+        };
+        responses: never;
+    };
+    scheduleLeftLight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    from_hour: number;
+                    from_minute: number;
+                    to_hour: number;
+                    to_minute: number;
+                };
+            };
+        };
+        responses: never;
+    };
+    scheduleRightLight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    from_hour: number;
+                    from_minute: number;
+                    to_hour: number;
+                    to_minute: number;
+                };
+            };
+        };
+        responses: never;
     };
 }

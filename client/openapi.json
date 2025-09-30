@@ -308,10 +308,92 @@
                             }
                           ]
                         },
+                        "left_light_schedule": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "from_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
+                                  },
+                                  "from_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  },
+                                  "to_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
+                                  },
+                                  "to_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  }
+                                },
+                                "required": [
+                                  "from_hour",
+                                  "from_minute",
+                                  "to_hour",
+                                  "to_minute"
+                                ]
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "right_light": {
                           "anyOf": [
                             {
                               "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "right_light_schedule": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "from_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
+                                  },
+                                  "from_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  },
+                                  "to_hour": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 23
+                                  },
+                                  "to_minute": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 59
+                                  }
+                                },
+                                "required": [
+                                  "from_hour",
+                                  "from_minute",
+                                  "to_hour",
+                                  "to_minute"
+                                ]
+                              }
                             },
                             {
                               "type": "null"
@@ -339,7 +421,9 @@
                         "organization_id",
                         "last_seen",
                         "left_light",
+                        "left_light_schedule",
                         "right_light",
+                        "right_light_schedule",
                         "water_level",
                         "number_of_plants"
                       ]
@@ -406,6 +490,88 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "left_light_schedule": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "from_hour": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 23
+                                    },
+                                    "from_minute": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 59
+                                    },
+                                    "to_hour": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 23
+                                    },
+                                    "to_minute": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 59
+                                    }
+                                  },
+                                  "required": [
+                                    "from_hour",
+                                    "from_minute",
+                                    "to_hour",
+                                    "to_minute"
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "right_light_schedule": {
+                            "anyOf": [
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "from_hour": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 23
+                                    },
+                                    "from_minute": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 59
+                                    },
+                                    "to_hour": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 23
+                                    },
+                                    "to_minute": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 59
+                                    }
+                                  },
+                                  "required": [
+                                    "from_hour",
+                                    "from_minute",
+                                    "to_hour",
+                                    "to_minute"
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -413,7 +579,9 @@
                           "name",
                           "mac_address",
                           "organization_id",
-                          "last_seen"
+                          "last_seen",
+                          "left_light_schedule",
+                          "right_light_schedule"
                         ]
                       }
                     }
@@ -426,6 +594,202 @@
             }
           }
         }
+      }
+    },
+    "/api/device/{id}/left-light/toggle": {
+      "post": {
+        "operationId": "toggleLeftLight",
+        "summary": "Turn left light on/off",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "on",
+                      "off"
+                    ]
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/right-light/toggle": {
+      "post": {
+        "operationId": "toggleRightLight",
+        "summary": "Turn right light on/off",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "on",
+                      "off"
+                    ]
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/left-light/schedule": {
+      "post": {
+        "operationId": "scheduleLeftLight",
+        "summary": "Set a schedule for left light",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from_hour": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 23
+                  },
+                  "from_minute": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 59
+                  },
+                  "to_hour": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 23
+                  },
+                  "to_minute": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 59
+                  }
+                },
+                "required": [
+                  "from_hour",
+                  "from_minute",
+                  "to_hour",
+                  "to_minute"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/right-light/schedule": {
+      "post": {
+        "operationId": "scheduleRightLight",
+        "summary": "Set a schedule for right light",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from_hour": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 23
+                  },
+                  "from_minute": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 59
+                  },
+                  "to_hour": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 23
+                  },
+                  "to_minute": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 59
+                  }
+                },
+                "required": [
+                  "from_hour",
+                  "from_minute",
+                  "to_hour",
+                  "to_minute"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
       }
     }
   },

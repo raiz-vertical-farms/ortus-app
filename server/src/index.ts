@@ -7,6 +7,7 @@ import routes from "./routes";
 import fs from "fs";
 import { mqttClient } from "./services/mqtt";
 import { Scalar } from "@scalar/hono-api-reference";
+import { authMiddleware } from "./middleware/auth-middleware";
 
 console.log("🚀 Starting Hono server...");
 
@@ -25,6 +26,9 @@ app.use(
     allowHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.use("/api/device/*", authMiddleware);
+app.use("/api/plant/*", authMiddleware);
 
 app.get(
   "/openapi.json",

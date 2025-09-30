@@ -1044,6 +1044,614 @@ export interface ApiService {
             error: AllDevicesError;
         };
     };
+    /** @summary Turn left light on/off */
+    toggleLeftLight: {
+        /** @summary Turn left light on/off */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ToggleLeftLightBody, ToggleLeftLightParameters, TMeta, TSignal>, client?: (schema: ToggleLeftLightSchema, options: ServiceOperationMutationFnOptions<ToggleLeftLightBody, ToggleLeftLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ToggleLeftLightData, ToggleLeftLightError>>): Promise<RequestFnResponse<ToggleLeftLightData, ToggleLeftLightError>>;
+        /** @summary Turn left light on/off */
+        getMutationKey(parameters: DeepReadonly<ToggleLeftLightParameters> | void): ServiceOperationMutationKey<ToggleLeftLightSchema, ToggleLeftLightParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Turn left light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends ToggleLeftLightBody, TContext = unknown>(parameters: DeepReadonly<ToggleLeftLightParameters>, options?: ServiceOperationUseMutationOptions<ToggleLeftLightSchema, ToggleLeftLightData, ToggleLeftLightParameters, TVariables, OperationError<ToggleLeftLightError>, TContext>): UseMutationResult<ToggleLeftLightData, OperationError<ToggleLeftLightError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Turn left light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ToggleLeftLightSchema, ToggleLeftLightData, ToggleLeftLightParameters, TVariables, OperationError<ToggleLeftLightError>, TContext>): UseMutationResult<ToggleLeftLightData, OperationError<ToggleLeftLightError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Turn left light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const toggleLeftLightTotal = qraft.apiService.toggleLeftLight.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const toggleLeftLightTotal = qraft.apiService.toggleLeftLight.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Turn left light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const toggleLeftLightPendingMutationVariables = qraft.apiService.toggleLeftLight.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const toggleLeftLightMutationData = qraft.apiService.toggleLeftLight.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<ToggleLeftLightData, OperationError<ToggleLeftLightError>, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>;
+            select?: (mutation: Mutation<ToggleLeftLightData, OperationError<ToggleLeftLightError>, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Turn left light on/off */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Turn left light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.toggleLeftLight.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.toggleLeftLight.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): Mutation<ToggleLeftLightData, ToggleLeftLightError, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): Array<Mutation<ToggleLeftLightData, ToggleLeftLightError, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext>>;
+        };
+        schema: ToggleLeftLightSchema;
+        types: {
+            parameters: ToggleLeftLightParameters;
+            data: ToggleLeftLightData;
+            error: ToggleLeftLightError;
+            body: ToggleLeftLightBody;
+        };
+    };
+    /** @summary Turn right light on/off */
+    toggleRightLight: {
+        /** @summary Turn right light on/off */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ToggleRightLightBody, ToggleRightLightParameters, TMeta, TSignal>, client?: (schema: ToggleRightLightSchema, options: ServiceOperationMutationFnOptions<ToggleRightLightBody, ToggleRightLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ToggleRightLightData, ToggleRightLightError>>): Promise<RequestFnResponse<ToggleRightLightData, ToggleRightLightError>>;
+        /** @summary Turn right light on/off */
+        getMutationKey(parameters: DeepReadonly<ToggleRightLightParameters> | void): ServiceOperationMutationKey<ToggleRightLightSchema, ToggleRightLightParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Turn right light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends ToggleRightLightBody, TContext = unknown>(parameters: DeepReadonly<ToggleRightLightParameters>, options?: ServiceOperationUseMutationOptions<ToggleRightLightSchema, ToggleRightLightData, ToggleRightLightParameters, TVariables, OperationError<ToggleRightLightError>, TContext>): UseMutationResult<ToggleRightLightData, OperationError<ToggleRightLightError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Turn right light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ToggleRightLightSchema, ToggleRightLightData, ToggleRightLightParameters, TVariables, OperationError<ToggleRightLightError>, TContext>): UseMutationResult<ToggleRightLightData, OperationError<ToggleRightLightError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Turn right light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const toggleRightLightTotal = qraft.apiService.toggleRightLight.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const toggleRightLightTotal = qraft.apiService.toggleRightLight.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Turn right light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const toggleRightLightPendingMutationVariables = qraft.apiService.toggleRightLight.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const toggleRightLightMutationData = qraft.apiService.toggleRightLight.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<ToggleRightLightData, OperationError<ToggleRightLightError>, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>;
+            select?: (mutation: Mutation<ToggleRightLightData, OperationError<ToggleRightLightError>, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Turn right light on/off */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Turn right light on/off
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.toggleRightLight.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.toggleRightLight.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): Mutation<ToggleRightLightData, ToggleRightLightError, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): Array<Mutation<ToggleRightLightData, ToggleRightLightError, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext>>;
+        };
+        schema: ToggleRightLightSchema;
+        types: {
+            parameters: ToggleRightLightParameters;
+            data: ToggleRightLightData;
+            error: ToggleRightLightError;
+            body: ToggleRightLightBody;
+        };
+    };
+    /** @summary Set a schedule for left light */
+    scheduleLeftLight: {
+        /** @summary Set a schedule for left light */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleLeftLightBody, ScheduleLeftLightParameters, TMeta, TSignal>, client?: (schema: ScheduleLeftLightSchema, options: ServiceOperationMutationFnOptions<ScheduleLeftLightBody, ScheduleLeftLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleLeftLightData, ScheduleLeftLightError>>): Promise<RequestFnResponse<ScheduleLeftLightData, ScheduleLeftLightError>>;
+        /** @summary Set a schedule for left light */
+        getMutationKey(parameters: DeepReadonly<ScheduleLeftLightParameters> | void): ServiceOperationMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Set a schedule for left light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends ScheduleLeftLightBody, TContext = unknown>(parameters: DeepReadonly<ScheduleLeftLightParameters>, options?: ServiceOperationUseMutationOptions<ScheduleLeftLightSchema, ScheduleLeftLightData, ScheduleLeftLightParameters, TVariables, OperationError<ScheduleLeftLightError>, TContext>): UseMutationResult<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Set a schedule for left light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ScheduleLeftLightSchema, ScheduleLeftLightData, ScheduleLeftLightParameters, TVariables, OperationError<ScheduleLeftLightError>, TContext>): UseMutationResult<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Set a schedule for left light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const scheduleLeftLightTotal = qraft.apiService.scheduleLeftLight.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const scheduleLeftLightTotal = qraft.apiService.scheduleLeftLight.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Set a schedule for left light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const scheduleLeftLightPendingMutationVariables = qraft.apiService.scheduleLeftLight.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const scheduleLeftLightMutationData = qraft.apiService.scheduleLeftLight.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>;
+            select?: (mutation: Mutation<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Set a schedule for left light */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Set a schedule for left light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.scheduleLeftLight.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.scheduleLeftLight.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): Mutation<ScheduleLeftLightData, ScheduleLeftLightError, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): Array<Mutation<ScheduleLeftLightData, ScheduleLeftLightError, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext>>;
+        };
+        schema: ScheduleLeftLightSchema;
+        types: {
+            parameters: ScheduleLeftLightParameters;
+            data: ScheduleLeftLightData;
+            error: ScheduleLeftLightError;
+            body: ScheduleLeftLightBody;
+        };
+    };
+    /** @summary Set a schedule for right light */
+    scheduleRightLight: {
+        /** @summary Set a schedule for right light */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleRightLightBody, ScheduleRightLightParameters, TMeta, TSignal>, client?: (schema: ScheduleRightLightSchema, options: ServiceOperationMutationFnOptions<ScheduleRightLightBody, ScheduleRightLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleRightLightData, ScheduleRightLightError>>): Promise<RequestFnResponse<ScheduleRightLightData, ScheduleRightLightError>>;
+        /** @summary Set a schedule for right light */
+        getMutationKey(parameters: DeepReadonly<ScheduleRightLightParameters> | void): ServiceOperationMutationKey<ScheduleRightLightSchema, ScheduleRightLightParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Set a schedule for right light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends ScheduleRightLightBody, TContext = unknown>(parameters: DeepReadonly<ScheduleRightLightParameters>, options?: ServiceOperationUseMutationOptions<ScheduleRightLightSchema, ScheduleRightLightData, ScheduleRightLightParameters, TVariables, OperationError<ScheduleRightLightError>, TContext>): UseMutationResult<ScheduleRightLightData, OperationError<ScheduleRightLightError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Set a schedule for right light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ScheduleRightLightSchema, ScheduleRightLightData, ScheduleRightLightParameters, TVariables, OperationError<ScheduleRightLightError>, TContext>): UseMutationResult<ScheduleRightLightData, OperationError<ScheduleRightLightError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Set a schedule for right light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const scheduleRightLightTotal = qraft.apiService.scheduleRightLight.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const scheduleRightLightTotal = qraft.apiService.scheduleRightLight.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Set a schedule for right light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const scheduleRightLightPendingMutationVariables = qraft.apiService.scheduleRightLight.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const scheduleRightLightMutationData = qraft.apiService.scheduleRightLight.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<ScheduleRightLightData, OperationError<ScheduleRightLightError>, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>;
+            select?: (mutation: Mutation<ScheduleRightLightData, OperationError<ScheduleRightLightError>, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Set a schedule for right light */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Set a schedule for right light
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.scheduleRightLight.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.scheduleRightLight.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): Mutation<ScheduleRightLightData, ScheduleRightLightError, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): Array<Mutation<ScheduleRightLightData, ScheduleRightLightError, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext>>;
+        };
+        schema: ScheduleRightLightSchema;
+        types: {
+            parameters: ScheduleRightLightParameters;
+            data: ScheduleRightLightData;
+            error: ScheduleRightLightError;
+            body: ScheduleRightLightBody;
+        };
+    };
 }
 /** @summary Authenticate an existing user */
 export const login = {
@@ -1109,13 +1717,61 @@ export const allDevices = {
     schema: AllDevicesSchema;
     [QraftServiceOperationsToken]: ApiService["allDevices"];
 };
+/** @summary Turn left light on/off */
+export const toggleLeftLight = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/left-light/toggle",
+        mediaType: ["application/json"]
+    }
+} as {
+    schema: ToggleLeftLightSchema;
+    [QraftServiceOperationsToken]: ApiService["toggleLeftLight"];
+};
+/** @summary Turn right light on/off */
+export const toggleRightLight = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/right-light/toggle",
+        mediaType: ["application/json"]
+    }
+} as {
+    schema: ToggleRightLightSchema;
+    [QraftServiceOperationsToken]: ApiService["toggleRightLight"];
+};
+/** @summary Set a schedule for left light */
+export const scheduleLeftLight = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/left-light/schedule",
+        mediaType: ["application/json"]
+    }
+} as {
+    schema: ScheduleLeftLightSchema;
+    [QraftServiceOperationsToken]: ApiService["scheduleLeftLight"];
+};
+/** @summary Set a schedule for right light */
+export const scheduleRightLight = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/right-light/schedule",
+        mediaType: ["application/json"]
+    }
+} as {
+    schema: ScheduleRightLightSchema;
+    [QraftServiceOperationsToken]: ApiService["scheduleRightLight"];
+};
 export const apiService = {
     login,
     signup,
     createPlant,
     createDevice,
     deviceState,
-    allDevices
+    allDevices,
+    toggleLeftLight,
+    toggleRightLight,
+    scheduleLeftLight,
+    scheduleRightLight
 } as const;
 type LoginSchema = {
     method: "post";
@@ -1191,3 +1847,47 @@ type AllDevicesSchema = {
 type AllDevicesParameters = undefined;
 type AllDevicesData = paths["/api/device/all"]["get"]["responses"]["200"]["content"]["application/json"];
 type AllDevicesError = unknown;
+type ToggleLeftLightSchema = {
+    method: "post";
+    url: "/api/device/{id}/left-light/toggle";
+    mediaType: [
+        "application/json"
+    ];
+};
+type ToggleLeftLightParameters = paths["/api/device/{id}/left-light/toggle"]["post"]["parameters"];
+type ToggleLeftLightData = unknown;
+type ToggleLeftLightError = unknown;
+type ToggleLeftLightBody = NonNullable<paths["/api/device/{id}/left-light/toggle"]["post"]["requestBody"]>["content"]["application/json"];
+type ToggleRightLightSchema = {
+    method: "post";
+    url: "/api/device/{id}/right-light/toggle";
+    mediaType: [
+        "application/json"
+    ];
+};
+type ToggleRightLightParameters = paths["/api/device/{id}/right-light/toggle"]["post"]["parameters"];
+type ToggleRightLightData = unknown;
+type ToggleRightLightError = unknown;
+type ToggleRightLightBody = NonNullable<paths["/api/device/{id}/right-light/toggle"]["post"]["requestBody"]>["content"]["application/json"];
+type ScheduleLeftLightSchema = {
+    method: "post";
+    url: "/api/device/{id}/left-light/schedule";
+    mediaType: [
+        "application/json"
+    ];
+};
+type ScheduleLeftLightParameters = paths["/api/device/{id}/left-light/schedule"]["post"]["parameters"];
+type ScheduleLeftLightData = unknown;
+type ScheduleLeftLightError = unknown;
+type ScheduleLeftLightBody = NonNullable<paths["/api/device/{id}/left-light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
+type ScheduleRightLightSchema = {
+    method: "post";
+    url: "/api/device/{id}/right-light/schedule";
+    mediaType: [
+        "application/json"
+    ];
+};
+type ScheduleRightLightParameters = paths["/api/device/{id}/right-light/schedule"]["post"]["parameters"];
+type ScheduleRightLightData = unknown;
+type ScheduleRightLightError = unknown;
+type ScheduleRightLightBody = NonNullable<paths["/api/device/{id}/right-light/schedule"]["post"]["requestBody"]>["content"]["application/json"];

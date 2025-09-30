@@ -13,19 +13,41 @@ async function customRequestFn(
   schema: OperationSchema,
   requestInfo: RequestFnInfo
 ): Promise<RequestFnResponse<any, any>> {
-  // Call Qraft’s default fetcher
-  const response = await defaultRequestFn(schema, requestInfo);
+  try {
+    // get jwt from localStorage
+    const token = localStorage.getItem("token");
 
-  // Inspect response
-  if (response && typeof response === "object" && "success" in response) {
-    if (!(response as any).success) {
-      throw new Error(
-        (response as any).error ?? "API returned success = false"
-      );
+    // inject into headers if available
+    const headers = {
+      ...(requestInfo.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    console.log({ headers });
+
+    const response = await defaultRequestFn(schema, {
+      ...requestInfo,
+      headers,
+    });
+
+    if (response.response?.status === 401) {
+      if (window.location.pathname !== "/signup") {
+        window.location.href = "/signup";
+      }
     }
-  }
 
-  return response;
+    if (response && typeof response === "object" && "success" in response) {
+      if (!(response as any).success) {
+        throw new Error(
+          (response as any).error ?? "API returned success = false"
+        );
+      }
+    }
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
 }
 
 export const client = createAPIClient({

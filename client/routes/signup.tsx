@@ -27,7 +27,9 @@ function Signup() {
     {
       onSuccess: (res) => {
         localStorage.setItem("token", res.jwt);
-        router.navigate({ to: "/" });
+        setTimeout(() => {
+          router.navigate({ to: "/" });
+        }, 100);
       },
     }
   );
