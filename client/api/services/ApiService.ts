@@ -1652,6 +1652,318 @@ export interface ApiService {
             body: ScheduleRightLightBody;
         };
     };
+    /** @summary Get devices that recently announced presence from the same IP */
+    devicesByIp: {
+        /** @summary Get devices that recently announced presence from the same IP */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<DevicesByIpSchema, DevicesByIpParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<DevicesByIpParameters, TMeta, TSignal>), client?: (schema: DevicesByIpSchema, options: {
+            parameters: DevicesByIpParameters;
+            signal?: TSignal;
+            meta?: TMeta;
+        }) => Promise<RequestFnResponse<DevicesByIpData, DevicesByIpError>>): Promise<RequestFnResponse<DevicesByIpData, DevicesByIpError>>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getQueryKey(parameters: DeepReadonly<DevicesByIpParameters>): ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query with parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.devicesByIp.useQuery({
+         *     query: {
+         *         ip: ip
+         *     }
+         * })
+         * ```
+         */
+        useQuery<TData = DevicesByIpData>(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options?: Omit<UndefinedInitialDataOptions<DevicesByIpData, DevicesByIpError, TData, ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>>, "queryKey">): UseQueryResult<TData, OperationError<DevicesByIpError>>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query with parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.devicesByIp.useQuery({
+         *     query: {
+         *         ip: ip
+         *     }
+         * })
+         * ```
+         */
+        useQuery<TData = DevicesByIpData>(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<DefinedInitialDataOptions<DevicesByIpData, DevicesByIpError, TData, ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<DevicesByIpError>>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getInfiniteQueryKey(parameters: DeepReadonly<DevicesByIpParameters>): ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.devicesByIp.useInfiniteQuery({
+         *     query: {
+         *         ip: ip
+         *     }
+         * }, {
+         *     initialPageParam: {
+         *         query: {
+         *             ip: initialIp
+         *         }
+         *     },
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends DevicesByIpParameters, TQueryFnData = DevicesByIpData, TData = OperationInfiniteData<TQueryFnData, DevicesByIpParameters>>(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, DevicesByIpError, TData, ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<DevicesByIpError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.devicesByIp.useInfiniteQuery({
+         *     query: {
+         *         ip: ip
+         *     }
+         * }, {
+         *     initialPageParam: {
+         *         query: {
+         *             ip: initialIp
+         *         }
+         *     },
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends DevicesByIpParameters, TQueryFnData = DevicesByIpData, TData = OperationInfiniteData<TQueryFnData, DevicesByIpParameters>>(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, DevicesByIpError, TData, ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DevicesByIpData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<DevicesByIpError>>;
+        /**
+         * Monitors the number of queries currently fetching, matching the provided filters.
+         * Useful for creating loading indicators or performing actions based on active requests.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsFetching|`useIsFetching(...)` documentation}
+         * @example Checks the total number of queries fetching from the specified service method,
+         * both normal and infinite. If no parameters are provided, no filtering is applied.
+         * ```ts
+         * const devicesByIpTotal = qraft.apiService.devicesByIp.useIsFetching()
+         * ```
+         * @example Checks the number of normal queries fetching with the specified parameters.
+         * ```ts
+         * const devicesByIpByParametersTotal = qraft.apiService.devicesByIp.useIsFetching({
+         *     infinite: false,
+         *     parameters: {
+         *         query: {
+         *             ip: ip
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): number;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently. This is especially useful for managing complex data dependencies in parallel.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQueries|`useQueries(...)` documentation}
+         * @example Multiple queries. Returns `data`, `error`, `isSuccess` and other properties.
+         * ```ts
+         * const devicesByIpResults = qraft.apiService.devicesByIp.useQueries({
+         *     queries: [
+         *         {
+         *             query: {
+         *                 ip: ip1
+         *             }
+         *         },
+         *         {
+         *             query: {
+         *                 ip: ip2
+         *             }
+         *         }
+         *     ]
+         * });
+         * devicesByIpResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example Combined results. Only the data will be returned.
+         * ```ts
+         * const devicesByIpCombinedResults = qraft.apiService.devicesByIp.useQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {
+         *             query: {
+         *                 ip: ip1
+         *             }
+         *         },
+         *         {
+         *             query: {
+         *                 ip: ip2
+         *             }
+         *         }
+         *     ]
+         * });
+         * devicesByIpCombinedResults.forEach(data => console.log({ data }));
+         * ```
+         */
+        useQueries<T extends Array<UseQueryOptionsForUseQueries<DevicesByIpSchema, DevicesByIpParameters, DevicesByIpData, DevicesByIpError>>, TCombinedResult = Array<UseQueryResult<DevicesByIpData, DevicesByIpError>>>(options: {
+            queries: T;
+            combine?: (results: Array<UseQueryResult<DevicesByIpData, DevicesByIpError>>) => TCombinedResult;
+        }): TCombinedResult;
+        /**
+         * Performs asynchronous data fetching with Suspense support.
+         * Similar to useQuery but integrates with React Suspense for loading states.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQuery|`useSuspenseQuery(...)` documentation}
+         * @example Suspense Query with parameters
+         * ```ts
+         * const data = qraft.apiService.devicesByIp.useSuspenseQuery({
+         *     query: {
+         *         ip: ip
+         *     }
+         * })
+         * ```
+         */
+        useSuspenseQuery<TData = DevicesByIpData>(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options?: Omit<UseSuspenseQueryOptions<DevicesByIpData, DevicesByIpError, TData, ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<DevicesByIpError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         * It functions similarly to `useInfiniteQuery`, but with added support for React Suspense.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseInfiniteQuery|`useSuspenseInfiniteQuery(...)` documentation}
+         *
+         * @example Suspense Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.devicesByIp.useSuspenseInfiniteQuery({
+         *     query: {
+         *         ip: ip
+         *     }
+         * }, {
+         *     initialPageParam: {
+         *         query: {
+         *             ip: initialIp
+         *         }
+         *     },
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useSuspenseInfiniteQuery<TPageParam extends DevicesByIpParameters, TData = DevicesByIpData>(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<UseSuspenseInfiniteQueryOptions<DevicesByIpData, DevicesByIpError, OperationInfiniteData<TData, DevicesByIpParameters>, ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DevicesByIpData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, DevicesByIpParameters>, OperationError<DevicesByIpError>>;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently with Suspense support.
+         * Similar to useQueries but integrates with React Suspense for loading states.
+         *
+         * @summary Get devices that recently announced presence from the same IP
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQueries|`useSuspenseQueries(...)` documentation}
+         * @example Basic usage with Suspense
+         * ```ts
+         * const devicesByIpData = qraft.apiService.devicesByIp.useSuspenseQueries({
+         *     queries: [
+         *         {
+         *             query: {
+         *                 ip: ip1
+         *             }
+         *         },
+         *         {
+         *             query: {
+         *                 ip: ip2
+         *             }
+         *         }
+         *     ]
+         * });
+         * devicesByIpResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example With data transformation using combine
+         * ```ts
+         * const devicesByIpCombinedData = qraft.apiService.devicesByIp.useSuspenseQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {
+         *             query: {
+         *                 ip: ip1
+         *             }
+         *         },
+         *         {
+         *             query: {
+         *                 ip: ip2
+         *             }
+         *         }
+         *     ]
+         * });
+         * devicesByIpCombinedData.forEach(data => console.log({ data }));
+         * ```
+         */
+        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<DevicesByIpSchema, DevicesByIpParameters, DevicesByIpData, DevicesByIpError>>, TCombinedResult = Array<UseSuspenseQueryResult<DevicesByIpData, DevicesByIpError>>>(options: {
+            queries: T;
+            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<DevicesByIpData, DevicesByIpError>, "data">>) => TCombinedResult;
+        }): TCombinedResult;
+        /** @summary Get devices that recently announced presence from the same IP */
+        fetchQuery(options: ServiceOperationFetchQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DevicesByIpError>): Promise<DevicesByIpData>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        prefetchQuery(options: ServiceOperationFetchQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DevicesByIpError>): Promise<void>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DevicesByIpError>): Promise<DevicesByIpData>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        fetchInfiniteQuery<TPageParam extends DevicesByIpParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DeepReadonly<TPageParam>, DevicesByIpError>): Promise<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        prefetchInfiniteQuery<TPageParam extends DevicesByIpParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DeepReadonly<TPageParam>, DevicesByIpError>): Promise<void>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        ensureInfiniteQueryData<TPageParam extends DevicesByIpParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DeepReadonly<TPageParam>, DevicesByIpError>): Promise<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getQueryData(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>)): DevicesByIpData | undefined;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>)): OperationInfiniteData<DevicesByIpData, DevicesByIpParameters> | undefined;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): TInfinite extends true ? Array<[
+            queryKey: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>,
+            data: NoInfer<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>> | undefined
+        ]> : Array<[
+            queryKey: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>,
+            data: DevicesByIpData | undefined
+        ]>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getQueryState(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>)): QueryState<DevicesByIpData, DevicesByIpError> | undefined;
+        /** @summary Get devices that recently announced presence from the same IP */
+        getInfiniteQueryState(parameters: DeepReadonly<DevicesByIpParameters> | ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>): QueryState<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>, DevicesByIpError> | undefined;
+        /** @summary Get devices that recently announced presence from the same IP */
+        setQueryData(parameters: (DeepReadonly<DevicesByIpParameters>) | ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>, updater: Updater<NoInfer<DevicesByIpData> | undefined, NoInfer<DeepReadonly<DevicesByIpData>> | undefined>, options?: SetDataOptions): DevicesByIpData | undefined;
+        /** @summary Get devices that recently announced presence from the same IP */
+        setInfiniteQueryData(parameters: (DeepReadonly<DevicesByIpParameters>) | ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, updater: Updater<NoInfer<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<DevicesByIpData, DevicesByIpParameters> | undefined;
+        /** @summary Get devices that recently announced presence from the same IP */
+        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, updater: Updater<NoInfer<DevicesByIpData> | undefined, NoInfer<DevicesByIpData> | undefined>, options?: SetDataOptions): Array<DevicesByIpData | undefined>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: InvalidateOptions): Promise<void>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: RefetchOptions): Promise<void>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: CancelOptions): Promise<void>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): void;
+        /** @summary Get devices that recently announced presence from the same IP */
+        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: ResetOptions): Promise<void>;
+        /** @summary Get devices that recently announced presence from the same IP */
+        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): number;
+        schema: DevicesByIpSchema;
+        types: {
+            parameters: DevicesByIpParameters;
+            data: DevicesByIpData;
+            error: DevicesByIpError;
+        };
+    };
 }
 /** @summary Authenticate an existing user */
 export const login = {
@@ -1761,6 +2073,16 @@ export const scheduleRightLight = {
     schema: ScheduleRightLightSchema;
     [QraftServiceOperationsToken]: ApiService["scheduleRightLight"];
 };
+/** @summary Get devices that recently announced presence from the same IP */
+export const devicesByIp = {
+    schema: {
+        method: "get",
+        url: "/api/device/by-ip"
+    }
+} as {
+    schema: DevicesByIpSchema;
+    [QraftServiceOperationsToken]: ApiService["devicesByIp"];
+};
 export const apiService = {
     login,
     signup,
@@ -1771,7 +2093,8 @@ export const apiService = {
     toggleLeftLight,
     toggleRightLight,
     scheduleLeftLight,
-    scheduleRightLight
+    scheduleRightLight,
+    devicesByIp
 } as const;
 type LoginSchema = {
     method: "post";
@@ -1891,3 +2214,10 @@ type ScheduleRightLightParameters = paths["/api/device/{id}/right-light/schedule
 type ScheduleRightLightData = unknown;
 type ScheduleRightLightError = unknown;
 type ScheduleRightLightBody = NonNullable<paths["/api/device/{id}/right-light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
+type DevicesByIpSchema = {
+    method: "get";
+    url: "/api/device/by-ip";
+};
+type DevicesByIpParameters = paths["/api/device/by-ip"]["get"]["parameters"];
+type DevicesByIpData = unknown;
+type DevicesByIpError = unknown;

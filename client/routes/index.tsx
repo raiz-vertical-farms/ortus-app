@@ -5,6 +5,7 @@ import DeviceCard from "../components/DeviceCard/DeviceCard";
 import { client } from "../lib/apiClient";
 import Box from "../primitives/Box/Box";
 import { PlusCircleIcon } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -44,9 +45,33 @@ export const Route = createFileRoute("/")({
 function Index() {
   const router = useRouter();
 
+  const [ip, setIp] = useState("");
+
+  function getPublicIp() {
+    fetch("https://api.ipify.org?format=json")
+      .then((response) => response.json())
+      .then((data) => {
+        setIp(data.ip);
+      });
+  }
+
+  useEffect(() => {
+    getPublicIp();
+  }, []);
+
   const { data } = client.api.allDevices.useQuery(undefined, {
     refetchInterval: 30000,
   });
+
+  const { data: macs } = client.api.devicesByIp.useQuery(
+    { query: { ip } },
+    {
+      refetchInterval: 30000,
+      enabled: !!ip,
+    }
+  );
+
+  console.log(macs);
 
   return (
     <Box pt="6xl">

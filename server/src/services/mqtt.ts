@@ -65,7 +65,20 @@ async function handlePresence(topic: string, message: Buffer) {
     .where("mac_address", "=", mac_address)
     .execute();
 
-  console.log(`Updated last_seen for ${mac_address}`);
+  await db
+    .insertInto("device_timeseries")
+    .values({
+      mac_address: mac_address,
+      metric: "presence",
+      value_text: message.toString(),
+      value_type: "text",
+      recorded_at: new Date().toISOString(),
+    })
+    .execute();
+
+  console.log(
+    `Updated last_seen and presence for ${mac_address} with message: ${message.toString()}`
+  );
 }
 
 async function handleSensorData(topic: string, message: Buffer) {

@@ -4,6 +4,8 @@ import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
+import { sql } from "kysely";
+import { getConnInfo } from "@hono/node-server/conninfo";
 
 const lightToggleSchema = z.object({
   state: z.enum(["on", "off"]),
@@ -347,6 +349,39 @@ const app = new Hono()
       );
 
       return c.json({ message: "Right light schedule updated", schedule });
+    }
+  )
+  .get(
+    "by-ip",
+    describeRoute({
+      operationId: "devicesByIp",
+      summary: "Get devices that recently announced presence from the same IP",
+      tags: ["Devices"],
+    }),
+    zValidator("query", z.object({ ip: z.string() })),
+    async (c) => {
+      const { ip } = c.req.valid("query");
+
+      const recent = await db
+        .selectFrom("device_timeseries")
+        .select("mac_address")
+        .distinct()
+        .where("metric", "=", "presence")
+        .where("value_text", "=", ip)
+        .where("recorded_at", ">=", sql<string>`datetime('now', '-1 minute')`)
+        .execute();
+
+      const devices = await db
+        .selectFrom("devices")
+        .select(["id", "mac_address", "name"])
+        .where(
+          "mac_address",
+          "in",
+          recent.map((r) => r.mac_address)
+        )
+        .execute();
+
+      return c.json({ devices });
     }
   );
 

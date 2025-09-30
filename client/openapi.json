@@ -779,6 +779,26 @@
           }
         ]
       }
+    },
+    "/api/device/by-ip": {
+      "get": {
+        "operationId": "devicesByIp",
+        "summary": "Get devices that recently announced presence from the same IP",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ip",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ]
+      }
     }
   },
   "components": {}
