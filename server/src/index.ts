@@ -5,9 +5,15 @@ import { generateSpecs, openAPIRouteHandler } from "hono-openapi";
 import "dotenv/config";
 import routes from "./routes";
 import fs from "fs";
+import { mqttClient } from "./services/mqtt";
 import { Scalar } from "@scalar/hono-api-reference";
 
 console.log("🚀 Starting Hono server...");
+
+// TODO: We shouldnt have to do this, and just run initMQTT or something
+mqttClient.on("error", (err) => {
+  console.error("MQTT connection error:", err);
+});
 
 const app = new Hono();
 
@@ -44,6 +50,7 @@ app.route("/", routes);
 
 if (process.env.NODE_ENV !== "production") {
   serve({ fetch: app.fetch, port: 3000 });
+  console.log("🟢 Server is running at http://localhost:3000");
   generateSpecs(app, {
     documentation: {
       info: {
@@ -54,7 +61,7 @@ if (process.env.NODE_ENV !== "production") {
     },
   }).then((specs) => {
     fs.writeFileSync("../client/openapi.json", JSON.stringify(specs, null, 2));
-    console.log("Generated OpenAPI specs:");
+    console.log("✅ Generated OpenAPI specs");
   });
 }
 

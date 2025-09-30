@@ -33,6 +33,11 @@ mqttClient.on("connect", () => {
       console.log("Subscribed to +/sensor/+/state");
     }
   });
+
+  mqttClient.subscribe("+/sensor/+/schedule/state", (err) => {
+    if (err) console.error("Subscribe error (schedule):", err);
+    else console.log("Subscribed to +/sensor/+/schedule/state");
+  });
 });
 
 mqttClient.on("message", async (topic, message) => {
@@ -68,7 +73,8 @@ async function handleSensorData(topic: string, message: Buffer) {
   // or: <mac_address>/sensor/<metric_name>/state
   const parts = topic.split("/");
   const deviceIdentifier = parts[0]; // Could be device name or MAC
-  const metric = parts[2];
+  const metricParts = parts.slice(2, parts.length - 1); // everything between "sensor" and "state"
+  const metric = metricParts.join("/"); // "light_left" or "light_left/schedule"
   const valueStr = message.toString();
 
   // Determine value type

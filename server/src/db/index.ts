@@ -16,7 +16,7 @@ function createDb() {
       }),
     });
   } else {
-    console.log("Using local SQLite database at: ./db.sqlite");
+    console.log("🛢 Using local SQLite database at: ./db.sqlite");
     return new Kysely<DB>({
       dialect: new SqliteDialect({
         database: new SQLite("./db.sqlite"),
