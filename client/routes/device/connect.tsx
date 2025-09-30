@@ -25,7 +25,7 @@ export const Route = createFileRoute("/device/connect")({
 function Page() {
   const router = useRouter();
 
-  const [macAddress, setMacAddress] = useState("");
+  const [macAddress, setMacAddress] = useState("test-address");
   const [view, setView] = useState<"main" | "provision" | "save">("main");
 
   const { isSupported } = useBluetooth();
@@ -43,7 +43,6 @@ function Page() {
             />
             <button
               onClick={() => {
-                setMacAddress("test-device-id");
                 setView("save");
               }}
             >
