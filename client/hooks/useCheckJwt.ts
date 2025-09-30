@@ -6,31 +6,41 @@ export function useCheckJWT() {
   const router = useRouter();
   const location = useLocation();
   useEffect(() => {
-    const jwt = localStorage.getItem("token");
-    if (jwt) {
-      const decoded: { exp: number; iat: number; sub: string } = jwtDecode(jwt);
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (decoded.exp < currentTime) {
-        console.log("JWT has expired");
-        router.navigate({ to: "/signup" });
-        localStorage.removeItem("token");
+    try {
+      const jwt = localStorage.getItem("token");
+      if (jwt) {
+        const decoded: { exp: number; iat: number; sub: string } =
+          jwtDecode(jwt);
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (decoded.exp < currentTime) {
+          console.log("JWT has expired");
+          router.navigate({ to: "/signup" });
+          localStorage.removeItem("token");
+        }
       } else {
-        console.log("JWT is valid");
+        router.navigate({ to: "/signup" });
+        console.log("No JWT found");
       }
-    } else {
+    } catch (error) {
       router.navigate({ to: "/signup" });
-      console.log("No JWT found");
+      console.error("Error checking JWT:", error);
     }
   }, [location.pathname]);
 
   const isValid = useMemo(() => {
-    const jwt = localStorage.getItem("token");
-    if (jwt) {
-      const decoded: { exp: number; iat: number; sub: string } = jwtDecode(jwt);
-      const currentTime = Math.floor(Date.now() / 1000);
-      return decoded.exp >= currentTime;
+    try {
+      const jwt = localStorage.getItem("token");
+      if (jwt) {
+        const decoded: { exp: number; iat: number; sub: string } =
+          jwtDecode(jwt);
+        const currentTime = Math.floor(Date.now() / 1000);
+        return decoded.exp >= currentTime;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking JWT:", error);
+      return false;
     }
-    return false;
   }, [location.pathname]);
 
   return isValid;

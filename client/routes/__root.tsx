@@ -68,8 +68,6 @@ function RootLayout() {
     {} as StaticDataRouteOption["layout"]
   );
 
-  console.log("layout", layout);
-
   const {
     pageTitle,
     hideNav,
