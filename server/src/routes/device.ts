@@ -4,8 +4,6 @@ import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
-import { sql } from "kysely";
-import { getConnInfo } from "@hono/node-server/conninfo";
 
 const lightToggleSchema = z.object({
   state: z.enum(["on", "off"]),
@@ -24,6 +22,10 @@ const createDeviceRequestSchema = z.object({
   organization_id: z.number(),
 });
 
+const localDevicesSchema = z.object({
+  mac_address: z.string(),
+});
+
 const deviceSummarySchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -40,10 +42,8 @@ const deviceStateSchema = z.object({
   mac_address: z.string(),
   organization_id: z.number(),
   last_seen: z.string().nullable(),
-  left_light: z.string().nullable(),
-  left_light_schedule: lightScheduleSchema.nullable(),
-  right_light: z.string().nullable(),
-  right_light_schedule: lightScheduleSchema.nullable(),
+  light: z.string().nullable(),
+  light_schedule: lightScheduleSchema.nullable(),
   water_level: z.string().nullable(),
   number_of_plants: z.number(),
 });
@@ -54,8 +54,8 @@ const deviceStateResponseSchema = z.object({
 
 const deviceListItemSchema = deviceStateSchema.omit({
   number_of_plants: true,
-  left_light: true,
-  right_light: true,
+  light: true,
+  light_schedule: true,
   water_level: true,
 });
 
@@ -147,13 +147,7 @@ const app = new Hono()
         .selectFrom("device_timeseries as dt1")
         .select(["metric", "value_text"])
         .where("mac_address", "=", device.mac_address)
-        .where("metric", "in", [
-          "light_left",
-          "light_right",
-          "light_left/schedule",
-          "light_right/schedule",
-          "water_level",
-        ])
+        .where("metric", "in", ["light", "light/schedule", "water_level"])
         .where((eb) =>
           eb(
             "recorded_at",
@@ -167,14 +161,8 @@ const app = new Hono()
         )
         .execute();
 
-      const leftLight = results.find((r) => r.metric === "light_left");
-      const leftLightSchedule = results.find(
-        (r) => r.metric === "light_left/schedule"
-      );
-      const rightLight = results.find((r) => r.metric === "light_right");
-      const rightLightSchedule = results.find(
-        (r) => r.metric === "light_right/schedule"
-      );
+      const light = results.find((r) => r.metric === "light");
+      const lightSchedule = results.find((r) => r.metric === "light/schedule");
       const waterLevel = results.find((r) => r.metric === "water_level");
 
       if (!device) {
@@ -186,13 +174,9 @@ const app = new Hono()
       return c.json({
         state: {
           ...device,
-          left_light: leftLight ? leftLight.value_text : null,
-          right_light: rightLight ? rightLight.value_text : null,
-          left_light_schedule: leftLightSchedule
-            ? JSON.parse(leftLightSchedule.value_text)
-            : null,
-          right_light_schedule: rightLightSchedule
-            ? JSON.parse(rightLightSchedule.value_text)
+          light: light ? light.value_text : null,
+          light_schedule: lightSchedule
+            ? JSON.parse(lightSchedule.value_text)
             : null,
           water_level: waterLevel ? waterLevel.value_text : null,
         },
@@ -228,9 +212,9 @@ const app = new Hono()
     }
   )
   .post(
-    ":id/left-light/toggle",
+    ":id/light/toggle",
     describeRoute({
-      operationId: "toggleLeftLight",
+      operationId: "toggleLight",
       summary: "Turn left light on/off",
       tags: ["Devices"],
     }),
@@ -243,6 +227,7 @@ const app = new Hono()
         });
 
       const mac = await getDeviceMac(id);
+
       if (!mac)
         throw new HTTPException(404, {
           res: c.json({ message: "Device not found" }, 404),
@@ -250,44 +235,16 @@ const app = new Hono()
 
       const { state } = c.req.valid("json");
 
-      mqttClient.publish(`${mac}/light_left/command`, state);
+      mqttClient.publish(`${mac}/light/command`, state);
 
-      return c.json({ message: `Left light set to ${state}` });
+      return c.json({ message: `Lights set to ${state}` });
     }
   )
   .post(
-    ":id/right-light/toggle",
+    ":id/light/schedule",
     describeRoute({
-      operationId: "toggleRightLight",
-      summary: "Turn right light on/off",
-      tags: ["Devices"],
-    }),
-    zValidator("json", lightToggleSchema),
-    async (c) => {
-      const id = Number(c.req.param("id"));
-      if (isNaN(id))
-        throw new HTTPException(400, {
-          res: c.json({ message: "Invalid device id" }, 400),
-        });
-
-      const mac = await getDeviceMac(id);
-      if (!mac)
-        throw new HTTPException(404, {
-          res: c.json({ message: "Device not found" }, 404),
-        });
-
-      const { state } = c.req.valid("json");
-
-      mqttClient.publish(`${mac}/light/light_right/command`, state);
-
-      return c.json({ message: `Right light set to ${state}` });
-    }
-  )
-  .post(
-    ":id/left-light/schedule",
-    describeRoute({
-      operationId: "scheduleLeftLight",
-      summary: "Set a schedule for left light",
+      operationId: "scheduleLight",
+      summary: "Set a schedule for the light",
       tags: ["Devices"],
     }),
     zValidator("json", lightScheduleSchema),
@@ -308,83 +265,12 @@ const app = new Hono()
 
       // Publish JSON payload for schedule
       mqttClient.publish(
-        `${mac}/light/light_left/schedule/command`,
+        `${mac}/light/schedule/command`,
         JSON.stringify(schedule)
       );
 
-      return c.json({ message: "Left light schedule updated", schedule });
-    }
-  )
-  .post(
-    ":id/right-light/schedule",
-    describeRoute({
-      operationId: "scheduleRightLight",
-      summary: "Set a schedule for right light",
-      tags: ["Devices"],
-    }),
-    zValidator("json", lightScheduleSchema),
-    async (c) => {
-      const id = Number(c.req.param("id"));
-      if (isNaN(id))
-        throw new HTTPException(400, {
-          res: c.json({ message: "Invalid device id" }, 400),
-        });
-
-      const device = await db
-        .selectFrom("devices")
-        .select(["mac_address"])
-        .where("id", "=", id)
-        .executeTakeFirst();
-
-      if (!device)
-        throw new HTTPException(404, {
-          res: c.json({ message: "Device not found" }, 404),
-        });
-
-      const schedule = c.req.valid("json");
-
-      mqttClient.publish(
-        `${device.mac_address}/light/light_right/schedule/command`,
-        JSON.stringify(schedule)
-      );
-
-      return c.json({ message: "Right light schedule updated", schedule });
-    }
-  )
-  .get(
-    "by-ip",
-    describeRoute({
-      operationId: "devicesByIp",
-      summary: "Get devices that recently announced presence from the same IP",
-      tags: ["Devices"],
-    }),
-    zValidator("query", z.object({ ip: z.string() })),
-    async (c) => {
-      const { ip } = c.req.valid("query");
-
-      const recent = await db
-        .selectFrom("device_timeseries")
-        .select("mac_address")
-        .distinct()
-        .where("metric", "=", "presence")
-        .where("value_text", "=", ip)
-        .where("recorded_at", ">=", sql<string>`datetime('now', '-1 minute')`)
-        .execute();
-
-      const devices = await db
-        .selectFrom("devices")
-        .select(["id", "mac_address", "name"])
-        .where(
-          "mac_address",
-          "in",
-          recent.map((r) => r.mac_address)
-        )
-        .execute();
-
-      return c.json({ devices });
+      return c.json({ message: "Light schedule updated", schedule });
     }
   );
 
 export default app;
-
-export type AppType = typeof app;

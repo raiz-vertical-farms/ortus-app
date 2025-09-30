@@ -106,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/left-light/toggle": {
+    "/api/device/{id}/light/toggle": {
         parameters: {
             query?: never;
             header?: never;
@@ -116,14 +116,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Turn left light on/off */
-        post: operations["toggleLeftLight"];
+        post: operations["toggleLight"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/right-light/toggle": {
+    "/api/device/{id}/light/schedule": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,49 +132,32 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Turn right light on/off */
-        post: operations["toggleRightLight"];
+        /** Set a schedule for the light */
+        post: operations["scheduleLight"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/left-light/schedule": {
+    "/api/network/my-ip": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get my IP address */
+        get: operations["myIp"];
         put?: never;
-        /** Set a schedule for left light */
-        post: operations["scheduleLeftLight"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/right-light/schedule": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Set a schedule for right light */
-        post: operations["scheduleRightLight"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/device/by-ip": {
+    "/api/network/local-devices": {
         parameters: {
             query?: never;
             header?: never;
@@ -182,7 +165,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get devices that recently announced presence from the same IP */
-        get: operations["devicesByIp"];
+        get: operations["localDevices"];
         put?: never;
         post?: never;
         delete?: never;
@@ -356,15 +339,8 @@ export interface operations {
                             mac_address: string;
                             organization_id: number;
                             last_seen: string | null;
-                            left_light: string | null;
-                            left_light_schedule: {
-                                from_hour: number;
-                                from_minute: number;
-                                to_hour: number;
-                                to_minute: number;
-                            } | null;
-                            right_light: string | null;
-                            right_light_schedule: {
+                            light: string | null;
+                            light_schedule: {
                                 from_hour: number;
                                 from_minute: number;
                                 to_hour: number;
@@ -400,25 +376,13 @@ export interface operations {
                             mac_address: string;
                             organization_id: number;
                             last_seen: string | null;
-                            left_light_schedule: {
-                                from_hour: number;
-                                from_minute: number;
-                                to_hour: number;
-                                to_minute: number;
-                            } | null;
-                            right_light_schedule: {
-                                from_hour: number;
-                                from_minute: number;
-                                to_hour: number;
-                                to_minute: number;
-                            } | null;
                         }[];
                     };
                 };
             };
         };
     };
-    toggleLeftLight: {
+    toggleLight: {
         parameters: {
             query?: never;
             header?: never;
@@ -437,26 +401,7 @@ export interface operations {
         };
         responses: never;
     };
-    toggleRightLight: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** @enum {string} */
-                    state: "on" | "off";
-                };
-            };
-        };
-        responses: never;
-    };
-    scheduleLeftLight: {
+    scheduleLight: {
         parameters: {
             query?: never;
             header?: never;
@@ -477,28 +422,29 @@ export interface operations {
         };
         responses: never;
     };
-    scheduleRightLight: {
+    myIp: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    from_hour: number;
-                    from_minute: number;
-                    to_hour: number;
-                    to_minute: number;
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        ip: string;
+                    };
                 };
             };
         };
-        responses: never;
     };
-    devicesByIp: {
+    localDevices: {
         parameters: {
             query: {
                 ip: string;
@@ -508,6 +454,18 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        mac_address: string;
+                    }[];
+                };
+            };
+        };
     };
 }

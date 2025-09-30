@@ -1045,11 +1045,11 @@ export interface ApiService {
         };
     };
     /** @summary Turn left light on/off */
-    toggleLeftLight: {
+    toggleLight: {
         /** @summary Turn left light on/off */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ToggleLeftLightBody, ToggleLeftLightParameters, TMeta, TSignal>, client?: (schema: ToggleLeftLightSchema, options: ServiceOperationMutationFnOptions<ToggleLeftLightBody, ToggleLeftLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ToggleLeftLightData, ToggleLeftLightError>>): Promise<RequestFnResponse<ToggleLeftLightData, ToggleLeftLightError>>;
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ToggleLightBody, ToggleLightParameters, TMeta, TSignal>, client?: (schema: ToggleLightSchema, options: ServiceOperationMutationFnOptions<ToggleLightBody, ToggleLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ToggleLightData, ToggleLightError>>): Promise<RequestFnResponse<ToggleLightData, ToggleLightError>>;
         /** @summary Turn left light on/off */
-        getMutationKey(parameters: DeepReadonly<ToggleLeftLightParameters> | void): ServiceOperationMutationKey<ToggleLeftLightSchema, ToggleLeftLightParameters>;
+        getMutationKey(parameters: DeepReadonly<ToggleLightParameters> | void): ServiceOperationMutationKey<ToggleLightSchema, ToggleLightParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
@@ -1058,7 +1058,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1067,7 +1067,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1076,7 +1076,7 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends ToggleLeftLightBody, TContext = unknown>(parameters: DeepReadonly<ToggleLeftLightParameters>, options?: ServiceOperationUseMutationOptions<ToggleLeftLightSchema, ToggleLeftLightData, ToggleLeftLightParameters, TVariables, OperationError<ToggleLeftLightError>, TContext>): UseMutationResult<ToggleLeftLightData, OperationError<ToggleLeftLightError>, TVariables | void, TContext>;
+        useMutation<TVariables extends ToggleLightBody, TContext = unknown>(parameters: DeepReadonly<ToggleLightParameters>, options?: ServiceOperationUseMutationOptions<ToggleLightSchema, ToggleLightData, ToggleLightParameters, TVariables, OperationError<ToggleLightError>, TContext>): UseMutationResult<ToggleLightData, OperationError<ToggleLightError>, TVariables | void, TContext>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
@@ -1085,7 +1085,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1094,7 +1094,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLeftLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1103,7 +1103,7 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ToggleLeftLightSchema, ToggleLeftLightData, ToggleLeftLightParameters, TVariables, OperationError<ToggleLeftLightError>, TContext>): UseMutationResult<ToggleLeftLightData, OperationError<ToggleLeftLightError>, TVariables, TContext>;
+        useMutation<TVariables extends MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ToggleLightSchema, ToggleLightData, ToggleLightParameters, TVariables, OperationError<ToggleLightError>, TContext>): UseMutationResult<ToggleLightData, OperationError<ToggleLightError>, TVariables, TContext>;
         /**
          * Returns the count of currently in-progress mutations.
          *
@@ -1111,11 +1111,11 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
-         * const toggleLeftLightTotal = qraft.apiService.toggleLeftLight.useIsMutating()
+         * const toggleLightTotal = qraft.apiService.toggleLight.useIsMutating()
          * ```
          * @example Check how many mutations are currently in progress with the specified parameters.
          * ```ts
-         * const toggleLeftLightTotal = qraft.apiService.toggleLeftLight.useIsMutating({
+         * const toggleLightTotal = qraft.apiService.toggleLight.useIsMutating({
          *     parameters: {
          *         path: {
          *             id: id
@@ -1124,7 +1124,7 @@ export interface ApiService {
          * })
          * ```
          */
-        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): number;
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): number;
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
@@ -1132,7 +1132,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
-         * const toggleLeftLightPendingMutationVariables = qraft.apiService.toggleLeftLight.useMutationState({
+         * const toggleLightPendingMutationVariables = qraft.apiService.toggleLight.useMutationState({
          *     filters: {
          *         status: "pending"
          *     },
@@ -1141,7 +1141,7 @@ export interface ApiService {
          * ```
          * @example Get all data for specific mutations via the `parameters`.
          * ```ts
-         * const toggleLeftLightMutationData = qraft.apiService.toggleLeftLight.useMutationState({
+         * const toggleLightMutationData = qraft.apiService.toggleLight.useMutationState({
          *     filters: {
          *         parameters: {
          *             path: {
@@ -1153,12 +1153,12 @@ export interface ApiService {
          * })
          * ```
          */
-        useMutationState<TContext = unknown, TResult = MutationState<ToggleLeftLightData, OperationError<ToggleLeftLightError>, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext>>(options?: {
-            filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>;
-            select?: (mutation: Mutation<ToggleLeftLightData, OperationError<ToggleLeftLightError>, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext>) => TResult;
+        useMutationState<TContext = unknown, TResult = MutationState<ToggleLightData, OperationError<ToggleLightError>, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>;
+            select?: (mutation: Mutation<ToggleLightData, OperationError<ToggleLightError>, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext>) => TResult;
         }): Array<TResult>;
         /** @summary Turn left light on/off */
-        isMutating<TContext>(filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): number;
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
@@ -1168,7 +1168,7 @@ export interface ApiService {
          *
          * @example Find a mutation with specific parameters
          * ```ts
-         * const mutationCache = qraft.apiService.toggleLeftLight.getMutationCache();
+         * const mutationCache = qraft.apiService.toggleLight.getMutationCache();
          * const mutation = mutationCache.find({
          *     parameters: {
          *         path: {
@@ -1180,37 +1180,37 @@ export interface ApiService {
          *
          * @example Find all mutations for the endpoint
          * ```ts
-         * const mutationCache = qraft.apiService.toggleLeftLight.getMutationCache();
+         * const mutationCache = qraft.apiService.toggleLight.getMutationCache();
          * const mutations = mutationCache.findAll();
          * ```
          */
         getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
-            find<TContext = unknown>(filters: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): Mutation<ToggleLeftLightData, ToggleLeftLightError, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext> | undefined;
-            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext> | MutationFiltersByMutationKey<ToggleLeftLightSchema, ToggleLeftLightBody, ToggleLeftLightData, ToggleLeftLightParameters, OperationError<ToggleLeftLightError>, TContext>): Array<Mutation<ToggleLeftLightData, ToggleLeftLightError, MutationVariables<ToggleLeftLightBody, ToggleLeftLightParameters>, TContext>>;
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): Mutation<ToggleLightData, ToggleLightError, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): Array<Mutation<ToggleLightData, ToggleLightError, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext>>;
         };
-        schema: ToggleLeftLightSchema;
+        schema: ToggleLightSchema;
         types: {
-            parameters: ToggleLeftLightParameters;
-            data: ToggleLeftLightData;
-            error: ToggleLeftLightError;
-            body: ToggleLeftLightBody;
+            parameters: ToggleLightParameters;
+            data: ToggleLightData;
+            error: ToggleLightError;
+            body: ToggleLightBody;
         };
     };
-    /** @summary Turn right light on/off */
-    toggleRightLight: {
-        /** @summary Turn right light on/off */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ToggleRightLightBody, ToggleRightLightParameters, TMeta, TSignal>, client?: (schema: ToggleRightLightSchema, options: ServiceOperationMutationFnOptions<ToggleRightLightBody, ToggleRightLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ToggleRightLightData, ToggleRightLightError>>): Promise<RequestFnResponse<ToggleRightLightData, ToggleRightLightError>>;
-        /** @summary Turn right light on/off */
-        getMutationKey(parameters: DeepReadonly<ToggleRightLightParameters> | void): ServiceOperationMutationKey<ToggleRightLightSchema, ToggleRightLightParameters>;
+    /** @summary Set a schedule for the light */
+    scheduleLight: {
+        /** @summary Set a schedule for the light */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleLightBody, ScheduleLightParameters, TMeta, TSignal>, client?: (schema: ScheduleLightSchema, options: ServiceOperationMutationFnOptions<ScheduleLightBody, ScheduleLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleLightData, ScheduleLightError>>): Promise<RequestFnResponse<ScheduleLightData, ScheduleLightError>>;
+        /** @summary Set a schedule for the light */
+        getMutationKey(parameters: DeepReadonly<ScheduleLightParameters> | void): ServiceOperationMutationKey<ScheduleLightSchema, ScheduleLightParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Turn right light on/off
+         * @summary Set a schedule for the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.scheduleLight.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1219,7 +1219,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.scheduleLight.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1228,16 +1228,16 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends ToggleRightLightBody, TContext = unknown>(parameters: DeepReadonly<ToggleRightLightParameters>, options?: ServiceOperationUseMutationOptions<ToggleRightLightSchema, ToggleRightLightData, ToggleRightLightParameters, TVariables, OperationError<ToggleRightLightError>, TContext>): UseMutationResult<ToggleRightLightData, OperationError<ToggleRightLightError>, TVariables | void, TContext>;
+        useMutation<TVariables extends ScheduleLightBody, TContext = unknown>(parameters: DeepReadonly<ScheduleLightParameters>, options?: ServiceOperationUseMutationOptions<ScheduleLightSchema, ScheduleLightData, ScheduleLightParameters, TVariables, OperationError<ScheduleLightError>, TContext>): UseMutationResult<ScheduleLightData, OperationError<ScheduleLightError>, TVariables | void, TContext>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Turn right light on/off
+         * @summary Set a schedule for the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.scheduleLight.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1246,7 +1246,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleRightLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.scheduleLight.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1255,19 +1255,19 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ToggleRightLightSchema, ToggleRightLightData, ToggleRightLightParameters, TVariables, OperationError<ToggleRightLightError>, TContext>): UseMutationResult<ToggleRightLightData, OperationError<ToggleRightLightError>, TVariables, TContext>;
+        useMutation<TVariables extends MutationVariables<ScheduleLightBody, ScheduleLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ScheduleLightSchema, ScheduleLightData, ScheduleLightParameters, TVariables, OperationError<ScheduleLightError>, TContext>): UseMutationResult<ScheduleLightData, OperationError<ScheduleLightError>, TVariables, TContext>;
         /**
          * Returns the count of currently in-progress mutations.
          *
-         * @summary Turn right light on/off
+         * @summary Set a schedule for the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
-         * const toggleRightLightTotal = qraft.apiService.toggleRightLight.useIsMutating()
+         * const scheduleLightTotal = qraft.apiService.scheduleLight.useIsMutating()
          * ```
          * @example Check how many mutations are currently in progress with the specified parameters.
          * ```ts
-         * const toggleRightLightTotal = qraft.apiService.toggleRightLight.useIsMutating({
+         * const scheduleLightTotal = qraft.apiService.scheduleLight.useIsMutating({
          *     parameters: {
          *         path: {
          *             id: id
@@ -1276,15 +1276,15 @@ export interface ApiService {
          * })
          * ```
          */
-        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): number;
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>): number;
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
-         * @summary Turn right light on/off
+         * @summary Set a schedule for the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
-         * const toggleRightLightPendingMutationVariables = qraft.apiService.toggleRightLight.useMutationState({
+         * const scheduleLightPendingMutationVariables = qraft.apiService.scheduleLight.useMutationState({
          *     filters: {
          *         status: "pending"
          *     },
@@ -1293,7 +1293,7 @@ export interface ApiService {
          * ```
          * @example Get all data for specific mutations via the `parameters`.
          * ```ts
-         * const toggleRightLightMutationData = qraft.apiService.toggleRightLight.useMutationState({
+         * const scheduleLightMutationData = qraft.apiService.scheduleLight.useMutationState({
          *     filters: {
          *         parameters: {
          *             path: {
@@ -1305,22 +1305,22 @@ export interface ApiService {
          * })
          * ```
          */
-        useMutationState<TContext = unknown, TResult = MutationState<ToggleRightLightData, OperationError<ToggleRightLightError>, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext>>(options?: {
-            filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>;
-            select?: (mutation: Mutation<ToggleRightLightData, OperationError<ToggleRightLightError>, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext>) => TResult;
+        useMutationState<TContext = unknown, TResult = MutationState<ScheduleLightData, OperationError<ScheduleLightError>, MutationVariables<ScheduleLightBody, ScheduleLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>;
+            select?: (mutation: Mutation<ScheduleLightData, OperationError<ScheduleLightError>, MutationVariables<ScheduleLightBody, ScheduleLightParameters>, TContext>) => TResult;
         }): Array<TResult>;
-        /** @summary Turn right light on/off */
-        isMutating<TContext>(filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): number;
+        /** @summary Set a schedule for the light */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
          *
-         * @summary Turn right light on/off
+         * @summary Set a schedule for the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
          *
          * @example Find a mutation with specific parameters
          * ```ts
-         * const mutationCache = qraft.apiService.toggleRightLight.getMutationCache();
+         * const mutationCache = qraft.apiService.scheduleLight.getMutationCache();
          * const mutation = mutationCache.find({
          *     parameters: {
          *         path: {
@@ -1332,336 +1332,265 @@ export interface ApiService {
          *
          * @example Find all mutations for the endpoint
          * ```ts
-         * const mutationCache = qraft.apiService.toggleRightLight.getMutationCache();
+         * const mutationCache = qraft.apiService.scheduleLight.getMutationCache();
          * const mutations = mutationCache.findAll();
          * ```
          */
         getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
-            find<TContext = unknown>(filters: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): Mutation<ToggleRightLightData, ToggleRightLightError, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext> | undefined;
-            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext> | MutationFiltersByMutationKey<ToggleRightLightSchema, ToggleRightLightBody, ToggleRightLightData, ToggleRightLightParameters, OperationError<ToggleRightLightError>, TContext>): Array<Mutation<ToggleRightLightData, ToggleRightLightError, MutationVariables<ToggleRightLightBody, ToggleRightLightParameters>, TContext>>;
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>): Mutation<ScheduleLightData, ScheduleLightError, MutationVariables<ScheduleLightBody, ScheduleLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>): Array<Mutation<ScheduleLightData, ScheduleLightError, MutationVariables<ScheduleLightBody, ScheduleLightParameters>, TContext>>;
         };
-        schema: ToggleRightLightSchema;
+        schema: ScheduleLightSchema;
         types: {
-            parameters: ToggleRightLightParameters;
-            data: ToggleRightLightData;
-            error: ToggleRightLightError;
-            body: ToggleRightLightBody;
+            parameters: ScheduleLightParameters;
+            data: ScheduleLightData;
+            error: ScheduleLightError;
+            body: ScheduleLightBody;
         };
     };
-    /** @summary Set a schedule for left light */
-    scheduleLeftLight: {
-        /** @summary Set a schedule for left light */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleLeftLightBody, ScheduleLeftLightParameters, TMeta, TSignal>, client?: (schema: ScheduleLeftLightSchema, options: ServiceOperationMutationFnOptions<ScheduleLeftLightBody, ScheduleLeftLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleLeftLightData, ScheduleLeftLightError>>): Promise<RequestFnResponse<ScheduleLeftLightData, ScheduleLeftLightError>>;
-        /** @summary Set a schedule for left light */
-        getMutationKey(parameters: DeepReadonly<ScheduleLeftLightParameters> | void): ServiceOperationMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightParameters>;
+    /** @summary Get my IP address */
+    myIp: {
+        /** @summary Get my IP address */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<MyIpSchema, MyIpParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<MyIpParameters, TMeta, TSignal> | void), client?: (schema: MyIpSchema, options: {
+            parameters: MyIpParameters;
+            signal?: TSignal;
+            meta?: TMeta;
+        }) => Promise<RequestFnResponse<MyIpData, MyIpError>>): Promise<RequestFnResponse<MyIpData, MyIpError>>;
+        /** @summary Get my IP address */
+        getQueryKey(parameters: DeepReadonly<MyIpParameters> | void): ServiceOperationQueryKey<MyIpSchema, MyIpParameters>;
         /**
-         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
-         * Handles loading state, optimistic updates, and error handling.
+         * Performs asynchronous data fetching, manages loading states and error handling.
          *
-         * @summary Set a schedule for left light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
-         * @example Mutation with predefined parameters, e.g., for updating
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query without parameters
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation({
-         *     path: {
-         *         id: id
-         *     }
-         * })
-         * mutate(body);
+         * const { data, isLoading } = qraft.apiService.myIp.useQuery()
          * ```
-         * @example Mutation without predefined parameters, e.g., for creating
+         */
+        useQuery<TData = MyIpData>(parameters: ServiceOperationQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void), options?: Omit<UndefinedInitialDataOptions<MyIpData, MyIpError, TData, ServiceOperationQueryKey<MyIpSchema, MyIpParameters>>, "queryKey">): UseQueryResult<TData, OperationError<MyIpError>>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query without parameters
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation()
-         * mutate({
-         *     body: bodyPayload,
-         *     path: {
-         *         id: id
-         *     }
+         * const { data, isLoading } = qraft.apiService.myIp.useQuery()
+         * ```
+         */
+        useQuery<TData = MyIpData>(parameters: ServiceOperationQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void), options: Omit<DefinedInitialDataOptions<MyIpData, MyIpError, TData, ServiceOperationQueryKey<MyIpSchema, MyIpParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<MyIpError>>;
+        /** @summary Get my IP address */
+        getInfiniteQueryKey(parameters: DeepReadonly<MyIpParameters> | void): ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.myIp.useInfiniteQuery({}, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends MyIpParameters, TQueryFnData = MyIpData, TData = OperationInfiniteData<TQueryFnData, MyIpParameters>>(parameters: ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, MyIpError, TData, ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<MyIpError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.myIp.useInfiniteQuery({}, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends MyIpParameters, TQueryFnData = MyIpData, TData = OperationInfiniteData<TQueryFnData, MyIpParameters>>(parameters: ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, MyIpError, TData, ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<MyIpData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<MyIpError>>;
+        /**
+         * Monitors the number of queries currently fetching, matching the provided filters.
+         * Useful for creating loading indicators or performing actions based on active requests.
+         *
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsFetching|`useIsFetching(...)` documentation}
+         * @example Checks the total number of queries fetching from the specified service method,
+         * both normal and infinite. If no parameters are provided, no filtering is applied.
+         * ```ts
+         * const myIpTotal = qraft.apiService.myIp.useIsFetching()
+         * ```
+         */
+        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>): number;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently. This is especially useful for managing complex data dependencies in parallel.
+         *
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQueries|`useQueries(...)` documentation}
+         * @example Multiple queries. Returns `data`, `error`, `isSuccess` and other properties.
+         * ```ts
+         * const myIpResults = qraft.apiService.myIp.useQueries({
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
          * });
+         * myIpResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
          * ```
-         */
-        useMutation<TVariables extends ScheduleLeftLightBody, TContext = unknown>(parameters: DeepReadonly<ScheduleLeftLightParameters>, options?: ServiceOperationUseMutationOptions<ScheduleLeftLightSchema, ScheduleLeftLightData, ScheduleLeftLightParameters, TVariables, OperationError<ScheduleLeftLightError>, TContext>): UseMutationResult<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, TVariables | void, TContext>;
-        /**
-         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
-         * Handles loading state, optimistic updates, and error handling.
-         *
-         * @summary Set a schedule for left light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
-         * @example Mutation with predefined parameters, e.g., for updating
+         * @example Combined results. Only the data will be returned.
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation({
-         *     path: {
-         *         id: id
-         *     }
-         * })
-         * mutate(body);
-         * ```
-         * @example Mutation without predefined parameters, e.g., for creating
-         * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleLeftLight.useMutation()
-         * mutate({
-         *     body: bodyPayload,
-         *     path: {
-         *         id: id
-         *     }
+         * const myIpCombinedResults = qraft.apiService.myIp.useQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
          * });
+         * myIpCombinedResults.forEach(data => console.log({ data }));
          * ```
          */
-        useMutation<TVariables extends MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ScheduleLeftLightSchema, ScheduleLeftLightData, ScheduleLeftLightParameters, TVariables, OperationError<ScheduleLeftLightError>, TContext>): UseMutationResult<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, TVariables, TContext>;
+        useQueries<T extends Array<UseQueryOptionsForUseQueries<MyIpSchema, MyIpParameters, MyIpData, MyIpError>>, TCombinedResult = Array<UseQueryResult<MyIpData, MyIpError>>>(options: {
+            queries: T;
+            combine?: (results: Array<UseQueryResult<MyIpData, MyIpError>>) => TCombinedResult;
+        }): TCombinedResult;
         /**
-         * Returns the count of currently in-progress mutations.
+         * Performs asynchronous data fetching with Suspense support.
+         * Similar to useQuery but integrates with React Suspense for loading states.
          *
-         * @summary Set a schedule for left light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
-         * @example Check how many mutations are currently in progress for the specified service method.
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQuery|`useSuspenseQuery(...)` documentation}
+         * @example Suspense Query without parameters
          * ```ts
-         * const scheduleLeftLightTotal = qraft.apiService.scheduleLeftLight.useIsMutating()
-         * ```
-         * @example Check how many mutations are currently in progress with the specified parameters.
-         * ```ts
-         * const scheduleLeftLightTotal = qraft.apiService.scheduleLeftLight.useIsMutating({
-         *     parameters: {
-         *         path: {
-         *             id: id
-         *         }
-         *     }
-         * })
+         * const data = qraft.apiService.myIp.useSuspenseQuery()
          * ```
          */
-        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): number;
+        useSuspenseQuery<TData = MyIpData>(parameters: ServiceOperationQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void), options?: Omit<UseSuspenseQueryOptions<MyIpData, MyIpError, TData, ServiceOperationQueryKey<MyIpSchema, MyIpParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<MyIpError>>;
         /**
-         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         * It functions similarly to `useInfiniteQuery`, but with added support for React Suspense.
          *
-         * @summary Set a schedule for left light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
-         * @example Get all variables of all running mutations.
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseInfiniteQuery|`useSuspenseInfiniteQuery(...)` documentation}
+         *
+         * @example Suspense Infinite Query
          * ```ts
-         * const scheduleLeftLightPendingMutationVariables = qraft.apiService.scheduleLeftLight.useMutationState({
-         *     filters: {
-         *         status: "pending"
-         *     },
-         *     select: mutation => mutation.state.variables
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.myIp.useSuspenseInfiniteQuery({}, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
          * })
-         * ```
-         * @example Get all data for specific mutations via the `parameters`.
-         * ```ts
-         * const scheduleLeftLightMutationData = qraft.apiService.scheduleLeftLight.useMutationState({
-         *     filters: {
-         *         parameters: {
-         *             path: {
-         *                 id: id
-         *             }
-         *         }
-         *     },
-         *     select: mutation => mutation.state.data
-         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
          * ```
          */
-        useMutationState<TContext = unknown, TResult = MutationState<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext>>(options?: {
-            filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>;
-            select?: (mutation: Mutation<ScheduleLeftLightData, OperationError<ScheduleLeftLightError>, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext>) => TResult;
-        }): Array<TResult>;
-        /** @summary Set a schedule for left light */
-        isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): number;
+        useSuspenseInfiniteQuery<TPageParam extends MyIpParameters, TData = MyIpData>(parameters: ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void), options: Omit<UseSuspenseInfiniteQueryOptions<MyIpData, MyIpError, OperationInfiniteData<TData, MyIpParameters>, ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<MyIpData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, MyIpParameters>, OperationError<MyIpError>>;
         /**
-         * Returns a `MutationCache` object that provides access to mutation cache operations
-         * for the specific endpoint.
+         * Allows you to execute multiple asynchronous data fetching operations concurrently with Suspense support.
+         * Similar to useQueries but integrates with React Suspense for loading states.
          *
-         * @summary Set a schedule for left light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
-         *
-         * @example Find a mutation with specific parameters
+         * @summary Get my IP address
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQueries|`useSuspenseQueries(...)` documentation}
+         * @example Basic usage with Suspense
          * ```ts
-         * const mutationCache = qraft.apiService.scheduleLeftLight.getMutationCache();
-         * const mutation = mutationCache.find({
-         *     parameters: {
-         *         path: {
-         *             id: id
-         *         }
-         *     }
+         * const myIpData = qraft.apiService.myIp.useSuspenseQueries({
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
          * });
+         * myIpResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
          * ```
-         *
-         * @example Find all mutations for the endpoint
+         * @example With data transformation using combine
          * ```ts
-         * const mutationCache = qraft.apiService.scheduleLeftLight.getMutationCache();
-         * const mutations = mutationCache.findAll();
+         * const myIpCombinedData = qraft.apiService.myIp.useSuspenseQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
+         * });
+         * myIpCombinedData.forEach(data => console.log({ data }));
          * ```
          */
-        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
-            find<TContext = unknown>(filters: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): Mutation<ScheduleLeftLightData, ScheduleLeftLightError, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext> | undefined;
-            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLeftLightSchema, ScheduleLeftLightBody, ScheduleLeftLightData, ScheduleLeftLightParameters, OperationError<ScheduleLeftLightError>, TContext>): Array<Mutation<ScheduleLeftLightData, ScheduleLeftLightError, MutationVariables<ScheduleLeftLightBody, ScheduleLeftLightParameters>, TContext>>;
-        };
-        schema: ScheduleLeftLightSchema;
+        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<MyIpSchema, MyIpParameters, MyIpData, MyIpError>>, TCombinedResult = Array<UseSuspenseQueryResult<MyIpData, MyIpError>>>(options: {
+            queries: T;
+            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<MyIpData, MyIpError>, "data">>) => TCombinedResult;
+        }): TCombinedResult;
+        /** @summary Get my IP address */
+        fetchQuery(options: ServiceOperationFetchQueryOptions<MyIpSchema, MyIpData, MyIpParameters, MyIpError> | void): Promise<MyIpData>;
+        /** @summary Get my IP address */
+        prefetchQuery(options: ServiceOperationFetchQueryOptions<MyIpSchema, MyIpData, MyIpParameters, MyIpError> | void): Promise<void>;
+        /** @summary Get my IP address */
+        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<MyIpSchema, MyIpData, MyIpParameters, MyIpError> | void): Promise<MyIpData>;
+        /** @summary Get my IP address */
+        fetchInfiniteQuery<TPageParam extends MyIpParameters>(options: ServiceOperationFetchInfiniteQueryOptions<MyIpSchema, MyIpData, MyIpParameters, DeepReadonly<TPageParam>, MyIpError> | void): Promise<OperationInfiniteData<MyIpData, MyIpParameters>>;
+        /** @summary Get my IP address */
+        prefetchInfiniteQuery<TPageParam extends MyIpParameters>(options: ServiceOperationFetchInfiniteQueryOptions<MyIpSchema, MyIpData, MyIpParameters, DeepReadonly<TPageParam>, MyIpError> | void): Promise<void>;
+        /** @summary Get my IP address */
+        ensureInfiniteQueryData<TPageParam extends MyIpParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<MyIpSchema, MyIpData, MyIpParameters, DeepReadonly<TPageParam>, MyIpError> | void): Promise<OperationInfiniteData<MyIpData, MyIpParameters>>;
+        /** @summary Get my IP address */
+        getQueryData(parameters: ServiceOperationQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void)): MyIpData | undefined;
+        /** @summary Get my IP address */
+        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void)): OperationInfiniteData<MyIpData, MyIpParameters> | undefined;
+        /** @summary Get my IP address */
+        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>): TInfinite extends true ? Array<[
+            queryKey: ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters>,
+            data: NoInfer<OperationInfiniteData<MyIpData, MyIpParameters>> | undefined
+        ]> : Array<[
+            queryKey: ServiceOperationQueryKey<MyIpSchema, MyIpParameters>,
+            data: MyIpData | undefined
+        ]>;
+        /** @summary Get my IP address */
+        getQueryState(parameters: ServiceOperationQueryKey<MyIpSchema, MyIpParameters> | (DeepReadonly<MyIpParameters> | void)): QueryState<MyIpData, MyIpError> | undefined;
+        /** @summary Get my IP address */
+        getInfiniteQueryState(parameters: DeepReadonly<MyIpParameters> | ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters> | void): QueryState<OperationInfiniteData<MyIpData, MyIpParameters>, MyIpError> | undefined;
+        /** @summary Get my IP address */
+        setQueryData(parameters: (DeepReadonly<MyIpParameters> | undefined) | ServiceOperationQueryKey<MyIpSchema, MyIpParameters>, updater: Updater<NoInfer<MyIpData> | undefined, NoInfer<DeepReadonly<MyIpData>> | undefined>, options?: SetDataOptions): MyIpData | undefined;
+        /** @summary Get my IP address */
+        setInfiniteQueryData(parameters: (DeepReadonly<MyIpParameters> | undefined) | ServiceOperationInfiniteQueryKey<MyIpSchema, MyIpParameters>, updater: Updater<NoInfer<OperationInfiniteData<MyIpData, MyIpParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<MyIpData, MyIpParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<MyIpData, MyIpParameters> | undefined;
+        /** @summary Get my IP address */
+        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>, updater: Updater<NoInfer<MyIpData> | undefined, NoInfer<MyIpData> | undefined>, options?: SetDataOptions): Array<MyIpData | undefined>;
+        /** @summary Get my IP address */
+        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>, options?: InvalidateOptions): Promise<void>;
+        /** @summary Get my IP address */
+        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>, options?: RefetchOptions): Promise<void>;
+        /** @summary Get my IP address */
+        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>, options?: CancelOptions): Promise<void>;
+        /** @summary Get my IP address */
+        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>): void;
+        /** @summary Get my IP address */
+        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>, options?: ResetOptions): Promise<void>;
+        /** @summary Get my IP address */
+        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError> | QueryFiltersByQueryKey<MyIpSchema, MyIpData, TInfinite, MyIpParameters, MyIpError>): number;
+        schema: MyIpSchema;
         types: {
-            parameters: ScheduleLeftLightParameters;
-            data: ScheduleLeftLightData;
-            error: ScheduleLeftLightError;
-            body: ScheduleLeftLightBody;
-        };
-    };
-    /** @summary Set a schedule for right light */
-    scheduleRightLight: {
-        /** @summary Set a schedule for right light */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleRightLightBody, ScheduleRightLightParameters, TMeta, TSignal>, client?: (schema: ScheduleRightLightSchema, options: ServiceOperationMutationFnOptions<ScheduleRightLightBody, ScheduleRightLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleRightLightData, ScheduleRightLightError>>): Promise<RequestFnResponse<ScheduleRightLightData, ScheduleRightLightError>>;
-        /** @summary Set a schedule for right light */
-        getMutationKey(parameters: DeepReadonly<ScheduleRightLightParameters> | void): ServiceOperationMutationKey<ScheduleRightLightSchema, ScheduleRightLightParameters>;
-        /**
-         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
-         * Handles loading state, optimistic updates, and error handling.
-         *
-         * @summary Set a schedule for right light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
-         * @example Mutation with predefined parameters, e.g., for updating
-         * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation({
-         *     path: {
-         *         id: id
-         *     }
-         * })
-         * mutate(body);
-         * ```
-         * @example Mutation without predefined parameters, e.g., for creating
-         * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation()
-         * mutate({
-         *     body: bodyPayload,
-         *     path: {
-         *         id: id
-         *     }
-         * });
-         * ```
-         */
-        useMutation<TVariables extends ScheduleRightLightBody, TContext = unknown>(parameters: DeepReadonly<ScheduleRightLightParameters>, options?: ServiceOperationUseMutationOptions<ScheduleRightLightSchema, ScheduleRightLightData, ScheduleRightLightParameters, TVariables, OperationError<ScheduleRightLightError>, TContext>): UseMutationResult<ScheduleRightLightData, OperationError<ScheduleRightLightError>, TVariables | void, TContext>;
-        /**
-         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
-         * Handles loading state, optimistic updates, and error handling.
-         *
-         * @summary Set a schedule for right light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
-         * @example Mutation with predefined parameters, e.g., for updating
-         * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation({
-         *     path: {
-         *         id: id
-         *     }
-         * })
-         * mutate(body);
-         * ```
-         * @example Mutation without predefined parameters, e.g., for creating
-         * ```ts
-         * const { mutate, isPending } = qraft.apiService.scheduleRightLight.useMutation()
-         * mutate({
-         *     body: bodyPayload,
-         *     path: {
-         *         id: id
-         *     }
-         * });
-         * ```
-         */
-        useMutation<TVariables extends MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ScheduleRightLightSchema, ScheduleRightLightData, ScheduleRightLightParameters, TVariables, OperationError<ScheduleRightLightError>, TContext>): UseMutationResult<ScheduleRightLightData, OperationError<ScheduleRightLightError>, TVariables, TContext>;
-        /**
-         * Returns the count of currently in-progress mutations.
-         *
-         * @summary Set a schedule for right light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
-         * @example Check how many mutations are currently in progress for the specified service method.
-         * ```ts
-         * const scheduleRightLightTotal = qraft.apiService.scheduleRightLight.useIsMutating()
-         * ```
-         * @example Check how many mutations are currently in progress with the specified parameters.
-         * ```ts
-         * const scheduleRightLightTotal = qraft.apiService.scheduleRightLight.useIsMutating({
-         *     parameters: {
-         *         path: {
-         *             id: id
-         *         }
-         *     }
-         * })
-         * ```
-         */
-        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): number;
-        /**
-         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
-         *
-         * @summary Set a schedule for right light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
-         * @example Get all variables of all running mutations.
-         * ```ts
-         * const scheduleRightLightPendingMutationVariables = qraft.apiService.scheduleRightLight.useMutationState({
-         *     filters: {
-         *         status: "pending"
-         *     },
-         *     select: mutation => mutation.state.variables
-         * })
-         * ```
-         * @example Get all data for specific mutations via the `parameters`.
-         * ```ts
-         * const scheduleRightLightMutationData = qraft.apiService.scheduleRightLight.useMutationState({
-         *     filters: {
-         *         parameters: {
-         *             path: {
-         *                 id: id
-         *             }
-         *         }
-         *     },
-         *     select: mutation => mutation.state.data
-         * })
-         * ```
-         */
-        useMutationState<TContext = unknown, TResult = MutationState<ScheduleRightLightData, OperationError<ScheduleRightLightError>, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext>>(options?: {
-            filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>;
-            select?: (mutation: Mutation<ScheduleRightLightData, OperationError<ScheduleRightLightError>, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext>) => TResult;
-        }): Array<TResult>;
-        /** @summary Set a schedule for right light */
-        isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): number;
-        /**
-         * Returns a `MutationCache` object that provides access to mutation cache operations
-         * for the specific endpoint.
-         *
-         * @summary Set a schedule for right light
-         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
-         *
-         * @example Find a mutation with specific parameters
-         * ```ts
-         * const mutationCache = qraft.apiService.scheduleRightLight.getMutationCache();
-         * const mutation = mutationCache.find({
-         *     parameters: {
-         *         path: {
-         *             id: id
-         *         }
-         *     }
-         * });
-         * ```
-         *
-         * @example Find all mutations for the endpoint
-         * ```ts
-         * const mutationCache = qraft.apiService.scheduleRightLight.getMutationCache();
-         * const mutations = mutationCache.findAll();
-         * ```
-         */
-        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
-            find<TContext = unknown>(filters: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): Mutation<ScheduleRightLightData, ScheduleRightLightError, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext> | undefined;
-            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext> | MutationFiltersByMutationKey<ScheduleRightLightSchema, ScheduleRightLightBody, ScheduleRightLightData, ScheduleRightLightParameters, OperationError<ScheduleRightLightError>, TContext>): Array<Mutation<ScheduleRightLightData, ScheduleRightLightError, MutationVariables<ScheduleRightLightBody, ScheduleRightLightParameters>, TContext>>;
-        };
-        schema: ScheduleRightLightSchema;
-        types: {
-            parameters: ScheduleRightLightParameters;
-            data: ScheduleRightLightData;
-            error: ScheduleRightLightError;
-            body: ScheduleRightLightBody;
+            parameters: MyIpParameters;
+            data: MyIpData;
+            error: MyIpError;
         };
     };
     /** @summary Get devices that recently announced presence from the same IP */
-    devicesByIp: {
+    localDevices: {
         /** @summary Get devices that recently announced presence from the same IP */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<DevicesByIpSchema, DevicesByIpParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<DevicesByIpParameters, TMeta, TSignal>), client?: (schema: DevicesByIpSchema, options: {
-            parameters: DevicesByIpParameters;
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<LocalDevicesSchema, LocalDevicesParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<LocalDevicesParameters, TMeta, TSignal>), client?: (schema: LocalDevicesSchema, options: {
+            parameters: LocalDevicesParameters;
             signal?: TSignal;
             meta?: TMeta;
-        }) => Promise<RequestFnResponse<DevicesByIpData, DevicesByIpError>>): Promise<RequestFnResponse<DevicesByIpData, DevicesByIpError>>;
+        }) => Promise<RequestFnResponse<LocalDevicesData, LocalDevicesError>>): Promise<RequestFnResponse<LocalDevicesData, LocalDevicesError>>;
         /** @summary Get devices that recently announced presence from the same IP */
-        getQueryKey(parameters: DeepReadonly<DevicesByIpParameters>): ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>;
+        getQueryKey(parameters: DeepReadonly<LocalDevicesParameters>): ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters>;
         /**
          * Performs asynchronous data fetching, manages loading states and error handling.
          *
@@ -1669,14 +1598,14 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
          * @example Query with parameters
          * ```ts
-         * const { data, isLoading } = qraft.apiService.devicesByIp.useQuery({
+         * const { data, isLoading } = qraft.apiService.localDevices.useQuery({
          *     query: {
          *         ip: ip
          *     }
          * })
          * ```
          */
-        useQuery<TData = DevicesByIpData>(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options?: Omit<UndefinedInitialDataOptions<DevicesByIpData, DevicesByIpError, TData, ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>>, "queryKey">): UseQueryResult<TData, OperationError<DevicesByIpError>>;
+        useQuery<TData = LocalDevicesData>(parameters: ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>), options?: Omit<UndefinedInitialDataOptions<LocalDevicesData, LocalDevicesError, TData, ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters>>, "queryKey">): UseQueryResult<TData, OperationError<LocalDevicesError>>;
         /**
          * Performs asynchronous data fetching, manages loading states and error handling.
          *
@@ -1684,16 +1613,16 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
          * @example Query with parameters
          * ```ts
-         * const { data, isLoading } = qraft.apiService.devicesByIp.useQuery({
+         * const { data, isLoading } = qraft.apiService.localDevices.useQuery({
          *     query: {
          *         ip: ip
          *     }
          * })
          * ```
          */
-        useQuery<TData = DevicesByIpData>(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<DefinedInitialDataOptions<DevicesByIpData, DevicesByIpError, TData, ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<DevicesByIpError>>;
+        useQuery<TData = LocalDevicesData>(parameters: ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>), options: Omit<DefinedInitialDataOptions<LocalDevicesData, LocalDevicesError, TData, ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<LocalDevicesError>>;
         /** @summary Get devices that recently announced presence from the same IP */
-        getInfiniteQueryKey(parameters: DeepReadonly<DevicesByIpParameters>): ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>;
+        getInfiniteQueryKey(parameters: DeepReadonly<LocalDevicesParameters>): ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>;
         /**
          * Performs asynchronous data fetching with support for infinite scrolling scenarios.
          * Manages paginated data and provides utilities for fetching additional pages.
@@ -1703,7 +1632,7 @@ export interface ApiService {
          *
          * @example Infinite Query
          * ```ts
-         * const { data, isLoading, fetchNextPage } = qraft.apiService.devicesByIp.useInfiniteQuery({
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.localDevices.useInfiniteQuery({
          *     query: {
          *         ip: ip
          *     }
@@ -1720,7 +1649,7 @@ export interface ApiService {
          * fetchNextPage(); // Fetch the next page
          * ```
          */
-        useInfiniteQuery<TPageParam extends DevicesByIpParameters, TQueryFnData = DevicesByIpData, TData = OperationInfiniteData<TQueryFnData, DevicesByIpParameters>>(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, DevicesByIpError, TData, ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<DevicesByIpError>>;
+        useInfiniteQuery<TPageParam extends LocalDevicesParameters, TQueryFnData = LocalDevicesData, TData = OperationInfiniteData<TQueryFnData, LocalDevicesParameters>>(parameters: ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, LocalDevicesError, TData, ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<LocalDevicesError>>;
         /**
          * Performs asynchronous data fetching with support for infinite scrolling scenarios.
          * Manages paginated data and provides utilities for fetching additional pages.
@@ -1730,7 +1659,7 @@ export interface ApiService {
          *
          * @example Infinite Query
          * ```ts
-         * const { data, isLoading, fetchNextPage } = qraft.apiService.devicesByIp.useInfiniteQuery({
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.localDevices.useInfiniteQuery({
          *     query: {
          *         ip: ip
          *     }
@@ -1747,7 +1676,7 @@ export interface ApiService {
          * fetchNextPage(); // Fetch the next page
          * ```
          */
-        useInfiniteQuery<TPageParam extends DevicesByIpParameters, TQueryFnData = DevicesByIpData, TData = OperationInfiniteData<TQueryFnData, DevicesByIpParameters>>(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, DevicesByIpError, TData, ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DevicesByIpData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<DevicesByIpError>>;
+        useInfiniteQuery<TPageParam extends LocalDevicesParameters, TQueryFnData = LocalDevicesData, TData = OperationInfiniteData<TQueryFnData, LocalDevicesParameters>>(parameters: ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, LocalDevicesError, TData, ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<LocalDevicesData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<LocalDevicesError>>;
         /**
          * Monitors the number of queries currently fetching, matching the provided filters.
          * Useful for creating loading indicators or performing actions based on active requests.
@@ -1757,11 +1686,11 @@ export interface ApiService {
          * @example Checks the total number of queries fetching from the specified service method,
          * both normal and infinite. If no parameters are provided, no filtering is applied.
          * ```ts
-         * const devicesByIpTotal = qraft.apiService.devicesByIp.useIsFetching()
+         * const localDevicesTotal = qraft.apiService.localDevices.useIsFetching()
          * ```
          * @example Checks the number of normal queries fetching with the specified parameters.
          * ```ts
-         * const devicesByIpByParametersTotal = qraft.apiService.devicesByIp.useIsFetching({
+         * const localDevicesByParametersTotal = qraft.apiService.localDevices.useIsFetching({
          *     infinite: false,
          *     parameters: {
          *         query: {
@@ -1771,7 +1700,7 @@ export interface ApiService {
          * })
          * ```
          */
-        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): number;
+        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>): number;
         /**
          * Allows you to execute multiple asynchronous data fetching operations concurrently. This is especially useful for managing complex data dependencies in parallel.
          *
@@ -1779,7 +1708,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQueries|`useQueries(...)` documentation}
          * @example Multiple queries. Returns `data`, `error`, `isSuccess` and other properties.
          * ```ts
-         * const devicesByIpResults = qraft.apiService.devicesByIp.useQueries({
+         * const localDevicesResults = qraft.apiService.localDevices.useQueries({
          *     queries: [
          *         {
          *             query: {
@@ -1793,11 +1722,11 @@ export interface ApiService {
          *         }
          *     ]
          * });
-         * devicesByIpResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * localDevicesResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
          * ```
          * @example Combined results. Only the data will be returned.
          * ```ts
-         * const devicesByIpCombinedResults = qraft.apiService.devicesByIp.useQueries({
+         * const localDevicesCombinedResults = qraft.apiService.localDevices.useQueries({
          *     combine: results => results.map(result => result.data),
          *     queries: [
          *         {
@@ -1812,12 +1741,12 @@ export interface ApiService {
          *         }
          *     ]
          * });
-         * devicesByIpCombinedResults.forEach(data => console.log({ data }));
+         * localDevicesCombinedResults.forEach(data => console.log({ data }));
          * ```
          */
-        useQueries<T extends Array<UseQueryOptionsForUseQueries<DevicesByIpSchema, DevicesByIpParameters, DevicesByIpData, DevicesByIpError>>, TCombinedResult = Array<UseQueryResult<DevicesByIpData, DevicesByIpError>>>(options: {
+        useQueries<T extends Array<UseQueryOptionsForUseQueries<LocalDevicesSchema, LocalDevicesParameters, LocalDevicesData, LocalDevicesError>>, TCombinedResult = Array<UseQueryResult<LocalDevicesData, LocalDevicesError>>>(options: {
             queries: T;
-            combine?: (results: Array<UseQueryResult<DevicesByIpData, DevicesByIpError>>) => TCombinedResult;
+            combine?: (results: Array<UseQueryResult<LocalDevicesData, LocalDevicesError>>) => TCombinedResult;
         }): TCombinedResult;
         /**
          * Performs asynchronous data fetching with Suspense support.
@@ -1827,14 +1756,14 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQuery|`useSuspenseQuery(...)` documentation}
          * @example Suspense Query with parameters
          * ```ts
-         * const data = qraft.apiService.devicesByIp.useSuspenseQuery({
+         * const data = qraft.apiService.localDevices.useSuspenseQuery({
          *     query: {
          *         ip: ip
          *     }
          * })
          * ```
          */
-        useSuspenseQuery<TData = DevicesByIpData>(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options?: Omit<UseSuspenseQueryOptions<DevicesByIpData, DevicesByIpError, TData, ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<DevicesByIpError>>;
+        useSuspenseQuery<TData = LocalDevicesData>(parameters: ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>), options?: Omit<UseSuspenseQueryOptions<LocalDevicesData, LocalDevicesError, TData, ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<LocalDevicesError>>;
         /**
          * Performs asynchronous data fetching with support for infinite scrolling scenarios.
          * Manages paginated data and provides utilities for fetching additional pages.
@@ -1845,7 +1774,7 @@ export interface ApiService {
          *
          * @example Suspense Infinite Query
          * ```ts
-         * const { data, isLoading, fetchNextPage } = qraft.apiService.devicesByIp.useSuspenseInfiniteQuery({
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.localDevices.useSuspenseInfiniteQuery({
          *     query: {
          *         ip: ip
          *     }
@@ -1862,7 +1791,7 @@ export interface ApiService {
          * fetchNextPage(); // Fetch the next page
          * ```
          */
-        useSuspenseInfiniteQuery<TPageParam extends DevicesByIpParameters, TData = DevicesByIpData>(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>), options: Omit<UseSuspenseInfiniteQueryOptions<DevicesByIpData, DevicesByIpError, OperationInfiniteData<TData, DevicesByIpParameters>, ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DevicesByIpData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, DevicesByIpParameters>, OperationError<DevicesByIpError>>;
+        useSuspenseInfiniteQuery<TPageParam extends LocalDevicesParameters, TData = LocalDevicesData>(parameters: ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>), options: Omit<UseSuspenseInfiniteQueryOptions<LocalDevicesData, LocalDevicesError, OperationInfiniteData<TData, LocalDevicesParameters>, ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<LocalDevicesData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, LocalDevicesParameters>, OperationError<LocalDevicesError>>;
         /**
          * Allows you to execute multiple asynchronous data fetching operations concurrently with Suspense support.
          * Similar to useQueries but integrates with React Suspense for loading states.
@@ -1871,7 +1800,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQueries|`useSuspenseQueries(...)` documentation}
          * @example Basic usage with Suspense
          * ```ts
-         * const devicesByIpData = qraft.apiService.devicesByIp.useSuspenseQueries({
+         * const localDevicesData = qraft.apiService.localDevices.useSuspenseQueries({
          *     queries: [
          *         {
          *             query: {
@@ -1885,11 +1814,11 @@ export interface ApiService {
          *         }
          *     ]
          * });
-         * devicesByIpResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * localDevicesResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
          * ```
          * @example With data transformation using combine
          * ```ts
-         * const devicesByIpCombinedData = qraft.apiService.devicesByIp.useSuspenseQueries({
+         * const localDevicesCombinedData = qraft.apiService.localDevices.useSuspenseQueries({
          *     combine: results => results.map(result => result.data),
          *     queries: [
          *         {
@@ -1904,64 +1833,64 @@ export interface ApiService {
          *         }
          *     ]
          * });
-         * devicesByIpCombinedData.forEach(data => console.log({ data }));
+         * localDevicesCombinedData.forEach(data => console.log({ data }));
          * ```
          */
-        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<DevicesByIpSchema, DevicesByIpParameters, DevicesByIpData, DevicesByIpError>>, TCombinedResult = Array<UseSuspenseQueryResult<DevicesByIpData, DevicesByIpError>>>(options: {
+        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<LocalDevicesSchema, LocalDevicesParameters, LocalDevicesData, LocalDevicesError>>, TCombinedResult = Array<UseSuspenseQueryResult<LocalDevicesData, LocalDevicesError>>>(options: {
             queries: T;
-            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<DevicesByIpData, DevicesByIpError>, "data">>) => TCombinedResult;
+            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<LocalDevicesData, LocalDevicesError>, "data">>) => TCombinedResult;
         }): TCombinedResult;
         /** @summary Get devices that recently announced presence from the same IP */
-        fetchQuery(options: ServiceOperationFetchQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DevicesByIpError>): Promise<DevicesByIpData>;
+        fetchQuery(options: ServiceOperationFetchQueryOptions<LocalDevicesSchema, LocalDevicesData, LocalDevicesParameters, LocalDevicesError>): Promise<LocalDevicesData>;
         /** @summary Get devices that recently announced presence from the same IP */
-        prefetchQuery(options: ServiceOperationFetchQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DevicesByIpError>): Promise<void>;
+        prefetchQuery(options: ServiceOperationFetchQueryOptions<LocalDevicesSchema, LocalDevicesData, LocalDevicesParameters, LocalDevicesError>): Promise<void>;
         /** @summary Get devices that recently announced presence from the same IP */
-        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DevicesByIpError>): Promise<DevicesByIpData>;
+        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<LocalDevicesSchema, LocalDevicesData, LocalDevicesParameters, LocalDevicesError>): Promise<LocalDevicesData>;
         /** @summary Get devices that recently announced presence from the same IP */
-        fetchInfiniteQuery<TPageParam extends DevicesByIpParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DeepReadonly<TPageParam>, DevicesByIpError>): Promise<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>>;
+        fetchInfiniteQuery<TPageParam extends LocalDevicesParameters>(options: ServiceOperationFetchInfiniteQueryOptions<LocalDevicesSchema, LocalDevicesData, LocalDevicesParameters, DeepReadonly<TPageParam>, LocalDevicesError>): Promise<OperationInfiniteData<LocalDevicesData, LocalDevicesParameters>>;
         /** @summary Get devices that recently announced presence from the same IP */
-        prefetchInfiniteQuery<TPageParam extends DevicesByIpParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DeepReadonly<TPageParam>, DevicesByIpError>): Promise<void>;
+        prefetchInfiniteQuery<TPageParam extends LocalDevicesParameters>(options: ServiceOperationFetchInfiniteQueryOptions<LocalDevicesSchema, LocalDevicesData, LocalDevicesParameters, DeepReadonly<TPageParam>, LocalDevicesError>): Promise<void>;
         /** @summary Get devices that recently announced presence from the same IP */
-        ensureInfiniteQueryData<TPageParam extends DevicesByIpParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<DevicesByIpSchema, DevicesByIpData, DevicesByIpParameters, DeepReadonly<TPageParam>, DevicesByIpError>): Promise<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>>;
+        ensureInfiniteQueryData<TPageParam extends LocalDevicesParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<LocalDevicesSchema, LocalDevicesData, LocalDevicesParameters, DeepReadonly<TPageParam>, LocalDevicesError>): Promise<OperationInfiniteData<LocalDevicesData, LocalDevicesParameters>>;
         /** @summary Get devices that recently announced presence from the same IP */
-        getQueryData(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>)): DevicesByIpData | undefined;
+        getQueryData(parameters: ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>)): LocalDevicesData | undefined;
         /** @summary Get devices that recently announced presence from the same IP */
-        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>)): OperationInfiniteData<DevicesByIpData, DevicesByIpParameters> | undefined;
+        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>)): OperationInfiniteData<LocalDevicesData, LocalDevicesParameters> | undefined;
         /** @summary Get devices that recently announced presence from the same IP */
-        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): TInfinite extends true ? Array<[
-            queryKey: ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>,
-            data: NoInfer<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>> | undefined
+        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>): TInfinite extends true ? Array<[
+            queryKey: ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>,
+            data: NoInfer<OperationInfiniteData<LocalDevicesData, LocalDevicesParameters>> | undefined
         ]> : Array<[
-            queryKey: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>,
-            data: DevicesByIpData | undefined
+            queryKey: ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters>,
+            data: LocalDevicesData | undefined
         ]>;
         /** @summary Get devices that recently announced presence from the same IP */
-        getQueryState(parameters: ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters> | (DeepReadonly<DevicesByIpParameters>)): QueryState<DevicesByIpData, DevicesByIpError> | undefined;
+        getQueryState(parameters: ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters> | (DeepReadonly<LocalDevicesParameters>)): QueryState<LocalDevicesData, LocalDevicesError> | undefined;
         /** @summary Get devices that recently announced presence from the same IP */
-        getInfiniteQueryState(parameters: DeepReadonly<DevicesByIpParameters> | ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>): QueryState<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>, DevicesByIpError> | undefined;
+        getInfiniteQueryState(parameters: DeepReadonly<LocalDevicesParameters> | ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>): QueryState<OperationInfiniteData<LocalDevicesData, LocalDevicesParameters>, LocalDevicesError> | undefined;
         /** @summary Get devices that recently announced presence from the same IP */
-        setQueryData(parameters: (DeepReadonly<DevicesByIpParameters>) | ServiceOperationQueryKey<DevicesByIpSchema, DevicesByIpParameters>, updater: Updater<NoInfer<DevicesByIpData> | undefined, NoInfer<DeepReadonly<DevicesByIpData>> | undefined>, options?: SetDataOptions): DevicesByIpData | undefined;
+        setQueryData(parameters: (DeepReadonly<LocalDevicesParameters>) | ServiceOperationQueryKey<LocalDevicesSchema, LocalDevicesParameters>, updater: Updater<NoInfer<LocalDevicesData> | undefined, NoInfer<DeepReadonly<LocalDevicesData>> | undefined>, options?: SetDataOptions): LocalDevicesData | undefined;
         /** @summary Get devices that recently announced presence from the same IP */
-        setInfiniteQueryData(parameters: (DeepReadonly<DevicesByIpParameters>) | ServiceOperationInfiniteQueryKey<DevicesByIpSchema, DevicesByIpParameters>, updater: Updater<NoInfer<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<DevicesByIpData, DevicesByIpParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<DevicesByIpData, DevicesByIpParameters> | undefined;
+        setInfiniteQueryData(parameters: (DeepReadonly<LocalDevicesParameters>) | ServiceOperationInfiniteQueryKey<LocalDevicesSchema, LocalDevicesParameters>, updater: Updater<NoInfer<OperationInfiniteData<LocalDevicesData, LocalDevicesParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<LocalDevicesData, LocalDevicesParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<LocalDevicesData, LocalDevicesParameters> | undefined;
         /** @summary Get devices that recently announced presence from the same IP */
-        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, updater: Updater<NoInfer<DevicesByIpData> | undefined, NoInfer<DevicesByIpData> | undefined>, options?: SetDataOptions): Array<DevicesByIpData | undefined>;
+        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>, updater: Updater<NoInfer<LocalDevicesData> | undefined, NoInfer<LocalDevicesData> | undefined>, options?: SetDataOptions): Array<LocalDevicesData | undefined>;
         /** @summary Get devices that recently announced presence from the same IP */
-        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: InvalidateOptions): Promise<void>;
+        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>, options?: InvalidateOptions): Promise<void>;
         /** @summary Get devices that recently announced presence from the same IP */
-        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: RefetchOptions): Promise<void>;
+        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>, options?: RefetchOptions): Promise<void>;
         /** @summary Get devices that recently announced presence from the same IP */
-        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: CancelOptions): Promise<void>;
+        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>, options?: CancelOptions): Promise<void>;
         /** @summary Get devices that recently announced presence from the same IP */
-        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): void;
+        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>): void;
         /** @summary Get devices that recently announced presence from the same IP */
-        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>, options?: ResetOptions): Promise<void>;
+        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>, options?: ResetOptions): Promise<void>;
         /** @summary Get devices that recently announced presence from the same IP */
-        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError> | QueryFiltersByQueryKey<DevicesByIpSchema, DevicesByIpData, TInfinite, DevicesByIpParameters, DevicesByIpError>): number;
-        schema: DevicesByIpSchema;
+        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError> | QueryFiltersByQueryKey<LocalDevicesSchema, LocalDevicesData, TInfinite, LocalDevicesParameters, LocalDevicesError>): number;
+        schema: LocalDevicesSchema;
         types: {
-            parameters: DevicesByIpParameters;
-            data: DevicesByIpData;
-            error: DevicesByIpError;
+            parameters: LocalDevicesParameters;
+            data: LocalDevicesData;
+            error: LocalDevicesError;
         };
     };
 }
@@ -2030,58 +1959,46 @@ export const allDevices = {
     [QraftServiceOperationsToken]: ApiService["allDevices"];
 };
 /** @summary Turn left light on/off */
-export const toggleLeftLight = {
+export const toggleLight = {
     schema: {
         method: "post",
-        url: "/api/device/{id}/left-light/toggle",
+        url: "/api/device/{id}/light/toggle",
         mediaType: ["application/json"]
     }
 } as {
-    schema: ToggleLeftLightSchema;
-    [QraftServiceOperationsToken]: ApiService["toggleLeftLight"];
+    schema: ToggleLightSchema;
+    [QraftServiceOperationsToken]: ApiService["toggleLight"];
 };
-/** @summary Turn right light on/off */
-export const toggleRightLight = {
+/** @summary Set a schedule for the light */
+export const scheduleLight = {
     schema: {
         method: "post",
-        url: "/api/device/{id}/right-light/toggle",
+        url: "/api/device/{id}/light/schedule",
         mediaType: ["application/json"]
     }
 } as {
-    schema: ToggleRightLightSchema;
-    [QraftServiceOperationsToken]: ApiService["toggleRightLight"];
+    schema: ScheduleLightSchema;
+    [QraftServiceOperationsToken]: ApiService["scheduleLight"];
 };
-/** @summary Set a schedule for left light */
-export const scheduleLeftLight = {
-    schema: {
-        method: "post",
-        url: "/api/device/{id}/left-light/schedule",
-        mediaType: ["application/json"]
-    }
-} as {
-    schema: ScheduleLeftLightSchema;
-    [QraftServiceOperationsToken]: ApiService["scheduleLeftLight"];
-};
-/** @summary Set a schedule for right light */
-export const scheduleRightLight = {
-    schema: {
-        method: "post",
-        url: "/api/device/{id}/right-light/schedule",
-        mediaType: ["application/json"]
-    }
-} as {
-    schema: ScheduleRightLightSchema;
-    [QraftServiceOperationsToken]: ApiService["scheduleRightLight"];
-};
-/** @summary Get devices that recently announced presence from the same IP */
-export const devicesByIp = {
+/** @summary Get my IP address */
+export const myIp = {
     schema: {
         method: "get",
-        url: "/api/device/by-ip"
+        url: "/api/network/my-ip"
     }
 } as {
-    schema: DevicesByIpSchema;
-    [QraftServiceOperationsToken]: ApiService["devicesByIp"];
+    schema: MyIpSchema;
+    [QraftServiceOperationsToken]: ApiService["myIp"];
+};
+/** @summary Get devices that recently announced presence from the same IP */
+export const localDevices = {
+    schema: {
+        method: "get",
+        url: "/api/network/local-devices"
+    }
+} as {
+    schema: LocalDevicesSchema;
+    [QraftServiceOperationsToken]: ApiService["localDevices"];
 };
 export const apiService = {
     login,
@@ -2090,11 +2007,10 @@ export const apiService = {
     createDevice,
     deviceState,
     allDevices,
-    toggleLeftLight,
-    toggleRightLight,
-    scheduleLeftLight,
-    scheduleRightLight,
-    devicesByIp
+    toggleLight,
+    scheduleLight,
+    myIp,
+    localDevices
 } as const;
 type LoginSchema = {
     method: "post";
@@ -2170,54 +2086,39 @@ type AllDevicesSchema = {
 type AllDevicesParameters = undefined;
 type AllDevicesData = paths["/api/device/all"]["get"]["responses"]["200"]["content"]["application/json"];
 type AllDevicesError = unknown;
-type ToggleLeftLightSchema = {
+type ToggleLightSchema = {
     method: "post";
-    url: "/api/device/{id}/left-light/toggle";
+    url: "/api/device/{id}/light/toggle";
     mediaType: [
         "application/json"
     ];
 };
-type ToggleLeftLightParameters = paths["/api/device/{id}/left-light/toggle"]["post"]["parameters"];
-type ToggleLeftLightData = unknown;
-type ToggleLeftLightError = unknown;
-type ToggleLeftLightBody = NonNullable<paths["/api/device/{id}/left-light/toggle"]["post"]["requestBody"]>["content"]["application/json"];
-type ToggleRightLightSchema = {
+type ToggleLightParameters = paths["/api/device/{id}/light/toggle"]["post"]["parameters"];
+type ToggleLightData = unknown;
+type ToggleLightError = unknown;
+type ToggleLightBody = NonNullable<paths["/api/device/{id}/light/toggle"]["post"]["requestBody"]>["content"]["application/json"];
+type ScheduleLightSchema = {
     method: "post";
-    url: "/api/device/{id}/right-light/toggle";
+    url: "/api/device/{id}/light/schedule";
     mediaType: [
         "application/json"
     ];
 };
-type ToggleRightLightParameters = paths["/api/device/{id}/right-light/toggle"]["post"]["parameters"];
-type ToggleRightLightData = unknown;
-type ToggleRightLightError = unknown;
-type ToggleRightLightBody = NonNullable<paths["/api/device/{id}/right-light/toggle"]["post"]["requestBody"]>["content"]["application/json"];
-type ScheduleLeftLightSchema = {
-    method: "post";
-    url: "/api/device/{id}/left-light/schedule";
-    mediaType: [
-        "application/json"
-    ];
-};
-type ScheduleLeftLightParameters = paths["/api/device/{id}/left-light/schedule"]["post"]["parameters"];
-type ScheduleLeftLightData = unknown;
-type ScheduleLeftLightError = unknown;
-type ScheduleLeftLightBody = NonNullable<paths["/api/device/{id}/left-light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
-type ScheduleRightLightSchema = {
-    method: "post";
-    url: "/api/device/{id}/right-light/schedule";
-    mediaType: [
-        "application/json"
-    ];
-};
-type ScheduleRightLightParameters = paths["/api/device/{id}/right-light/schedule"]["post"]["parameters"];
-type ScheduleRightLightData = unknown;
-type ScheduleRightLightError = unknown;
-type ScheduleRightLightBody = NonNullable<paths["/api/device/{id}/right-light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
-type DevicesByIpSchema = {
+type ScheduleLightParameters = paths["/api/device/{id}/light/schedule"]["post"]["parameters"];
+type ScheduleLightData = unknown;
+type ScheduleLightError = unknown;
+type ScheduleLightBody = NonNullable<paths["/api/device/{id}/light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
+type MyIpSchema = {
     method: "get";
-    url: "/api/device/by-ip";
+    url: "/api/network/my-ip";
 };
-type DevicesByIpParameters = paths["/api/device/by-ip"]["get"]["parameters"];
-type DevicesByIpData = unknown;
-type DevicesByIpError = unknown;
+type MyIpParameters = undefined;
+type MyIpData = paths["/api/network/my-ip"]["get"]["responses"]["200"]["content"]["application/json"];
+type MyIpError = unknown;
+type LocalDevicesSchema = {
+    method: "get";
+    url: "/api/network/local-devices";
+};
+type LocalDevicesParameters = paths["/api/network/local-devices"]["get"]["parameters"];
+type LocalDevicesData = paths["/api/network/local-devices"]["get"]["responses"]["200"]["content"]["application/json"];
+type LocalDevicesError = unknown;

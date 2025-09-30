@@ -4,12 +4,14 @@ import { Group } from "../../primitives/Group/Group";
 import { Text } from "../../primitives/Text/Text";
 import BluetoothDeviceCard from "../../components/BluetoothDeviceCard/BluetoothDeviceCard";
 import Input from "../../primitives/Input/Input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { provisionDevice } from "../../utils/bluetooth";
 import { useBluetooth } from "../../hooks/useBluetooth";
 import { match } from "ts-pattern";
 import { client } from "../../lib/apiClient";
 import { getErrorMessage } from "../../utils/error";
+import { getPublicIp } from "../../utils/ip";
+import Box from "../../primitives/Box/Box";
 
 export const Route = createFileRoute("/device/connect")({
   component: Page,
@@ -24,9 +26,13 @@ export const Route = createFileRoute("/device/connect")({
 
 function Page() {
   const router = useRouter();
-
-  const [macAddress, setMacAddress] = useState("test-address");
   const [view, setView] = useState<"main" | "provision" | "save">("main");
+  const [ip, setIp] = useState("");
+  const [macAddress, setMacAddress] = useState("test-address");
+
+  useEffect(() => {
+    getPublicIp().then(setIp);
+  });
 
   const { isSupported } = useBluetooth();
 
@@ -34,21 +40,12 @@ function Page() {
     <div style={{ viewTransitionName: "main-content" }}>
       {match({ view, isSupported })
         .with({ view: "main", isSupported: false }, () => (
-          <div>
-            <Text>Here we need WIFI provision setup explanation.</Text>
-            <Input
-              full
-              value={macAddress}
-              onChange={(e) => setMacAddress(e.target.value)}
-            />
-            <button
-              onClick={() => {
-                setView("save");
-              }}
-            >
-              Add Test device
-            </button>
-          </div>
+          <WifiProvision
+            ip={ip}
+            macAddress={macAddress}
+            onSaveDevice={() => setView("save")}
+            onMacAddressChange={setMacAddress}
+          />
         ))
         .with({ view: "main", isSupported: true }, () => (
           <FindDevice
@@ -69,6 +66,61 @@ function Page() {
         ))
         .with({ view: "save" }, () => <SaveDevice deviceId={macAddress} />)
         .exhaustive()}
+    </div>
+  );
+}
+
+function WifiProvision({
+  ip,
+  macAddress,
+  onMacAddressChange,
+  onSaveDevice,
+}: {
+  ip: string;
+  macAddress: string;
+  onSaveDevice: () => void;
+  onMacAddressChange: (macAddress: string) => void;
+}) {
+  const { data: localDevices } = client.api.localDevices.useQuery(
+    { query: { ip } },
+    {
+      refetchInterval: 2000,
+      enabled: !!ip,
+    }
+  );
+
+  return (
+    <div>
+      <Box pb="3xl">
+        <Text>Here we need WIFI provision setup explanation.</Text>
+      </Box>
+      {localDevices?.length && <Text>Found devices on your network</Text>}
+      {localDevices?.map((device) => (
+        <Box
+          p="xl"
+          style={{
+            background: "white",
+            borderRadius: "4px",
+            border: "1px solid black",
+          }}
+          onClick={() => {
+            onMacAddressChange(device.mac_address);
+            onSaveDevice();
+          }}
+          key={device.mac_address}
+        >
+          <Text>Ortus</Text>
+          <Text>{device.mac_address}</Text>
+        </Box>
+      ))}
+      <hr />
+      or
+      <Input
+        full
+        value={macAddress}
+        onChange={(e) => onMacAddressChange(e.target.value)}
+      />
+      <button onClick={onSaveDevice}>Add Test device</button>
     </div>
   );
 }

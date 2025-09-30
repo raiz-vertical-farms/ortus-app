@@ -298,7 +298,7 @@
                             }
                           ]
                         },
-                        "left_light": {
+                        "light": {
                           "anyOf": [
                             {
                               "type": "string"
@@ -308,55 +308,7 @@
                             }
                           ]
                         },
-                        "left_light_schedule": {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "from_hour": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 23
-                                },
-                                "from_minute": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 59
-                                },
-                                "to_hour": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 23
-                                },
-                                "to_minute": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 59
-                                }
-                              },
-                              "required": [
-                                "from_hour",
-                                "from_minute",
-                                "to_hour",
-                                "to_minute"
-                              ]
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "right_light": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "right_light_schedule": {
+                        "light_schedule": {
                           "anyOf": [
                             {
                               "type": "object",
@@ -414,10 +366,8 @@
                         "mac_address",
                         "organization_id",
                         "last_seen",
-                        "left_light",
-                        "left_light_schedule",
-                        "right_light",
-                        "right_light_schedule",
+                        "light",
+                        "light_schedule",
                         "water_level",
                         "number_of_plants"
                       ]
@@ -484,82 +434,6 @@
                                 "type": "null"
                               }
                             ]
-                          },
-                          "left_light_schedule": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "from_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "from_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  },
-                                  "to_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "to_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  }
-                                },
-                                "required": [
-                                  "from_hour",
-                                  "from_minute",
-                                  "to_hour",
-                                  "to_minute"
-                                ]
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "right_light_schedule": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "from_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "from_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  },
-                                  "to_hour": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 23
-                                  },
-                                  "to_minute": {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 59
-                                  }
-                                },
-                                "required": [
-                                  "from_hour",
-                                  "from_minute",
-                                  "to_hour",
-                                  "to_minute"
-                                ]
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
                           }
                         },
                         "required": [
@@ -567,9 +441,7 @@
                           "name",
                           "mac_address",
                           "organization_id",
-                          "last_seen",
-                          "left_light_schedule",
-                          "right_light_schedule"
+                          "last_seen"
                         ]
                       }
                     }
@@ -584,9 +456,9 @@
         }
       }
     },
-    "/api/device/{id}/left-light/toggle": {
+    "/api/device/{id}/light/toggle": {
       "post": {
-        "operationId": "toggleLeftLight",
+        "operationId": "toggleLight",
         "summary": "Turn left light on/off",
         "tags": [
           "Devices"
@@ -625,51 +497,10 @@
         ]
       }
     },
-    "/api/device/{id}/right-light/toggle": {
+    "/api/device/{id}/light/schedule": {
       "post": {
-        "operationId": "toggleRightLight",
-        "summary": "Turn right light on/off",
-        "tags": [
-          "Devices"
-        ],
-        "responses": {},
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "state": {
-                    "type": "string",
-                    "enum": [
-                      "on",
-                      "off"
-                    ]
-                  }
-                },
-                "required": [
-                  "state"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ]
-      }
-    },
-    "/api/device/{id}/left-light/schedule": {
-      "post": {
-        "operationId": "scheduleLeftLight",
-        "summary": "Set a schedule for left light",
+        "operationId": "scheduleLight",
+        "summary": "Set a schedule for the light",
         "tags": [
           "Devices"
         ],
@@ -723,71 +554,65 @@
         ]
       }
     },
-    "/api/device/{id}/right-light/schedule": {
-      "post": {
-        "operationId": "scheduleRightLight",
-        "summary": "Set a schedule for right light",
-        "tags": [
-          "Devices"
-        ],
-        "responses": {},
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "from_hour": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 23
-                  },
-                  "from_minute": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 59
-                  },
-                  "to_hour": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 23
-                  },
-                  "to_minute": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 59
-                  }
-                },
-                "required": [
-                  "from_hour",
-                  "from_minute",
-                  "to_hour",
-                  "to_minute"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ]
-      }
-    },
-    "/api/device/by-ip": {
+    "/api/network/my-ip": {
       "get": {
-        "operationId": "devicesByIp",
+        "operationId": "myIp",
+        "summary": "Get my IP address",
+        "tags": [
+          "Network"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ip": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ip"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/network/local-devices": {
+      "get": {
+        "operationId": "localDevices",
         "summary": "Get devices that recently announced presence from the same IP",
         "tags": [
           "Devices"
         ],
-        "responses": {},
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "mac_address": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "mac_address"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
         "parameters": [
           {
             "in": "query",

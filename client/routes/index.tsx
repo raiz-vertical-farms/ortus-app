@@ -43,40 +43,14 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const router = useRouter();
-
-  const [ip, setIp] = useState("");
-
-  function getPublicIp() {
-    fetch("https://api.ipify.org?format=json")
-      .then((response) => response.json())
-      .then((data) => {
-        setIp(data.ip);
-      });
-  }
-
-  useEffect(() => {
-    getPublicIp();
-  }, []);
-
-  const { data } = client.api.allDevices.useQuery(undefined, {
-    refetchInterval: 30000,
+  const { data: connectedDevices } = client.api.allDevices.useQuery(undefined, {
+    refetchInterval: 5000,
   });
-
-  const { data: macs } = client.api.devicesByIp.useQuery(
-    { query: { ip } },
-    {
-      refetchInterval: 30000,
-      enabled: !!ip,
-    }
-  );
-
-  console.log(macs);
 
   return (
     <Box pt="6xl">
       <Group direction="column" align="center" spacing="lg">
-        {data?.devices.map((device) => {
+        {connectedDevices?.devices.map((device) => {
           return (
             <DeviceCard
               key={device.id}

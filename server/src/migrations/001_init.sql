@@ -52,8 +52,7 @@ CREATE TABLE device_timeseries (
         )
     ),
     value_text TEXT NOT NULL,
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (mac_address) REFERENCES devices (mac_address) ON DELETE CASCADE
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Index for fast lookups of latest metrics per device

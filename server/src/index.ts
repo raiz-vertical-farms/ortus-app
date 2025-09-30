@@ -29,6 +29,7 @@ app.use(
 
 app.use("/api/device/*", authMiddleware);
 app.use("/api/plant/*", authMiddleware);
+app.use("/api/network/*", authMiddleware);
 
 app.get(
   "/openapi.json",

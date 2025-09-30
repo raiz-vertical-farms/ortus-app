@@ -20,7 +20,7 @@ type BoxProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 function getVar(val?: Spacing): string | undefined {
-  return val ? `var(--spacing-${val.replace(".", "_")})` : undefined;
+  return val ? `var(--spacing-${val})` : undefined;
 }
 
 export const Box: React.FC<BoxProps> = ({
@@ -38,28 +38,27 @@ export const Box: React.FC<BoxProps> = ({
   mr,
   mx,
   my,
-  style,
   children,
   ...rest
 }) => {
   const paddingStyles: React.CSSProperties = {
-    padding: getVar(p),
-    paddingTop: getVar(pt ?? py),
-    paddingBottom: getVar(pb ?? py),
-    paddingLeft: getVar(pl ?? px),
-    paddingRight: getVar(pr ?? px),
+    paddingTop: getVar(p ?? pt ?? py),
+    paddingBottom: getVar(p ?? pb ?? py),
+    paddingLeft: getVar(p ?? pl ?? px),
+    paddingRight: getVar(p ?? pr ?? px),
   };
 
   const marginStyles: React.CSSProperties = {
-    margin: getVar(m),
-    marginTop: getVar(mt ?? my),
-    marginBottom: getVar(mb ?? my),
-    marginLeft: getVar(ml ?? mx),
-    marginRight: getVar(mr ?? mx),
+    marginTop: getVar(m ?? mt ?? my),
+    marginBottom: getVar(m ?? mb ?? my),
+    marginLeft: getVar(m ?? ml ?? mx),
+    marginRight: getVar(m ?? mr ?? mx),
   };
 
+  console.log({ paddingStyles, marginStyles });
+
   return (
-    <div style={{ ...paddingStyles, ...marginStyles, ...style }} {...rest}>
+    <div {...rest} style={{ ...paddingStyles, ...marginStyles, ...rest.style }}>
       {children}
     </div>
   );

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { match } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
 import Tabs from "../../primitives/Tabs/Tabs";
+import { LightbulbFilamentIcon } from "@phosphor-icons/react";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -66,32 +67,28 @@ function ControlView({ deviceId }: { deviceId: string }) {
     path: { id: deviceId },
   });
 
-  const { mutate: toggleLeftLight } = client.api.toggleLeftLight.useMutation(
+  const { mutate: toggleLeftLight } = client.api.toggleLight.useMutation(
     undefined,
     { onSuccess: () => refetch() }
   );
 
   return (
     <>
-      <Text>Left Light</Text>
+      <Text>Light</Text>
       <Tabs
-        value={data?.state.left_light ? "on" : "off"}
+        value={data?.state.light ? "on" : "off"}
         onChange={(value) => {
           toggleLeftLight({ path: { id: deviceId }, body: { state: value } });
         }}
         options={[
-          { value: "on", label: "ON" },
-          { value: "off", label: "OFF" },
-        ]}
-      />
-      <Text>Right Light</Text>
-      <Tabs
-        value={data?.state.left_light ? "on" : "off"}
-        onChange={(value) => {
-          toggleLeftLight({ path: { id: deviceId }, body: { state: value } });
-        }}
-        options={[
-          { value: "on", label: "ON" },
+          {
+            value: "on",
+            label: (
+              <div>
+                ON <LightbulbFilamentIcon />
+              </div>
+            ),
+          },
           { value: "off", label: "OFF" },
         ]}
       />
