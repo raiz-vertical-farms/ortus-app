@@ -36,6 +36,7 @@
     "@hono/zod-validator": "^0.7.2",
     "@libsql/client": "^0.15.15",
     "@libsql/kysely-libsql": "^0.4.1",
+    "@scalar/hono-api-reference": "^0.9.19",
     "@types/better-sqlite3": "^7.6.13",
     "@types/jsonwebtoken": "^9.0.10",
     "better-sqlite3": "^12.2.0",

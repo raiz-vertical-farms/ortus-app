@@ -5,6 +5,7 @@ import { generateSpecs, openAPIRouteHandler } from "hono-openapi";
 import "dotenv/config";
 import routes from "./routes";
 import fs from "fs";
+import { Scalar } from "@scalar/hono-api-reference";
 
 console.log("🚀 Starting Hono server...");
 
@@ -29,6 +30,13 @@ app.get(
         description: "API for the Raiz platform",
       },
     },
+  })
+);
+
+app.get(
+  "/scalar",
+  Scalar({
+    url: "/openapi.json",
   })
 );
 
