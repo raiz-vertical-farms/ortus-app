@@ -72,8 +72,11 @@ export function useBluetooth() {
       setStatus("Provisioning successful!");
       return mac;
     } catch (err: any) {
-      setStatus(`Provisioning failed: ${err.message}`);
-      throw err;
+      const message =
+        (typeof err === "object" && err?.message) ||
+        (typeof err === "string" ? err : "Unknown provisioning error");
+      setStatus(`Provisioning failed: ${message}`);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setIsProvisioning(false);
     }

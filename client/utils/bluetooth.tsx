@@ -20,6 +20,11 @@ interface ProvisioningCallbacks {
 export class ESP32Provisioning {
   private deviceId: string | null = null;
   private callbacks: ProvisioningCallbacks;
+  private macWaiters: Array<{
+    timeoutId: ReturnType<typeof setTimeout>;
+    resolve: (mac: string) => void;
+    reject: (error: Error) => void;
+  }> = [];
 
   constructor(callbacks: ProvisioningCallbacks = {}) {
     this.callbacks = callbacks;
@@ -72,9 +77,12 @@ export class ESP32Provisioning {
       this.deviceId = deviceId;
 
       // Connect to device
-      await BleClient.connect(deviceId, (disconnected) => {
+      await BleClient.connect(deviceId, (_disconnected) => {
         console.log("Device disconnected");
         this.deviceId = null;
+        this.rejectPendingMacWaiters(
+          new Error("Device disconnected before provisioning finished")
+        );
         this.callbacks.onDisconnected?.();
       });
 
@@ -178,6 +186,9 @@ export class ESP32Provisioning {
   async disconnect(): Promise<void> {
     if (this.deviceId) {
       try {
+        this.rejectPendingMacWaiters(
+          new Error("Device disconnected before provisioning finished")
+        );
         await BleClient.disconnect(this.deviceId);
         console.log("Disconnected from device");
         this.deviceId = null;
@@ -217,6 +228,7 @@ export class ESP32Provisioning {
         (value) => {
           const mac = this.bytesToString(value);
           console.log("MAC address notification:", mac);
+          this.resolvePendingMacWaiters(mac);
           this.callbacks.onMacAddressReceived?.(mac);
         }
       );
@@ -227,28 +239,69 @@ export class ESP32Provisioning {
 
   private async waitForMacAddress(timeout: number): Promise<string> {
     return new Promise((resolve, reject) => {
-      let resolved = false;
-
-      // Set up timeout
       const timeoutId = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          reject(new Error("Timeout waiting for MAC address"));
-        }
+        this.removeMacWaiter(timeoutId);
+        reject(new Error("Timeout waiting for MAC address"));
       }, timeout);
 
-      // Override the callback temporarily
-      const originalCallback = this.callbacks.onMacAddressReceived;
-      this.callbacks.onMacAddressReceived = (mac: string) => {
-        if (!resolved && mac && mac.length > 0) {
-          resolved = true;
+      this.macWaiters.push({
+        timeoutId,
+        resolve: (mac) => {
           clearTimeout(timeoutId);
-          this.callbacks.onMacAddressReceived = originalCallback;
-          originalCallback?.(mac);
+          this.removeMacWaiter(timeoutId);
           resolve(mac);
-        }
-      };
+        },
+        reject: (error) => {
+          clearTimeout(timeoutId);
+          this.removeMacWaiter(timeoutId);
+          reject(error);
+        },
+      });
     });
+  }
+
+  private resolvePendingMacWaiters(mac: string) {
+    if (!mac || mac.length === 0) {
+      return;
+    }
+
+    if (this.macWaiters.length === 0) {
+      return;
+    }
+
+    const waiters = [...this.macWaiters];
+    this.macWaiters = [];
+
+    waiters.forEach((waiter) => {
+      try {
+        waiter.resolve(mac);
+      } catch (error) {
+        console.error("Failed to resolve MAC waiter", error);
+      }
+    });
+  }
+
+  private rejectPendingMacWaiters(error: Error) {
+    if (this.macWaiters.length === 0) {
+      return;
+    }
+
+    const waiters = [...this.macWaiters];
+    this.macWaiters = [];
+
+    waiters.forEach((waiter) => {
+      try {
+        waiter.reject(error);
+      } catch (err) {
+        console.error("Failed to reject MAC waiter", err);
+      }
+    });
+  }
+
+  private removeMacWaiter(timeoutId: ReturnType<typeof setTimeout>) {
+    this.macWaiters = this.macWaiters.filter(
+      (waiter) => waiter.timeoutId !== timeoutId
+    );
   }
 
   private stringToBytes(str: string): DataView {
@@ -313,10 +366,7 @@ export async function provisionDevice(
 
     console.log("Provisioning successful! MAC:", macAddress);
 
-    // Optional: Send stop command to disable BLE on ESP32
-    await provisioning.sendCommand("stop");
-
-    // Disconnect
+    // Disconnect; firmware keeps advertising for future provisioning sessions
     await provisioning.disconnect();
 
     return macAddress;

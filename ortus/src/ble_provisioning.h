@@ -23,7 +23,6 @@ public:
     BluetoothProvisioning(WiFiCredentialsStore &credentialsStore, NetworkManager &networkManager);
 
     void begin();
-    void stop();
     bool isActive() const { return bleActive; }
     void checkAutoStop();
 
@@ -50,6 +49,11 @@ private:
     BLE2902 *pMacDescriptor;
     bool statusNotifyPending;
     bool macNotifyPending;
+    bool awaitingWiFiConnection;
+    bool lastWifiConnected;
+    bool provisionSawDisconnect;
+    unsigned long wifiConnectionStart;
+    bool wifiReconnectRequested;
 
     String tempSSID;
     String tempPassword;
@@ -63,8 +67,6 @@ private:
     void processCommand(const String &command);
     void flushPendingNotifications();
     bool canNotify(BLE2902 *descriptor) const;
-
-    static const unsigned long BLE_TIMEOUT_MS = 300000; // 5 minutes
 };
 
 #endif // BLUETOOTH_PROVISIONING_H

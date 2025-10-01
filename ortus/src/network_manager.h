@@ -40,6 +40,7 @@ private:
   bool lightOn;
   bool wifiWasConnected;
   bool waitingForCredentialsLogged;
+  bool waitingBeforeRetryLogged;
 
   static NetworkManager *instance_;
 };

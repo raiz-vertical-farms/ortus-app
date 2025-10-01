@@ -1,11 +1,18 @@
 #include "ble_provisioning.h"
 
+namespace
+{
+    constexpr unsigned long WIFI_CONNECT_TIMEOUT_MS = 30000; // 30s window for Wi-Fi connect feedback
+}
+
 BluetoothProvisioning::BluetoothProvisioning(WiFiCredentialsStore &credentialsStore, NetworkManager &networkManager)
     : credentials(credentialsStore), network(networkManager),
       pServer(nullptr), pService(nullptr),
       pCharSSID(nullptr), pCharPassword(nullptr), pCharStatus(nullptr), pCharMAC(nullptr), pCharCommand(nullptr),
       pStatusDescriptor(nullptr), pMacDescriptor(nullptr),
       statusNotifyPending(false), macNotifyPending(false),
+      awaitingWiFiConnection(false), lastWifiConnected(false), provisionSawDisconnect(false),
+      wifiConnectionStart(0), wifiReconnectRequested(false),
       bleActive(false), deviceConnected(false), lastActivityTime(0)
 {
 }
@@ -47,25 +54,61 @@ void BluetoothProvisioning::begin()
 
     updateMACAddress();
     updateStatus("BLE started");
-}
 
-void BluetoothProvisioning::stop()
-{
-    if (bleActive)
-    {
-        BLEDevice::stopAdvertising();
-        bleActive = false;
-        updateStatus("BLE stopped");
-    }
+    lastWifiConnected = (WiFi.status() == WL_CONNECTED);
 }
 
 void BluetoothProvisioning::checkAutoStop()
 {
     flushPendingNotifications();
 
-    if (bleActive && millis() - lastActivityTime > BLE_TIMEOUT_MS)
+    if (wifiReconnectRequested)
     {
-        stop();
+        wifiReconnectRequested = false;
+        connectWithCredentials();
+    }
+
+    const bool wifiConnectedNow = (WiFi.status() == WL_CONNECTED);
+
+    if (awaitingWiFiConnection)
+    {
+        if (!wifiConnectedNow)
+        {
+            provisionSawDisconnect = true;
+        }
+        else if (provisionSawDisconnect || !lastWifiConnected)
+        {
+            awaitingWiFiConnection = false;
+            provisionSawDisconnect = false;
+            updateStatus("Provisioning successful");
+            updateMACAddress();
+        }
+        if (awaitingWiFiConnection && millis() - wifiConnectionStart >= WIFI_CONNECT_TIMEOUT_MS)
+        {
+            awaitingWiFiConnection = false;
+            provisionSawDisconnect = false;
+            updateStatus("Provisioning failed");
+        }
+    }
+    else if (wifiConnectedNow && !lastWifiConnected)
+    {
+        updateStatus("WiFi connected");
+        updateMACAddress();
+    }
+
+    if (!wifiConnectedNow && lastWifiConnected)
+    {
+        updateStatus("WiFi disconnected");
+    }
+
+    lastWifiConnected = wifiConnectedNow;
+
+    // Keep BLE provisioning always available; restart advertising if needed.
+    if (!bleActive)
+    {
+        BLEDevice::startAdvertising();
+        bleActive = true;
+        updateStatus("BLE advertising resumed");
     }
 }
 
@@ -82,6 +125,9 @@ void BluetoothProvisioning::onConnect(BLEServer *pServer)
     {
         pMacDescriptor->setNotifications(false);
     }
+    awaitingWiFiConnection = false;
+    provisionSawDisconnect = false;
+    lastWifiConnected = (WiFi.status() == WL_CONNECTED);
     updateStatus("Device connected");
 }
 
@@ -89,6 +135,8 @@ void BluetoothProvisioning::onDisconnect(BLEServer *pServer)
 {
     deviceConnected = false;
     updateStatus("Device disconnected");
+    awaitingWiFiConnection = false;
+    provisionSawDisconnect = false;
     if (pStatusDescriptor)
     {
         pStatusDescriptor->setNotifications(false);
@@ -114,7 +162,7 @@ void BluetoothProvisioning::onWrite(BLECharacteristic *pCharacteristic)
         tempPassword = pCharacteristic->getValue().c_str();
         updateStatus("Password received");
         credentials.save(tempSSID, tempPassword);
-        connectWithCredentials();
+        wifiReconnectRequested = true;
     }
     else if (pCharacteristic == pCharCommand)
     {
@@ -161,30 +209,27 @@ void BluetoothProvisioning::updateMACAddress()
         {
             macNotifyPending = true;
         }
+        Serial.print("[BLE] MAC ready: ");
+        Serial.println(mac);
     }
 }
 
 bool BluetoothProvisioning::connectWithCredentials()
 {
-    network.connectWiFi();
-    if (WiFi.status() == WL_CONNECTED)
-    {
-        updateStatus("WiFi connected");
-        updateMACAddress(); // <--- send MAC notification here
-        return true;
-    }
-    else
-    {
-        updateStatus("WiFi failed");
-        return false;
-    }
+    awaitingWiFiConnection = true;
+    wifiConnectionStart = millis();
+    provisionSawDisconnect = (WiFi.status() != WL_CONNECTED);
+    updateStatus("Provisioning WiFi...");
+    network.forceReconnect();
+    return true;
 }
 
 void BluetoothProvisioning::processCommand(const String &command)
 {
     if (command == "STOP")
     {
-        stop();
+        Serial.println("[BLE] STOP command received but ignored; BLE stays active");
+        updateStatus("BLE remains active");
     }
 }
 

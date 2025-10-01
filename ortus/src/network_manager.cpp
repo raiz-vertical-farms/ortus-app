@@ -12,7 +12,8 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       lastWiFiAttempt(0),
       lightOn(false),
       wifiWasConnected(false),
-      waitingForCredentialsLogged(false)
+      waitingForCredentialsLogged(false),
+      waitingBeforeRetryLogged(false)
 {
   instance_ = this;
 }
@@ -99,17 +100,25 @@ void NetworkManager::connectWiFi()
   const unsigned long now = millis();
   if (now - lastWiFiAttempt < 5000)
   {
-    Serial.println(F("[Network] Waiting before next Wi-Fi attempt"));
+    if (!waitingBeforeRetryLogged)
+    {
+      Serial.println(F("[Network] Waiting before next Wi-Fi attempt"));
+      waitingBeforeRetryLogged = true;
+    }
     return;
   }
 
   lastWiFiAttempt = now;
+  waitingBeforeRetryLogged = false;
 
   const String ssid = credentials.getSsid();
   const String password = credentials.getPassword();
 
   Serial.print("[Network] Connecting to ");
   Serial.println(ssid);
+
+  Serial.print("[Network] Password: ");
+  Serial.println(password);
 
   WiFi.begin(ssid.c_str(), password.c_str());
 }
@@ -120,6 +129,7 @@ void NetworkManager::forceReconnect()
   wifiWasConnected = false;
   waitingForCredentialsLogged = false;
   lastWiFiAttempt = 0;
+  waitingBeforeRetryLogged = false;
   WiFi.disconnect(true, true);
   connectWiFi();
 }

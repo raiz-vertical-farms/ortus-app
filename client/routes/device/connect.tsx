@@ -33,7 +33,8 @@ function Page() {
     getPublicIp().then(setIp);
   }, []);
 
-  const { isSupported } = useBluetooth();
+  const { isSupported, scanAndConnect, initialize, status, provisionWiFi } =
+    useBluetooth();
 
   return (
     <div style={{ viewTransitionName: "main-content" }}>
@@ -48,18 +49,26 @@ function Page() {
         ))
         .with({ view: "main", isSupported: true }, () => (
           <FindDevice
-            ip={ip}
-            onDeviceSelected={(macAddress) => {
-              setMacAddress(macAddress);
-              setView("provision");
+            onScanAndConnect={async () => {
+              await initialize();
+              const ok = await scanAndConnect();
+              if (ok) {
+                setView("provision");
+              }
             }}
+            status={status}
           />
         ))
         .with({ view: "provision" }, () => (
           <ProvisionDevice
-            onSuccess={(mac) => {
-              setMacAddress(mac);
-              setView("save");
+            status={status}
+            onStartProvision={async (ssid, password) => {
+              const res = await provisionWiFi(ssid, password);
+              console.log("Provision result:", res);
+              if (res) {
+                setMacAddress(res);
+                setView("save");
+              }
             }}
           />
         ))
@@ -136,39 +145,31 @@ function WifiProvision({
 }
 
 function FindDevice({
-  onDeviceSelected,
-  ip,
+  onScanAndConnect,
+  status,
 }: {
-  ip: string;
-  onDeviceSelected: (deviceId: string) => void;
+  onScanAndConnect: () => void;
+  status: string;
 }) {
-  const { scanAndConnect, status, isConnected, macAddress, initialize } =
-    useBluetooth();
-
   return (
-    <Group direction="column" spacing="xl">
-      <Button
-        onClick={async () => {
-          await initialize();
-          const ok = await scanAndConnect();
-          if (ok && macAddress) {
-            onDeviceSelected(macAddress);
-          }
-        }}
-      >
-        Scan & Connect
-      </Button>
-      <Text>{status}</Text>
-      {isConnected && macAddress && <Text>Connected to {macAddress}</Text>}
-    </Group>
+    <Box pt="7xl">
+      <Group direction="column" spacing="xl">
+        <Button onClick={onScanAndConnect}>Connect to Ortus</Button>
+        <Text>{status}</Text>
+      </Group>
+    </Box>
   );
 }
 
-function ProvisionDevice({ onSuccess }: { onSuccess: (mac: string) => void }) {
+function ProvisionDevice({
+  onStartProvision,
+  status,
+}: {
+  status: string;
+  onStartProvision: (ssid: string, password: string) => void;
+}) {
   const [ssid, setSsid] = useState("Vodafone-166BC8");
   const [password, setPassword] = useState("ZeMzq5mn5avqYuVp");
-
-  const { provisionWiFi, status, isProvisioning } = useBluetooth();
 
   return (
     <Group direction="column" spacing="xl">
@@ -187,21 +188,8 @@ function ProvisionDevice({ onSuccess }: { onSuccess: (mac: string) => void }) {
         label="WiFi Password"
         placeholder="••••••••"
       />
-      <Button
-        full
-        disabled={isProvisioning}
-        onClick={async () => {
-          try {
-            const mac = await provisionWiFi(ssid, password);
-            if (mac) {
-              onSuccess(mac);
-            }
-          } catch (error) {
-            console.error("Provisioning failed:", error);
-          }
-        }}
-      >
-        {isProvisioning ? "Provisioning..." : "Connect Ortus to WiFi"}
+      <Button full onClick={() => onStartProvision(ssid, password)}>
+        Connect
       </Button>
       <Text>{status}</Text>
     </Group>
