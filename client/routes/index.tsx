@@ -6,6 +6,7 @@ import { client } from "../lib/apiClient";
 import Box from "../primitives/Box/Box";
 import { PlusCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import OrtusIcon from "../icons/Ortus.tsx/Ortus";
 
 export const Route = createFileRoute("/")({
   component: Index,

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import styles from "./DeviceCard.module.css";
 import { Text } from "../../primitives/Text/Text";
 import { Group } from "../../primitives/Group/Group";
+import OrtusIcon from "../../icons/Ortus.tsx/Ortus";
 
 type Device = {
   id: number;
@@ -48,22 +49,25 @@ export default function DeviceCard({
       viewTransition={{ types: ["slide-left"] }}
       params={{ id: id.toString() }}
     >
-      <Group direction="column" spacing="md">
-        <Text size="xs" color="muted">
-          {statusDot}{" "}
-          {last_seen ? `Online ${formatLastSeen(last_seen)}` : "Offline"}
-        </Text>
+      <Group spacing="2xl">
+        <OrtusIcon height={100} />
+        <Group direction="column" spacing="md">
+          <Text size="xs" color="muted">
+            {statusDot}{" "}
+            {last_seen ? `Online ${formatLastSeen(last_seen)}` : "Offline"}
+          </Text>
 
-        <Group align="center">
-          <Text size="lg">{name}</Text>
-          <Text size="xs"> - {mac_address}</Text>
+          <Group align="center">
+            <Text size="lg">{name}</Text>
+            <Text size="xs"> - {mac_address}</Text>
+          </Group>
+
+          <Text size="sm" color="muted">
+            {number_of_plants
+              ? `${number_of_plants} plant(s)`
+              : "No plants added"}
+          </Text>
         </Group>
-
-        <Text size="sm" color="muted">
-          {number_of_plants
-            ? `${number_of_plants} plant(s)`
-            : "No plants added"}
-        </Text>
       </Group>
     </Link>
   );
