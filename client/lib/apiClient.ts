@@ -23,8 +23,6 @@ async function customRequestFn(
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
 
-    console.log({ headers });
-
     const response = await defaultRequestFn(schema, {
       ...requestInfo,
       headers,

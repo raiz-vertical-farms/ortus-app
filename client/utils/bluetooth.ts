@@ -61,7 +61,7 @@ export async function scan(
 
     await BleClient.requestLEScan(
       {
-        // services: [IMPROV_SERVICE],
+        services: [IMPROV_SERVICE],
       },
       (result) => {
         console.log("Found Improv device:", result);
@@ -126,8 +126,8 @@ export function makeImprovPayload(ssid: string, password: string): DataView {
   const commandId = 0x01;
   const arr = [commandId, data.length, ...data];
 
-  // checksum = sum(data) mod 256
-  const checksum = data.reduce((s, b) => (s + b) & 0xff, 0);
+  // checksum = sum(commandId + length + data) mod 256
+  const checksum = arr.reduce((s, b) => (s + b) & 0xff, 0);
   arr.push(checksum);
 
   return numbersToDataView(arr);
@@ -143,8 +143,10 @@ async function sendWifiCredentials(
   // Split into 20-byte chunks because BLE write limit
   const chunkSize = 20;
   for (let i = 0; i < payload.byteLength; i += chunkSize) {
-    const chunk = new DataView(payload.buffer.slice(i, i + chunkSize));
-    await BleClient.write(deviceId, IMPROV_SERVICE, CHAR_RPC_COMMAND, chunk);
+    const length = Math.min(chunkSize, payload.byteLength - i);
+    const chunk = new DataView(payload.buffer, payload.byteOffset + i, length);
+    // writeWithoutResponse keeps the link alive while we stream multiple chunks
+    await BleClient.writeWithoutResponse(deviceId, IMPROV_SERVICE, CHAR_RPC_COMMAND, chunk);
   }
 
   console.log("Wi-Fi credentials sent");

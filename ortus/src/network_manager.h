@@ -5,10 +5,12 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
+#include "wifi_credentials.h"
+
 class NetworkManager
 {
 public:
-  NetworkManager();
+  explicit NetworkManager(WiFiCredentialsStore &credentialsStore);
 
   void begin();
   void loop();
@@ -27,11 +29,15 @@ private:
   String getStateTopic() const;
   String getPublicIP();
 
+  WiFiCredentialsStore &credentials;
   WiFiClientSecure espClient;
   PubSubClient client;
   String macAddress;
   unsigned long lastPresenceAt;
+  unsigned long lastWiFiAttempt;
   bool lightOn;
+  bool wifiWasConnected;
+  bool waitingForCredentialsLogged;
 
   static NetworkManager *instance_;
 };

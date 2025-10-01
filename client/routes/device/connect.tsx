@@ -49,6 +49,7 @@ function Page() {
         ))
         .with({ view: "main", isSupported: true }, () => (
           <FindDevice
+            ip={ip}
             onDeviceSelected={(macAddress) => {
               setMacAddress(macAddress);
               setView("provision");
@@ -60,7 +61,6 @@ function Page() {
             deviceId={macAddress}
             onSuccess={() => {
               setView("main");
-              router.navigate({ to: "/" });
             }}
           />
         ))
@@ -138,10 +138,22 @@ function WifiProvision({
 
 function FindDevice({
   onDeviceSelected,
+  ip,
 }: {
+  ip: string;
   onDeviceSelected: (deviceId: string) => void;
 }) {
   const { isSupported, devices, startScan } = useBluetooth();
+
+  const { data: lDevices } = client.api.localDevices.useQuery(
+    { query: { ip } },
+    {
+      refetchInterval: 2000,
+      enabled: !!ip,
+    }
+  );
+
+  const localDevices = lDevices || [];
 
   return (
     <>
@@ -165,6 +177,26 @@ function FindDevice({
       ) : (
         <Text>Bluetooth is not supported on this device.</Text>
       )}
+      <Text>
+        {devices.length === 0
+          ? "Looking for devices on your network..."
+          : "Devices found"}
+      </Text>
+      {localDevices.map((device) => (
+        <Box
+          p="xl"
+          style={{
+            cursor: "pointer",
+            background: "white",
+            borderRadius: "4px",
+            border: "1px solid black",
+          }}
+          key={device.mac_address}
+        >
+          <Text>Ortus</Text>
+          <Text>{device.mac_address}</Text>
+        </Box>
+      ))}
     </>
   );
 }
@@ -176,8 +208,8 @@ function ProvisionDevice({
   onSuccess: () => void;
   deviceId: string;
 }) {
-  const [ssid, setSsid] = useState("");
-  const [password, setPassword] = useState("");
+  const [ssid, setSsid] = useState("Vodafone-166BC8");
+  const [password, setPassword] = useState("ZeMzq5mn5avqYuVp");
 
   return (
     <Group direction="column" spacing="xl">

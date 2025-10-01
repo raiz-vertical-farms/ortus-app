@@ -55,8 +55,6 @@ export const Box: React.FC<BoxProps> = ({
     marginRight: getVar(m ?? mr ?? mx),
   };
 
-  console.log({ paddingStyles, marginStyles });
-
   return (
     <div {...rest} style={{ ...paddingStyles, ...marginStyles, ...rest.style }}>
       {children}
