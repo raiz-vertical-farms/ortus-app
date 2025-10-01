@@ -1,6 +1,11 @@
+#include <Adafruit_NeoPixel.h>
 #include "network_manager.h"
-
 #include "config.h"
+
+#define LED_PIN 38
+#define NUM_LEDS 1
+
+Adafruit_NeoPixel pixels(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 NetworkManager *NetworkManager::instance_ = nullptr;
 
@@ -31,6 +36,8 @@ void NetworkManager::begin()
   espClient.setInsecure();
   client.setServer(MQTT_BROKER_HOST, MQTT_PORT);
   client.setCallback(NetworkManager::mqttCallbackRouter);
+
+  pixels.begin();
 }
 
 void NetworkManager::loop()
@@ -237,11 +244,15 @@ void NetworkManager::processLightCommand(const String &command)
   if (command == "on")
   {
     lightOn = true;
+    pixels.setPixelColor(0, pixels.Color(255, 255, 255)); // White ON
+    pixels.show();
     publishLightState();
   }
   else if (command == "off")
   {
     lightOn = false;
+    pixels.clear(); // OFF
+    pixels.show();
     publishLightState();
   }
   else
