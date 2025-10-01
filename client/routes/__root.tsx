@@ -19,7 +19,7 @@ import {
 import { Text } from "../primitives/Text/Text";
 
 const NAV_HEIGHT = 80;
-const HEADER_HEIGHT = 60;
+const HEADER_HEIGHT = 80;
 
 function NavBar() {
   return (
@@ -141,6 +141,7 @@ function RootLayout() {
             height: HEADER_HEIGHT,
             display: "flex",
             alignItems: "center",
+            paddingTop: "env(safe-area-inset-top)",
           }}
         >
           <Container>

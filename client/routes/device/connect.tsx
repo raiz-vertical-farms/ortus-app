@@ -5,7 +5,6 @@ import { Text } from "../../primitives/Text/Text";
 import BluetoothDeviceCard from "../../components/BluetoothDeviceCard/BluetoothDeviceCard";
 import Input from "../../primitives/Input/Input";
 import { useEffect, useState } from "react";
-import { provisionDevice } from "../../utils/bluetooth";
 import { useBluetooth } from "../../hooks/useBluetooth";
 import { match } from "ts-pattern";
 import { client } from "../../lib/apiClient";
@@ -32,9 +31,10 @@ function Page() {
 
   useEffect(() => {
     getPublicIp().then(setIp);
-  });
+  }, []);
 
-  const { isSupported } = useBluetooth();
+  const { isSupported, scanAndConnect, initialize, status, provisionWiFi } =
+    useBluetooth();
 
   return (
     <div style={{ viewTransitionName: "main-content" }}>
@@ -49,18 +49,26 @@ function Page() {
         ))
         .with({ view: "main", isSupported: true }, () => (
           <FindDevice
-            onDeviceSelected={(macAddress) => {
-              setMacAddress(macAddress);
-              setView("provision");
+            onScanAndConnect={async () => {
+              await initialize();
+              const ok = await scanAndConnect();
+              if (ok) {
+                setView("provision");
+              }
             }}
+            status={status}
           />
         ))
         .with({ view: "provision" }, () => (
           <ProvisionDevice
-            deviceId={macAddress}
-            onSuccess={() => {
-              setView("main");
-              router.navigate({ to: "/" });
+            status={status}
+            onStartProvision={async (ssid, password) => {
+              const res = await provisionWiFi(ssid, password);
+              console.log("Provision result:", res);
+              if (res) {
+                setMacAddress(res);
+                setView("save");
+              }
             }}
           />
         ))
@@ -137,47 +145,31 @@ function WifiProvision({
 }
 
 function FindDevice({
-  onDeviceSelected,
+  onScanAndConnect,
+  status,
 }: {
-  onDeviceSelected: (deviceId: string) => void;
+  onScanAndConnect: () => void;
+  status: string;
 }) {
-  const { isSupported, devices, startScan } = useBluetooth();
-
   return (
-    <>
-      {devices.length > 0 && (
-        <Group direction="column" align="center" spacing="xl">
-          <h2>Discovered Devices</h2>
-
-          {devices.map((device) => (
-            <BluetoothDeviceCard
-              key={device.device.deviceId}
-              result={device}
-              onClick={() => {
-                onDeviceSelected(device.device.deviceId);
-              }}
-            />
-          ))}
-        </Group>
-      )}
-      {isSupported ? (
-        <Button onClick={() => startScan()}>Scan for devices</Button>
-      ) : (
-        <Text>Bluetooth is not supported on this device.</Text>
-      )}
-    </>
+    <Box pt="7xl">
+      <Group direction="column" spacing="xl">
+        <Button onClick={onScanAndConnect}>Connect to Ortus</Button>
+        <Text>{status}</Text>
+      </Group>
+    </Box>
   );
 }
 
 function ProvisionDevice({
-  onSuccess,
-  deviceId,
+  onStartProvision,
+  status,
 }: {
-  onSuccess: () => void;
-  deviceId: string;
+  status: string;
+  onStartProvision: (ssid: string, password: string) => void;
 }) {
-  const [ssid, setSsid] = useState("");
-  const [password, setPassword] = useState("");
+  const [ssid, setSsid] = useState("Vodafone-166BC8");
+  const [password, setPassword] = useState("ZeMzq5mn5avqYuVp");
 
   return (
     <Group direction="column" spacing="xl">
@@ -196,19 +188,10 @@ function ProvisionDevice({
         label="WiFi Password"
         placeholder="••••••••"
       />
-      <Button
-        full
-        onClick={async () => {
-          try {
-            await provisionDevice(deviceId, ssid, password);
-            onSuccess();
-          } catch (error) {
-            console.error("Provisioning failed:", error);
-          }
-        }}
-      >
-        Connect Ortus to WiFi
+      <Button full onClick={() => onStartProvision(ssid, password)}>
+        Connect
       </Button>
+      <Text>{status}</Text>
     </Group>
   );
 }

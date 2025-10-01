@@ -1,33 +1,70 @@
+#include <Adafruit_NeoPixel.h>
 #include "network_manager.h"
-
 #include "config.h"
+
+#define LED_PIN 38
+#define NUM_LEDS 1
+
+Adafruit_NeoPixel pixels(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 NetworkManager *NetworkManager::instance_ = nullptr;
 
-NetworkManager::NetworkManager() : client(espClient), lastPresenceAt(0), lightOn(false)
+NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
+    : credentials(credentialsStore),
+      client(espClient),
+      macAddress(""),
+      lastPresenceAt(0),
+      lastWiFiAttempt(0),
+      lightOn(false),
+      wifiWasConnected(false),
+      waitingForCredentialsLogged(false),
+      waitingBeforeRetryLogged(false)
 {
   instance_ = this;
 }
 
 void NetworkManager::begin()
 {
+  Serial.println(F("[Network] Initializing network manager"));
+
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
+  WiFi.setAutoReconnect(true);
+
   connectWiFi();
 
   espClient.setInsecure();
   client.setServer(MQTT_BROKER_HOST, MQTT_PORT);
   client.setCallback(NetworkManager::mqttCallbackRouter);
+
+  pixels.begin();
 }
 
 void NetworkManager::loop()
 {
+  connectWiFi();
+
   if (WiFi.status() != WL_CONNECTED)
   {
-    connectWiFi();
+    wifiWasConnected = false;
+    return;
+  }
+
+  if (!wifiWasConnected)
+  {
+    wifiWasConnected = true;
+    macAddress = WiFi.macAddress();
+
+    Serial.println("[Network] Wi-Fi connected");
+    Serial.print("[Network] Local IP: ");
+    Serial.println(WiFi.localIP());
+    Serial.printf("[Network] Signal strength: %d dBm\n", WiFi.RSSI());
   }
 
   if (!client.connected())
   {
     ensureMqttConnection();
+    Serial.println(F("[Network] Ensuring MQTT connection"));
   }
 
   client.loop();
@@ -55,26 +92,62 @@ void NetworkManager::connectWiFi()
     return;
   }
 
-  Serial.print("Connecting to ");
-  Serial.println(WIFI_SSID);
-
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD, WIFI_CHANNEL);
-
-  while (WiFi.status() != WL_CONNECTED)
+  if (!credentials.hasCredentials())
   {
-    delay(100);
-    Serial.print(".");
+    if (!waitingForCredentialsLogged)
+    {
+      Serial.println("[Network] Waiting for Wi-Fi credentials...");
+      waitingForCredentialsLogged = true;
+    }
+    return;
   }
-  Serial.println(" Connected!");
 
-  Serial.print("Local IP: ");
-  Serial.println(WiFi.localIP());
+  waitingForCredentialsLogged = false;
 
-  macAddress = WiFi.macAddress();
+  const unsigned long now = millis();
+  if (now - lastWiFiAttempt < 5000)
+  {
+    if (!waitingBeforeRetryLogged)
+    {
+      Serial.println(F("[Network] Waiting before next Wi-Fi attempt"));
+      waitingBeforeRetryLogged = true;
+    }
+    return;
+  }
+
+  lastWiFiAttempt = now;
+  waitingBeforeRetryLogged = false;
+
+  const String ssid = credentials.getSsid();
+  const String password = credentials.getPassword();
+
+  Serial.print("[Network] Connecting to ");
+  Serial.println(ssid);
+
+  Serial.print("[Network] Password: ");
+  Serial.println(password);
+
+  WiFi.begin(ssid.c_str(), password.c_str());
+}
+
+void NetworkManager::forceReconnect()
+{
+  Serial.println(F("[Network] Forcing Wi-Fi reconnect"));
+  wifiWasConnected = false;
+  waitingForCredentialsLogged = false;
+  lastWiFiAttempt = 0;
+  waitingBeforeRetryLogged = false;
+  WiFi.disconnect(true, true);
+  connectWiFi();
 }
 
 void NetworkManager::ensureMqttConnection()
 {
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    return;
+  }
+
   while (!client.connected())
   {
     Serial.print("Attempting MQTT connection...");
@@ -85,6 +158,7 @@ void NetworkManager::ensureMqttConnection()
       Serial.println("connected");
       client.subscribe(getCommandTopic().c_str());
       publishLightState();
+      Serial.println(F("[Network] MQTT subscription established"));
     }
     else
     {
@@ -92,12 +166,22 @@ void NetworkManager::ensureMqttConnection()
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
       delay(5000);
+      if (WiFi.status() != WL_CONNECTED)
+      {
+        return;
+      }
     }
   }
 }
 
 void NetworkManager::publishPresence()
 {
+  if (!client.connected())
+  {
+    Serial.println(F("[Network] Presence skipped (MQTT not connected)"));
+    return;
+  }
+
   const String topic = getPresenceTopic();
   const String payload = getPublicIP();
 
@@ -111,6 +195,7 @@ void NetworkManager::publishPresence()
     Serial.print(topic);
     Serial.print(": ");
     Serial.println(payload);
+    Serial.println(F("[Network] Presence heartbeat sent"));
   }
 }
 
@@ -159,11 +244,15 @@ void NetworkManager::processLightCommand(const String &command)
   if (command == "on")
   {
     lightOn = true;
+    pixels.setPixelColor(0, pixels.Color(255, 255, 255)); // White ON
+    pixels.show();
     publishLightState();
   }
   else if (command == "off")
   {
     lightOn = false;
+    pixels.clear(); // OFF
+    pixels.show();
     publishLightState();
   }
   else
