@@ -27,12 +27,11 @@ void setup()
 
   // Create BLE provisioning instance
   bleProvisioning = new BluetoothProvisioning(credentialsStore, networkManager);
+  bleProvisioning->begin();
 
-  // Start BLE provisioning if no credentials stored
   if (!credentialsStore.hasCredentials())
   {
-    Serial.println(F("[Boot] No WiFi credentials found, starting BLE provisioning"));
-    bleProvisioning->begin();
+    Serial.println(F("[Boot] No WiFi credentials found, waiting for provisioning"));
   }
   else
   {
@@ -48,8 +47,7 @@ void setup()
 
     if (WiFi.status() != WL_CONNECTED)
     {
-      Serial.println(F("[Boot] WiFi connection failed, starting BLE provisioning"));
-      bleProvisioning->begin();
+      Serial.println(F("[Boot] WiFi connection failed, continuing BLE provisioning"));
     }
   }
 }
@@ -61,21 +59,5 @@ void loop()
   if (bleProvisioning->isActive())
   {
     bleProvisioning->checkAutoStop();
-
-    // Optional: stop BLE after WiFi connects
-    if (WiFi.status() == WL_CONNECTED)
-    {
-      static unsigned long wifiConnectedTime = 0;
-      if (wifiConnectedTime == 0)
-      {
-        wifiConnectedTime = millis();
-      }
-      if (millis() - wifiConnectedTime > 30000)
-      {
-        Serial.println(F("[Main] Stopping BLE after successful WiFi connection"));
-        bleProvisioning->stop();
-        wifiConnectedTime = 0;
-      }
-    }
   }
 }

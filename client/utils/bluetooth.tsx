@@ -45,7 +45,7 @@ export class ESP32Provisioning {
         },
         (result) => {
           console.log("Found device:", result.device);
-          if (result.device.name?.startsWith("Ortus-")) {
+          if (result.device.name?.startsWith("Ortus")) {
             devices.push(result.device);
           }
         }

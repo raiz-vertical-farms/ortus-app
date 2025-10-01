@@ -46,6 +46,10 @@ private:
     BLECharacteristic *pCharStatus;
     BLECharacteristic *pCharMAC;
     BLECharacteristic *pCharCommand;
+    BLE2902 *pStatusDescriptor;
+    BLE2902 *pMacDescriptor;
+    bool statusNotifyPending;
+    bool macNotifyPending;
 
     String tempSSID;
     String tempPassword;
@@ -57,6 +61,8 @@ private:
     void updateMACAddress();
     bool connectWithCredentials();
     void processCommand(const String &command);
+    void flushPendingNotifications();
+    bool canNotify(BLE2902 *descriptor) const;
 
     static const unsigned long BLE_TIMEOUT_MS = 300000; // 5 minutes
 };

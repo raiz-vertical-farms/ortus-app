@@ -4,6 +4,8 @@ BluetoothProvisioning::BluetoothProvisioning(WiFiCredentialsStore &credentialsSt
     : credentials(credentialsStore), network(networkManager),
       pServer(nullptr), pService(nullptr),
       pCharSSID(nullptr), pCharPassword(nullptr), pCharStatus(nullptr), pCharMAC(nullptr), pCharCommand(nullptr),
+      pStatusDescriptor(nullptr), pMacDescriptor(nullptr),
+      statusNotifyPending(false), macNotifyPending(false),
       bleActive(false), deviceConnected(false), lastActivityTime(0)
 {
 }
@@ -24,9 +26,13 @@ void BluetoothProvisioning::begin()
 
     pCharStatus = pService->createCharacteristic(BLE_CHAR_STATUS_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
     pCharStatus->addDescriptor(new BLE2902());
+    pStatusDescriptor = (BLE2902 *)pCharStatus->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
 
-    pCharMAC = pService->createCharacteristic(BLE_CHAR_MAC_UUID, BLECharacteristic::PROPERTY_READ);
-    pCharMAC->setCallbacks(this);
+    pCharMAC = pService->createCharacteristic(
+        BLE_CHAR_MAC_UUID,
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+    pCharMAC->addDescriptor(new BLE2902());
+    pMacDescriptor = (BLE2902 *)pCharMAC->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
 
     pCharCommand = pService->createCharacteristic(BLE_CHAR_COMMAND_UUID, BLECharacteristic::PROPERTY_WRITE);
     pCharCommand->setCallbacks(this);
@@ -55,6 +61,8 @@ void BluetoothProvisioning::stop()
 
 void BluetoothProvisioning::checkAutoStop()
 {
+    flushPendingNotifications();
+
     if (bleActive && millis() - lastActivityTime > BLE_TIMEOUT_MS)
     {
         stop();
@@ -65,6 +73,15 @@ void BluetoothProvisioning::onConnect(BLEServer *pServer)
 {
     deviceConnected = true;
     lastActivityTime = millis();
+
+    if (pStatusDescriptor)
+    {
+        pStatusDescriptor->setNotifications(false);
+    }
+    if (pMacDescriptor)
+    {
+        pMacDescriptor->setNotifications(false);
+    }
     updateStatus("Device connected");
 }
 
@@ -72,6 +89,14 @@ void BluetoothProvisioning::onDisconnect(BLEServer *pServer)
 {
     deviceConnected = false;
     updateStatus("Device disconnected");
+    if (pStatusDescriptor)
+    {
+        pStatusDescriptor->setNotifications(false);
+    }
+    if (pMacDescriptor)
+    {
+        pMacDescriptor->setNotifications(false);
+    }
     BLEDevice::startAdvertising();
 }
 
@@ -108,7 +133,15 @@ void BluetoothProvisioning::updateStatus(const String &status)
     if (pCharStatus)
     {
         pCharStatus->setValue(status.c_str());
-        pCharStatus->notify();
+        if (canNotify(pStatusDescriptor))
+        {
+            pCharStatus->notify();
+            statusNotifyPending = false;
+        }
+        else
+        {
+            statusNotifyPending = true;
+        }
     }
     Serial.println("[BLE] " + status);
 }
@@ -119,6 +152,15 @@ void BluetoothProvisioning::updateMACAddress()
     {
         String mac = WiFi.macAddress();
         pCharMAC->setValue(mac.c_str());
+        if (canNotify(pMacDescriptor))
+        {
+            pCharMAC->notify();
+            macNotifyPending = false;
+        }
+        else
+        {
+            macNotifyPending = true;
+        }
     }
 }
 
@@ -128,6 +170,7 @@ bool BluetoothProvisioning::connectWithCredentials()
     if (WiFi.status() == WL_CONNECTED)
     {
         updateStatus("WiFi connected");
+        updateMACAddress(); // <--- send MAC notification here
         return true;
     }
     else
@@ -143,4 +186,29 @@ void BluetoothProvisioning::processCommand(const String &command)
     {
         stop();
     }
+}
+
+void BluetoothProvisioning::flushPendingNotifications()
+{
+    if (statusNotifyPending && pCharStatus && canNotify(pStatusDescriptor))
+    {
+        pCharStatus->notify();
+        statusNotifyPending = false;
+    }
+
+    if (macNotifyPending && pCharMAC && canNotify(pMacDescriptor))
+    {
+        pCharMAC->notify();
+        macNotifyPending = false;
+    }
+}
+
+bool BluetoothProvisioning::canNotify(BLE2902 *descriptor) const
+{
+    if (!deviceConnected || descriptor == nullptr)
+    {
+        return false;
+    }
+
+    return descriptor->getNotifications();
 }
