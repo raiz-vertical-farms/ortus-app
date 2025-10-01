@@ -2,6 +2,7 @@
   width: 100%;
   background: var(--color-card-background);
   border: var(--border-width) solid var(--color-card-border);
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, var(--opacity-25));
   border-radius: 8px;
   padding: var(--spacing-xl);
 }
