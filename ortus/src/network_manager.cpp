@@ -114,6 +114,16 @@ void NetworkManager::connectWiFi()
   WiFi.begin(ssid.c_str(), password.c_str());
 }
 
+void NetworkManager::forceReconnect()
+{
+  Serial.println(F("[Network] Forcing Wi-Fi reconnect"));
+  wifiWasConnected = false;
+  waitingForCredentialsLogged = false;
+  lastWiFiAttempt = 0;
+  WiFi.disconnect(true, true);
+  connectWiFi();
+}
+
 void NetworkManager::ensureMqttConnection()
 {
   if (WiFi.status() != WL_CONNECTED)

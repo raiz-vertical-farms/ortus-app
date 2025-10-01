@@ -1,19 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
-  checkIfBluetoothIsEnabled,
-  scan,
-  initializeBluetooth,
-  provisionDevice as provisionDeviceUtil,
+  ESP32Provisioning,
   checkIfBluetoothIsSupported,
-} from "../utils/bluetooth";
-import { ScanResult } from "@capacitor-community/bluetooth-le";
+} from "../utils/bluetooth"; // export your class from the file above
 
 export function useBluetooth() {
-  const [isProvisioning, setIsProvisioning] = useState(false);
-  const [devices, setDevices] = useState<ScanResult[]>([]);
   const [isSupported, setIsSupported] = useState(false);
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
+  const [status, setStatus] = useState<string>("");
+  const [macAddress, setMacAddress] = useState<string>("");
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isProvisioning, setIsProvisioning] = useState<boolean>(false);
+  const provisioningRef = useRef<ESP32Provisioning | null>(null);
 
   useEffect(() => {
     checkIfBluetoothIsSupported().then((supported) => {
@@ -21,65 +18,91 @@ export function useBluetooth() {
     });
   }, []);
 
-  async function checkEnabled() {
-    await initializeBluetooth();
-    const isEnabled = await checkIfBluetoothIsEnabled();
-    setIsEnabled(isEnabled);
-    return isEnabled;
-  }
-
-  async function startScan() {
-    const isEnabled = await checkEnabled();
-    if (!isEnabled) {
-      console.log("Bluetooth is not enabled");
-      return;
+  // Initialize provisioning instance with callbacks
+  useEffect(() => {
+    if (isSupported) {
+      provisioningRef.current = new ESP32Provisioning({
+        onStatusUpdate: (s) => setStatus(s),
+        onMacAddressReceived: (mac) => setMacAddress(mac),
+        onConnected: () => setIsConnected(true),
+        onDisconnected: () => setIsConnected(false),
+        onError: (err) => setStatus(`Error: ${err.message}`),
+      });
     }
 
-    setIsScanning(true);
-    setDevices([]);
+    return () => {
+      provisioningRef.current?.disconnect();
+      provisioningRef.current = null;
+    };
+  }, [isSupported]);
 
-    await scan((result) => {
-      console.log("Received new scan result", result);
-      setDevices((prevDevices) => {
-        const exists = prevDevices.find(
-          (d) => d.device.deviceId === result.device.deviceId
-        );
-        if (exists) {
-          return prevDevices.map((d) =>
-            d.device.deviceId === result.device.deviceId ? result : d
-          );
-        } else {
-          return [...prevDevices, result];
-        }
-      });
-    });
-
-    setIsScanning(false);
-  }
-
-  async function provisionDevice(
-    deviceId: string,
-    ssid: string,
-    password: string
-  ) {
-    setIsProvisioning(true);
+  const initialize = useCallback(async () => {
     try {
-      await provisionDeviceUtil(deviceId, ssid, password);
-    } catch (error) {
-      console.error("Error provisioning device:", error);
-      throw error;
+      await provisioningRef.current?.initialize();
+      setStatus("BLE initialized");
+    } catch (err: any) {
+      setStatus(`Init failed: ${err.message}`);
+    }
+  }, []);
+
+  const scanAndConnect = useCallback(async () => {
+    try {
+      setStatus("Scanning for devices...");
+      const deviceId = await provisioningRef.current?.scanForDevice(5000);
+      if (!deviceId) {
+        setStatus("No Ortus device found");
+        return false;
+      }
+      setStatus("Connecting...");
+      await provisioningRef.current?.connect(deviceId);
+      return true;
+    } catch (err: any) {
+      setStatus(`Scan/connect error: ${err.message}`);
+      return false;
+    }
+  }, []);
+
+  const provisionWiFi = useCallback(async (ssid: string, password: string) => {
+    if (!provisioningRef.current) return;
+    try {
+      setIsProvisioning(true);
+      setStatus("Sending WiFi credentials...");
+      const mac = await provisioningRef.current.provisionWiFi(ssid, password);
+      setMacAddress(mac);
+      setStatus("Provisioning successful!");
+      return mac;
+    } catch (err: any) {
+      setStatus(`Provisioning failed: ${err.message}`);
+      throw err;
     } finally {
       setIsProvisioning(false);
     }
-  }
+  }, []);
+
+  const sendCommand = useCallback(async (command: string) => {
+    try {
+      await provisioningRef.current?.sendCommand(command);
+      setStatus(`Command "${command}" sent`);
+    } catch (err: any) {
+      setStatus(`Command error: ${err.message}`);
+    }
+  }, []);
+
+  const disconnect = useCallback(async () => {
+    await provisioningRef.current?.disconnect();
+    setStatus("Disconnected");
+  }, []);
 
   return {
-    startScan,
-    isEnabled,
-    devices,
+    status,
     isSupported,
-    isScanning,
-    provisionDevice,
+    macAddress,
+    isConnected,
     isProvisioning,
+    initialize,
+    scanAndConnect,
+    provisionWiFi,
+    sendCommand,
+    disconnect,
   };
 }

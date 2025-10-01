@@ -5,7 +5,6 @@ import { Text } from "../../primitives/Text/Text";
 import BluetoothDeviceCard from "../../components/BluetoothDeviceCard/BluetoothDeviceCard";
 import Input from "../../primitives/Input/Input";
 import { useEffect, useState } from "react";
-import { provisionDevice } from "../../utils/bluetooth";
 import { useBluetooth } from "../../hooks/useBluetooth";
 import { match } from "ts-pattern";
 import { client } from "../../lib/apiClient";
@@ -32,7 +31,7 @@ function Page() {
 
   useEffect(() => {
     getPublicIp().then(setIp);
-  });
+  }, []);
 
   const { isSupported } = useBluetooth();
 
@@ -58,9 +57,9 @@ function Page() {
         ))
         .with({ view: "provision" }, () => (
           <ProvisionDevice
-            deviceId={macAddress}
-            onSuccess={() => {
-              setView("main");
+            onSuccess={(mac) => {
+              setMacAddress(mac);
+              setView("save");
             }}
           />
         ))
@@ -143,73 +142,33 @@ function FindDevice({
   ip: string;
   onDeviceSelected: (deviceId: string) => void;
 }) {
-  const { isSupported, devices, startScan } = useBluetooth();
-
-  const { data: lDevices } = client.api.localDevices.useQuery(
-    { query: { ip } },
-    {
-      refetchInterval: 2000,
-      enabled: !!ip,
-    }
-  );
-
-  const localDevices = lDevices || [];
+  const { scanAndConnect, status, isConnected, macAddress, initialize } =
+    useBluetooth();
 
   return (
-    <>
-      {devices.length > 0 && (
-        <Group direction="column" align="center" spacing="xl">
-          <h2>Discovered Devices</h2>
-
-          {devices.map((device) => (
-            <BluetoothDeviceCard
-              key={device.device.deviceId}
-              result={device}
-              onClick={() => {
-                onDeviceSelected(device.device.deviceId);
-              }}
-            />
-          ))}
-        </Group>
-      )}
-      {isSupported ? (
-        <Button onClick={() => startScan()}>Scan for devices</Button>
-      ) : (
-        <Text>Bluetooth is not supported on this device.</Text>
-      )}
-      <Text>
-        {devices.length === 0
-          ? "Looking for devices on your network..."
-          : "Devices found"}
-      </Text>
-      {localDevices.map((device) => (
-        <Box
-          p="xl"
-          style={{
-            cursor: "pointer",
-            background: "white",
-            borderRadius: "4px",
-            border: "1px solid black",
-          }}
-          key={device.mac_address}
-        >
-          <Text>Ortus</Text>
-          <Text>{device.mac_address}</Text>
-        </Box>
-      ))}
-    </>
+    <Group direction="column" spacing="xl">
+      <Button
+        onClick={async () => {
+          await initialize();
+          const ok = await scanAndConnect();
+          if (ok && macAddress) {
+            onDeviceSelected(macAddress);
+          }
+        }}
+      >
+        Scan & Connect
+      </Button>
+      <Text>{status}</Text>
+      {isConnected && macAddress && <Text>Connected to {macAddress}</Text>}
+    </Group>
   );
 }
 
-function ProvisionDevice({
-  onSuccess,
-  deviceId,
-}: {
-  onSuccess: () => void;
-  deviceId: string;
-}) {
+function ProvisionDevice({ onSuccess }: { onSuccess: (mac: string) => void }) {
   const [ssid, setSsid] = useState("Vodafone-166BC8");
   const [password, setPassword] = useState("ZeMzq5mn5avqYuVp");
+
+  const { provisionWiFi, status, isProvisioning } = useBluetooth();
 
   return (
     <Group direction="column" spacing="xl">
@@ -230,17 +189,21 @@ function ProvisionDevice({
       />
       <Button
         full
+        disabled={isProvisioning}
         onClick={async () => {
           try {
-            await provisionDevice(deviceId, ssid, password);
-            onSuccess();
+            const mac = await provisionWiFi(ssid, password);
+            if (mac) {
+              onSuccess(mac);
+            }
           } catch (error) {
             console.error("Provisioning failed:", error);
           }
         }}
       >
-        Connect Ortus to WiFi
+        {isProvisioning ? "Provisioning..." : "Connect Ortus to WiFi"}
       </Button>
+      <Text>{status}</Text>
     </Group>
   );
 }
