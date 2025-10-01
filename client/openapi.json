@@ -258,6 +258,48 @@
         }
       }
     },
+    "/api/device/{id}": {
+      "delete": {
+        "operationId": "deleteDevice",
+        "summary": "Delete a device",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Device deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device not found"
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
     "/api/device/{id}/state": {
       "get": {
         "operationId": "deviceState",

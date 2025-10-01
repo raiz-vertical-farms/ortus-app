@@ -56,7 +56,7 @@ const app = new Hono()
 
       const recent = await db
         .selectFrom("device_timeseries")
-        .select("mac_address")
+        .select(["mac_address", "recorded_at"])
         .distinct()
         .where("metric", "=", "presence")
         .where("value_text", "=", ip)

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
@@ -31,7 +31,9 @@ export const Route = createFileRoute("/device/$id")({
 function RouteComponent() {
   const { id } = Route.useParams();
 
-  const [view, setView] = useState<"lights" | "plants" | "water">("lights");
+  const [view, setView] = useState<"lights" | "plants" | "water" | "settings">(
+    "lights"
+  );
 
   const { data, error, isLoading } = client.api.deviceState.useQuery({
     path: { id },
@@ -55,6 +57,7 @@ function RouteComponent() {
             { value: "lights", label: "Lights" },
             { value: "water", label: "Water" },
             { value: "plants", label: "Plants" },
+            { value: "settings", label: "Settings" },
           ]}
         />
       </Group>
@@ -62,7 +65,26 @@ function RouteComponent() {
         .with("lights", () => <LightView deviceId={id} />)
         .with("plants", () => <Text>Plants view coming soon!</Text>)
         .with("water", () => <Text>Water view coming soon!</Text>)
+        .with("settings", () => <SettingsView deviceId={id} />)
         .exhaustive()}
+    </Box>
+  );
+}
+
+function SettingsView({ deviceId }: { deviceId: string }) {
+  const router = useRouter();
+  const { mutate } = client.api.deleteDevice.useMutation(undefined, {
+    onSuccess: () => {
+      router.navigate({ to: "/" });
+    },
+  });
+
+  return (
+    <Box pt="5xl">
+      <Text>Danger zone</Text>
+      <Button onClick={() => mutate({ path: { id: deviceId } })}>
+        Delete device
+      </Button>
     </Box>
   );
 }

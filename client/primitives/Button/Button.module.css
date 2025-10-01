@@ -3,6 +3,7 @@
   cursor: pointer;
   font-family: var(--font-family-body);
   font-weight: 600;
+  text-wrap: nowrap;
   border-radius: var(--radius-md);
   padding: var(--spacing-xs) var(--spacing-4);
   transition:

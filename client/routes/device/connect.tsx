@@ -28,7 +28,7 @@ function Page() {
   const router = useRouter();
   const [view, setView] = useState<"main" | "provision" | "save">("main");
   const [ip, setIp] = useState("");
-  const [macAddress, setMacAddress] = useState("test-address");
+  const [macAddress, setMacAddress] = useState("");
 
   useEffect(() => {
     getPublicIp().then(setIp);
@@ -89,16 +89,23 @@ function WifiProvision({
     }
   );
 
+  const devices = localDevices || [];
+
   return (
     <div>
       <Box pb="3xl">
         <Text>Here we need WIFI provision setup explanation.</Text>
       </Box>
-      {localDevices?.length && <Text>Found devices on your network</Text>}
-      {localDevices?.map((device) => (
+      <Text>
+        {devices.length === 0
+          ? "Looking for devices on your network..."
+          : "Devices found"}
+      </Text>
+      {devices.map((device) => (
         <Box
           p="xl"
           style={{
+            cursor: "pointer",
             background: "white",
             borderRadius: "4px",
             border: "1px solid black",
@@ -113,14 +120,18 @@ function WifiProvision({
           <Text>{device.mac_address}</Text>
         </Box>
       ))}
-      <hr />
-      or
-      <Input
-        full
-        value={macAddress}
-        onChange={(e) => onMacAddressChange(e.target.value)}
-      />
-      <button onClick={onSaveDevice}>Add Test device</button>
+      <Box py="md">
+        <Text>Or you can enter MAC address manually</Text>
+      </Box>
+      <Group align="center" spacing="lg">
+        <Input
+          placeholder="00:00:00:00:00:00"
+          full
+          value={macAddress}
+          onChange={(e) => onMacAddressChange(e.target.value)}
+        />
+        <Button onClick={onSaveDevice}>Add device</Button>
+      </Group>
     </div>
   );
 }

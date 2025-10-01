@@ -1,9 +1,13 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
-import { z } from "zod";
+import { infer, z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
+
+const deleteDeviceResponseSchema = z.object({
+  message: z.string(),
+});
 
 const lightToggleSchema = z.object({
   state: z.enum(["on", "off"]),
@@ -20,10 +24,6 @@ const createDeviceRequestSchema = z.object({
   mac_address: z.string(),
   name: z.string().min(1),
   organization_id: z.number(),
-});
-
-const localDevicesSchema = z.object({
-  mac_address: z.string(),
 });
 
 const deviceSummarySchema = z.object({
@@ -93,15 +93,64 @@ const app = new Hono()
     zValidator("json", createDeviceRequestSchema),
     async (c) => {
       const { name, organization_id, mac_address } = c.req.valid("json");
-      const now = new Date().toISOString();
 
       const device = await db
         .insertInto("devices")
-        .values({ name, mac_address, organization_id, created_at: now })
+        .values({ name, mac_address, organization_id })
         .returning(["id", "name", "organization_id"])
         .executeTakeFirstOrThrow();
 
       return c.json({ device });
+    }
+  )
+  .delete(
+    ":id",
+    describeRoute({
+      operationId: "deleteDevice",
+      summary: "Delete a device",
+      tags: ["Devices"],
+      responses: {
+        200: {
+          description: "Device deleted successfully",
+          content: {
+            "application/json": {
+              schema: resolver(deleteDeviceResponseSchema),
+            },
+          },
+        },
+        404: {
+          description: "Device not found",
+        },
+      },
+    }),
+    async (c) => {
+      const id = Number(c.req.param("id"));
+      if (isNaN(id)) {
+        throw new HTTPException(400, {
+          res: c.json({ message: "Invalid device id" }, 400),
+        });
+      }
+
+      // Fetch the MAC before deleting
+      const device = await db
+        .selectFrom("devices")
+        .select(["id", "mac_address"])
+        .where("id", "=", id)
+        .executeTakeFirst();
+
+      if (!device) {
+        throw new HTTPException(404, {
+          res: c.json({ message: "Device not found" }, 404),
+        });
+      }
+
+      // Optionally, publish a "disconnect" or "delete" event over MQTT
+      mqttClient.publish(`${device.mac_address}/device/command`, "delete");
+
+      // Delete device
+      await db.deleteFrom("devices").where("id", "=", id).execute();
+
+      return c.json({ message: `Device ${id} deleted successfully` });
     }
   )
   .get(

@@ -1,6 +1,7 @@
 // src/index.ts
 import mqtt, { MqttClient } from "mqtt";
 import { db } from "../db";
+import { toSQLiteTimestamp } from "../utils/time";
 
 const url = `mqtts://${process.env.MQTT_BROKER_HOST}:8883`;
 
@@ -61,7 +62,7 @@ async function handlePresence(topic: string, message: Buffer) {
 
   await db
     .updateTable("devices")
-    .set({ last_seen: new Date().toISOString() })
+    .set({ last_seen: toSQLiteTimestamp(new Date()) })
     .where("mac_address", "=", mac_address)
     .execute();
 
@@ -72,7 +73,6 @@ async function handlePresence(topic: string, message: Buffer) {
       metric: "presence",
       value_text: message.toString(),
       value_type: "text",
-      recorded_at: new Date().toISOString(),
     })
     .execute();
 
@@ -109,7 +109,6 @@ async function handleSensorData(topic: string, message: Buffer) {
       metric: metric,
       value_text: valueStr,
       value_type: valueType,
-      recorded_at: new Date().toISOString(),
     })
     .execute();
 

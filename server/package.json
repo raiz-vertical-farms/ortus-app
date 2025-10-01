@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "dev": "npm run codegen && tsx ./src/index.ts",
+    "dev": "npm run codegen && tsx watch ./src/index.ts",
     "build": "npm run codegen && npm run compile",
     "codegen": "npm run codegen:kysely",
     "codegen:kysely": "kysely-codegen --out-file ./src/db/types.ts --dialect sqlite",

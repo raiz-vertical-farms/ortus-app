@@ -511,6 +511,158 @@ export interface ApiService {
             body: CreateDeviceBody;
         };
     };
+    /** @summary Delete a device */
+    deleteDevice: {
+        /** @summary Delete a device */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<DeleteDeviceBody, DeleteDeviceParameters, TMeta, TSignal>, client?: (schema: DeleteDeviceSchema, options: ServiceOperationMutationFnOptions<DeleteDeviceBody, DeleteDeviceParameters, TMeta, TSignal>) => Promise<RequestFnResponse<DeleteDeviceData, DeleteDeviceError>>): Promise<RequestFnResponse<DeleteDeviceData, DeleteDeviceError>>;
+        /** @summary Delete a device */
+        getMutationKey(parameters: DeepReadonly<DeleteDeviceParameters> | void): ServiceOperationMutationKey<DeleteDeviceSchema, DeleteDeviceParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Delete a device
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.deleteDevice.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.deleteDevice.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends DeleteDeviceBody, TContext = unknown>(parameters: DeepReadonly<DeleteDeviceParameters>, options?: ServiceOperationUseMutationOptions<DeleteDeviceSchema, DeleteDeviceData, DeleteDeviceParameters, TVariables, OperationError<DeleteDeviceError>, TContext>): UseMutationResult<DeleteDeviceData, OperationError<DeleteDeviceError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Delete a device
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.deleteDevice.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.deleteDevice.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<DeleteDeviceBody, DeleteDeviceParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<DeleteDeviceSchema, DeleteDeviceData, DeleteDeviceParameters, TVariables, OperationError<DeleteDeviceError>, TContext>): UseMutationResult<DeleteDeviceData, OperationError<DeleteDeviceError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Delete a device
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const deleteDeviceTotal = qraft.apiService.deleteDevice.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const deleteDeviceTotal = qraft.apiService.deleteDevice.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext> | MutationFiltersByMutationKey<DeleteDeviceSchema, DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Delete a device
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const deleteDevicePendingMutationVariables = qraft.apiService.deleteDevice.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const deleteDeviceMutationData = qraft.apiService.deleteDevice.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<DeleteDeviceData, OperationError<DeleteDeviceError>, MutationVariables<DeleteDeviceBody, DeleteDeviceParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext> | MutationFiltersByMutationKey<DeleteDeviceSchema, DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext>;
+            select?: (mutation: Mutation<DeleteDeviceData, OperationError<DeleteDeviceError>, MutationVariables<DeleteDeviceBody, DeleteDeviceParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Delete a device */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext> | MutationFiltersByMutationKey<DeleteDeviceSchema, DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Delete a device
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.deleteDevice.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.deleteDevice.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext> | MutationFiltersByMutationKey<DeleteDeviceSchema, DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext>): Mutation<DeleteDeviceData, DeleteDeviceError, MutationVariables<DeleteDeviceBody, DeleteDeviceParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext> | MutationFiltersByMutationKey<DeleteDeviceSchema, DeleteDeviceBody, DeleteDeviceData, DeleteDeviceParameters, OperationError<DeleteDeviceError>, TContext>): Array<Mutation<DeleteDeviceData, DeleteDeviceError, MutationVariables<DeleteDeviceBody, DeleteDeviceParameters>, TContext>>;
+        };
+        schema: DeleteDeviceSchema;
+        types: {
+            parameters: DeleteDeviceParameters;
+            data: DeleteDeviceData;
+            error: DeleteDeviceError;
+            body: DeleteDeviceBody;
+        };
+    };
     /** @summary Retrieve the latest state for a specific device */
     deviceState: {
         /** @summary Retrieve the latest state for a specific device */
@@ -1938,6 +2090,16 @@ export const createDevice = {
     schema: CreateDeviceSchema;
     [QraftServiceOperationsToken]: ApiService["createDevice"];
 };
+/** @summary Delete a device */
+export const deleteDevice = {
+    schema: {
+        method: "delete",
+        url: "/api/device/{id}"
+    }
+} as {
+    schema: DeleteDeviceSchema;
+    [QraftServiceOperationsToken]: ApiService["deleteDevice"];
+};
 /** @summary Retrieve the latest state for a specific device */
 export const deviceState = {
     schema: {
@@ -2005,6 +2167,7 @@ export const apiService = {
     signup,
     createPlant,
     createDevice,
+    deleteDevice,
     deviceState,
     allDevices,
     toggleLight,
@@ -2072,6 +2235,14 @@ type CreateDeviceParameters = {
 type CreateDeviceData = paths["/api/device/create"]["post"]["responses"]["200"]["content"]["application/json"];
 type CreateDeviceError = unknown;
 type CreateDeviceBody = NonNullable<paths["/api/device/create"]["post"]["requestBody"]>["content"]["application/json"];
+type DeleteDeviceSchema = {
+    method: "delete";
+    url: "/api/device/{id}";
+};
+type DeleteDeviceParameters = paths["/api/device/{id}"]["delete"]["parameters"];
+type DeleteDeviceData = paths["/api/device/{id}"]["delete"]["responses"]["200"]["content"]["application/json"];
+type DeleteDeviceError = null;
+type DeleteDeviceBody = undefined;
 type DeviceStateSchema = {
     method: "get";
     url: "/api/device/{id}/state";
