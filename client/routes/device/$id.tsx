@@ -11,6 +11,7 @@ import { LightbulbFilamentIcon } from "@phosphor-icons/react";
 import Toggle from "../../primitives/Toggle/Toggle";
 import Input from "../../primitives/Input/Input";
 import Button from "../../primitives/Button/Button";
+import LightSwitch from "../../components/LightSwitch/LightSwitch";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -97,11 +98,13 @@ function LightView({ deviceId }: { deviceId: string }) {
     toMinutes: number;
   }>({ fromHours: 0, fromMinutes: 0, toHours: 0, toMinutes: 0 });
 
+  const [showSchedule, setShowSchedule] = useState(false);
+
   const { data, error, isLoading, refetch } = client.api.deviceState.useQuery({
     path: { id: deviceId },
   });
 
-  const { mutate: toggleLeftLight } = client.api.toggleLight.useMutation(
+  const { mutate: toggleLight } = client.api.toggleLight.useMutation(
     undefined,
     { onSuccess: () => refetch() }
   );
@@ -114,19 +117,12 @@ function LightView({ deviceId }: { deviceId: string }) {
   return (
     <Box pt="5xl">
       <Group direction="column" align="center" justify="center" spacing="xl">
-        <LightbulbFilamentIcon
-          color={data?.state.light === "on" ? "#f8c824" : "#616161ff"}
-          size={200}
-        />
-        <Toggle
-          onLabel="On"
-          color="#f8c824"
-          offLabel="Off"
+        <LightSwitch
           checked={data?.state.light === "on"}
-          onChange={(event) => {
-            toggleLeftLight({
+          onChange={(e) => {
+            toggleLight({
               path: { id: deviceId },
-              body: { state: event ? "on" : "off" },
+              body: { state: e ? "on" : "off" },
             });
           }}
         />
@@ -136,81 +132,101 @@ function LightView({ deviceId }: { deviceId: string }) {
           <Text align="center" size="lg">
             Schedule
           </Text>
-          <Group direction="row" align="center" justify="center" spacing="xl">
-            <Text align="left" size="lg">
-              From
-            </Text>
-            <select
-              onChange={(e) =>
-                setScheduleState({
-                  ...scheduleState,
-                  fromHours: parseInt(e.target.value),
-                })
-              }
-            >
-              {new Array(23).fill(null).map((_, i) => (
-                <option key={i}>{i}</option>
-              ))}
-            </select>
-            <select
-              onChange={(e) =>
-                setScheduleState({
-                  ...scheduleState,
-                  fromMinutes: parseInt(e.target.value),
-                })
-              }
-            >
-              <option>00</option>
-              <option>15</option>
-              <option>30</option>
-              <option>45</option>
-            </select>
-          </Group>
-          <Group direction="row" align="center" justify="center" spacing="xl">
-            <Text align="left" size="lg">
-              To
-            </Text>
-            <select
-              onChange={(e) =>
-                setScheduleState({
-                  ...scheduleState,
-                  toHours: parseInt(e.target.value),
-                })
-              }
-            >
-              {new Array(23).fill(null).map((_, i) => (
-                <option key={i}>{i}</option>
-              ))}
-            </select>
-            <select
-              onChange={(e) =>
-                setScheduleState({
-                  ...scheduleState,
-                  toMinutes: parseInt(e.target.value),
-                })
-              }
-            >
-              <option>00</option>
-              <option>15</option>
-              <option>30</option>
-              <option>45</option>
-            </select>
-            <Button
-              onClick={() => {
-                scheduleLights({
-                  path: { id: deviceId },
-                  body: {
-                    from_hour: scheduleState.fromHours,
-                    from_minute: scheduleState.fromMinutes,
-                    to_hour: scheduleState.toHours,
-                    to_minute: scheduleState.toMinutes,
-                  },
-                });
-              }}
-            >
-              Schedule
-            </Button>
-          </Group>
+          <Toggle
+            onLabel="Manual"
+            offLabel="Auto"
+            checked={showSchedule}
+            onChange={(e) => setShowSchedule(e.target.checked)}
+          />
+          {showSchedule && (
+            <>
+              <Group
+                direction="row"
+                align="center"
+                justify="center"
+                spacing="xl"
+              >
+                <Text align="left" size="lg">
+                  From
+                </Text>
+                <select
+                  onChange={(e) =>
+                    setScheduleState({
+                      ...scheduleState,
+                      fromHours: parseInt(e.target.value),
+                    })
+                  }
+                >
+                  {new Array(23).fill(null).map((_, i) => (
+                    <option key={i}>{i}</option>
+                  ))}
+                </select>
+                <select
+                  onChange={(e) =>
+                    setScheduleState({
+                      ...scheduleState,
+                      fromMinutes: parseInt(e.target.value),
+                    })
+                  }
+                >
+                  <option>00</option>
+                  <option>15</option>
+                  <option>30</option>
+                  <option>45</option>
+                </select>
+              </Group>
+              <Group
+                direction="row"
+                align="center"
+                justify="center"
+                spacing="xl"
+              >
+                <Text align="left" size="lg">
+                  To
+                </Text>
+                <select
+                  onChange={(e) =>
+                    setScheduleState({
+                      ...scheduleState,
+                      toHours: parseInt(e.target.value),
+                    })
+                  }
+                >
+                  {new Array(23).fill(null).map((_, i) => (
+                    <option key={i}>{i}</option>
+                  ))}
+                </select>
+                <select
+                  onChange={(e) =>
+                    setScheduleState({
+                      ...scheduleState,
+                      toMinutes: parseInt(e.target.value),
+                    })
+                  }
+                >
+                  <option>00</option>
+                  <option>15</option>
+                  <option>30</option>
+                  <option>45</option>
+                </select>
+                <Button
+                  onClick={() => {
+                    scheduleLights({
+                      path: { id: deviceId },
+                      body: {
+                        from_hour: scheduleState.fromHours,
+                        from_minute: scheduleState.fromMinutes,
+                        to_hour: scheduleState.toHours,
+                        to_minute: scheduleState.toMinutes,
+                      },
+                    });
+                  }}
+                >
+                  Schedule
+                </Button>
+              </Group>
+            </>
+          )}
         </Group>
       </Box>
     </Box>

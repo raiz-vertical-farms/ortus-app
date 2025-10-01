@@ -31,7 +31,7 @@ export const Text: React.FC<TextProps> = ({
   tag = "p",
   align = "",
   size = "base",
-  color = "normal",
+  color,
   variant = "body",
   weight = "normal",
   className,

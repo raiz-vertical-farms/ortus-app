@@ -386,7 +386,7 @@ export interface operations {
                             name: string;
                             mac_address: string;
                             organization_id: number;
-                            last_seen: string | null;
+                            last_seen: number | null;
                             light: string | null;
                             light_schedule: {
                                 from_hour: number;
@@ -423,7 +423,7 @@ export interface operations {
                             name: string;
                             mac_address: string;
                             organization_id: number;
-                            last_seen: string | null;
+                            last_seen: number | null;
                         }[];
                     };
                 };

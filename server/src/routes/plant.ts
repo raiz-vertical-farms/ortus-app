@@ -40,7 +40,6 @@ const plants = new Hono().post(
   zValidator("json", createPlantRequestSchema),
   async (c) => {
     const { device_id, plant_type_id, location } = c.req.valid("json");
-    const now = new Date().toISOString();
 
     const plant = await db
       .insertInto("plants")
@@ -48,7 +47,6 @@ const plants = new Hono().post(
         device_id,
         plant_type_id,
         location,
-        created_at: now,
       })
       .returning(["id", "device_id", "plant_type_id", "location"])
       .executeTakeFirstOrThrow();

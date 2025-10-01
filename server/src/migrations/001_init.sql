@@ -2,7 +2,7 @@
 CREATE TABLE organizations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at INTEGER DEFAULT (strftime ('%s', 'now'))
 );
 
 -- Users
@@ -12,7 +12,7 @@ CREATE TABLE users (
     name TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     password_salt TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at INTEGER DEFAULT (strftime ('%s', 'now'))
 );
 
 -- Memberships (link users to organizations with a simple role)
@@ -21,7 +21,7 @@ CREATE TABLE user_organization_memberships (
     user_id INTEGER NOT NULL,
     organization_id INTEGER NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('user', 'admin')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at INTEGER DEFAULT (strftime ('%s', 'now')),
     UNIQUE (user_id, organization_id),
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE
@@ -33,11 +33,12 @@ CREATE TABLE devices (
     organization_id INTEGER NOT NULL,
     mac_address TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_seen TIMESTAMP,
+    created_at INTEGER DEFAULT (strftime ('%s', 'now')),
+    last_seen INTEGER,
     FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE CASCADE
 );
 
+-- Device timeseries
 CREATE TABLE device_timeseries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     mac_address TEXT NOT NULL,
@@ -52,7 +53,7 @@ CREATE TABLE device_timeseries (
         )
     ),
     value_text TEXT NOT NULL,
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    recorded_at INTEGER DEFAULT (strftime ('%s', 'now'))
 );
 
 -- Index for fast lookups of latest metrics per device
@@ -67,7 +68,7 @@ CREATE TABLE plant_types (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL, -- e.g. Basilikum
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at INTEGER DEFAULT (strftime ('%s', 'now'))
 );
 
 -- Plants (individual plants on a device)
@@ -76,7 +77,7 @@ CREATE TABLE plants (
     device_id INTEGER NOT NULL,
     plant_type_id INTEGER NOT NULL,
     location TEXT NOT NULL, -- could be slot number, coordinates, etc.
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at INTEGER DEFAULT (strftime ('%s', 'now')),
     FOREIGN KEY (device_id) REFERENCES devices (id) ON DELETE CASCADE,
     FOREIGN KEY (plant_type_id) REFERENCES plant_types (id) ON DELETE RESTRICT
 );

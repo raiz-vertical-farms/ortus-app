@@ -16,9 +16,9 @@ export interface _Migrations {
 }
 
 export interface Devices {
-  created_at: Generated<string | null>;
+  created_at: Generated<number | null>;
   id: Generated<number | null>;
-  last_seen: string | null;
+  last_seen: number | null;
   mac_address: string;
   name: string;
   organization_id: number;
@@ -28,19 +28,19 @@ export interface DeviceTimeseries {
   id: Generated<number | null>;
   mac_address: string;
   metric: string;
-  recorded_at: Generated<string | null>;
+  recorded_at: Generated<number | null>;
   value_text: string;
   value_type: string;
 }
 
 export interface Organizations {
-  created_at: Generated<string | null>;
+  created_at: Generated<number | null>;
   id: Generated<number | null>;
   name: string;
 }
 
 export interface Plants {
-  created_at: Generated<string | null>;
+  created_at: Generated<number | null>;
   device_id: number;
   id: Generated<number | null>;
   location: string;
@@ -48,14 +48,14 @@ export interface Plants {
 }
 
 export interface PlantTypes {
-  created_at: Generated<string | null>;
+  created_at: Generated<number | null>;
   description: string | null;
   id: Generated<number | null>;
   name: string;
 }
 
 export interface UserOrganizationMemberships {
-  created_at: Generated<string | null>;
+  created_at: Generated<number | null>;
   id: Generated<number | null>;
   organization_id: number;
   role: string;
@@ -63,7 +63,7 @@ export interface UserOrganizationMemberships {
 }
 
 export interface Users {
-  created_at: Generated<string | null>;
+  created_at: Generated<number | null>;
   email: string;
   id: Generated<number | null>;
   name: string;

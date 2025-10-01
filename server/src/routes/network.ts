@@ -60,7 +60,7 @@ const app = new Hono()
         .distinct()
         .where("metric", "=", "presence")
         .where("value_text", "=", ip)
-        .where("recorded_at", ">=", sql<string>`datetime('now', '-1 minute')`)
+        .where("recorded_at", ">=", Math.floor(Date.now() / 1000) - 60)
         .execute();
 
       return c.json(recent);

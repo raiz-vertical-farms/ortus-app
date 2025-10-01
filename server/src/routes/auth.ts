@@ -15,10 +15,6 @@ const authSuccessResponseSchema = z.object({
   jwt: z.string(),
 });
 
-const authErrorResponseSchema = z.object({
-  message: z.string(),
-});
-
 const auth = new Hono()
   .post(
     "/login",
@@ -112,7 +108,6 @@ const auth = new Hono()
       }
 
       const { hash, salt } = hashPassword(password);
-      const now = new Date().toISOString();
 
       await db.transaction().execute(async (trx) => {
         const user = await trx
@@ -122,7 +117,6 @@ const auth = new Hono()
             name: "No name",
             password_hash: hash,
             password_salt: salt,
-            created_at: now,
           })
           .returning(["id"])
           .executeTakeFirstOrThrow();
@@ -131,7 +125,6 @@ const auth = new Hono()
           .insertInto("organizations")
           .values({
             name: `${email}'s Organization`,
-            created_at: now,
           })
           .returning(["id"])
           .executeTakeFirstOrThrow();
@@ -142,7 +135,6 @@ const auth = new Hono()
             user_id: user.id!,
             organization_id: org.id!,
             role: "admin",
-            created_at: now,
           })
           .execute();
       });

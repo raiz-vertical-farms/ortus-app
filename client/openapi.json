@@ -333,7 +333,7 @@
                         "last_seen": {
                           "anyOf": [
                             {
-                              "type": "string"
+                              "type": "number"
                             },
                             {
                               "type": "null"
@@ -470,7 +470,7 @@
                           "last_seen": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "type": "number"
                               },
                               {
                                 "type": "null"

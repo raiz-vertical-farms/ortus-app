@@ -7,7 +7,7 @@ type Device = {
   id: number;
   name: string;
   mac_address: string;
-  last_seen: string | null;
+  last_seen: number | null;
   number_of_plants?: number | null;
 };
 
@@ -21,7 +21,7 @@ export default function DeviceCard({
   let statusDot = null;
 
   if (last_seen) {
-    const seenDate = new Date(last_seen);
+    const seenDate = new Date(last_seen * 1000);
     const diffMs = Date.now() - seenDate.getTime();
     const diffSec = Math.floor(diffMs / 1000);
 
@@ -69,10 +69,10 @@ export default function DeviceCard({
   );
 }
 
-function formatLastSeen(last_seen: string | number | Date | null): string {
+function formatLastSeen(last_seen: number): string {
   if (!last_seen) return "Offline";
 
-  const date = new Date(last_seen);
+  const date = new Date(last_seen * 1000);
   const now = new Date();
 
   // Calculate difference in days

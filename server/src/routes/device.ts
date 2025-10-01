@@ -41,7 +41,7 @@ const deviceStateSchema = z.object({
   name: z.string(),
   mac_address: z.string(),
   organization_id: z.number(),
-  last_seen: z.string().nullable(),
+  last_seen: z.number().nullable(),
   light: z.string().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
   water_level: z.string().nullable(),

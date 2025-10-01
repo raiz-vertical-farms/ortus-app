@@ -62,7 +62,7 @@ async function handlePresence(topic: string, message: Buffer) {
 
   await db
     .updateTable("devices")
-    .set({ last_seen: toSQLiteTimestamp(new Date()) })
+    .set({ last_seen: Math.floor(Date.now() / 1000) })
     .where("mac_address", "=", mac_address)
     .execute();
 
@@ -93,6 +93,8 @@ async function handleSensorData(topic: string, message: Buffer) {
   // Determine value type
   const valueType = determineValueType(valueStr);
 
+  console.log({ valueStr, valueType });
+
   // Get MAC address from device name if needed
   const macAddress = await getMacAddress(deviceIdentifier);
 
@@ -100,6 +102,8 @@ async function handleSensorData(topic: string, message: Buffer) {
     console.warn(`Could not find MAC address for device: ${deviceIdentifier}`);
     return;
   }
+
+  console.log(`Received MQTT message for ${macAddress}: ${metric}=${valueStr}`);
 
   // Insert timeseries data
   await db
@@ -125,10 +129,13 @@ function determineValueType(value: string): string {
     return "boolean";
   }
   // Default to string
-  return "string";
+  return "text";
 }
 
 async function getMacAddress(deviceIdentifier: string): Promise<string | null> {
+  // WIP: For now just return the device identifier
+  return deviceIdentifier;
+
   // If it already looks like a MAC address, return it
   if (/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(deviceIdentifier)) {
     return deviceIdentifier;

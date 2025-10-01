@@ -1,0 +1,45 @@
+.container {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-card-border);
+  box-shadow: inset 0px 4px 2px 0px rgba(0, 0, 0, var(--opacity-25));
+  width: 10rem;
+  height: 10rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  transform: translateY(1px) scale(0.99);
+}
+
+.inner {
+  gap: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* inset shadow from top to bottom */
+
+.on {
+  background: radial-gradient(
+    rgb(255, 251, 216) 10%,
+    var(--color-card-background) 70%
+  );
+  box-shadow: 0px 4px 0 0 rgba(0, 0, 0, var(--opacity-25));
+}
+
+.on .icon {
+  color: rgb(255, 230, 0);
+}
+
+.inner {
+  transition: all 0.2s ease;
+}
+
+.on .inner {
+  transform: translateY(0px) scale(1);
+}
