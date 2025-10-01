@@ -13,6 +13,7 @@ import Input from "../../primitives/Input/Input";
 import Button from "../../primitives/Button/Button";
 import LightSwitch from "../../components/LightSwitch/LightSwitch";
 import { set } from "zod";
+import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -100,20 +101,24 @@ function LightView({ deviceId }: { deviceId: string }) {
   }>({ fromHours: 0, fromMinutes: 0, toHours: 0, toMinutes: 0 });
 
   const [showSchedule, setShowSchedule] = useState(false);
+  const [pendingLight, setPendingLight] = useState<"on" | "off" | null>(null);
 
   const { data, error, isLoading, refetch } = client.api.deviceState.useQuery(
     {
       path: { id: deviceId },
     },
-    { refetchInterval: 3000 }
+    { refetchInterval: 3000, enabled: pendingLight === null }
   );
+
+  const debouncedRefetch = useDebouncedCallback(() => {
+    setPendingLight(null);
+    refetch();
+  }, 3000);
 
   const { mutate: toggleLight } = client.api.toggleLight.useMutation(
     undefined,
     {
-      onSuccess: () => {
-        setTimeout(() => refetch(), 1000);
-      },
+      onSuccess: debouncedRefetch,
     }
   );
 
@@ -126,8 +131,11 @@ function LightView({ deviceId }: { deviceId: string }) {
     <Box pt="5xl">
       <Group direction="column" align="center" justify="center" spacing="xl">
         <LightSwitch
-          checked={data?.state.light === "on"}
+          checked={
+            pendingLight ? pendingLight === "on" : data?.state.light === "on"
+          }
           onChange={(e) => {
+            setPendingLight(e ? "on" : "off");
             toggleLight({
               path: { id: deviceId },
               body: { state: e ? "on" : "off" },
