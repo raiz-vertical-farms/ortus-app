@@ -12,6 +12,7 @@ import Toggle from "../../primitives/Toggle/Toggle";
 import Input from "../../primitives/Input/Input";
 import Button from "../../primitives/Button/Button";
 import LightSwitch from "../../components/LightSwitch/LightSwitch";
+import { set } from "zod";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -100,13 +101,20 @@ function LightView({ deviceId }: { deviceId: string }) {
 
   const [showSchedule, setShowSchedule] = useState(false);
 
-  const { data, error, isLoading, refetch } = client.api.deviceState.useQuery({
-    path: { id: deviceId },
-  });
+  const { data, error, isLoading, refetch } = client.api.deviceState.useQuery(
+    {
+      path: { id: deviceId },
+    },
+    { refetchInterval: 3000 }
+  );
 
   const { mutate: toggleLight } = client.api.toggleLight.useMutation(
     undefined,
-    { onSuccess: () => refetch() }
+    {
+      onSuccess: () => {
+        setTimeout(() => refetch(), 1000);
+      },
+    }
   );
 
   const { mutate: scheduleLights } = client.api.scheduleLight.useMutation(

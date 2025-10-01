@@ -87,7 +87,7 @@ async function handleSensorData(topic: string, message: Buffer) {
   const parts = topic.split("/");
   const deviceIdentifier = parts[0]; // Could be device name or MAC
   const metricParts = parts.slice(2, parts.length - 1); // everything between "sensor" and "state"
-  const metric = metricParts.join("/"); // "light_left" or "light_left/schedule"
+  const metric = metricParts.join("/"); // "light" or "light/schedule"
   const valueStr = message.toString();
 
   // Determine value type

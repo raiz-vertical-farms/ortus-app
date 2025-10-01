@@ -196,7 +196,11 @@ const app = new Hono()
         .selectFrom("device_timeseries as dt1")
         .select(["metric", "value_text"])
         .where("mac_address", "=", device.mac_address)
-        .where("metric", "in", ["light", "light/schedule", "water_level"])
+        .where("metric", "in", [
+          "light",
+          "sensor/light/schedule",
+          "water_level",
+        ])
         .where((eb) =>
           eb(
             "recorded_at",
@@ -211,8 +215,12 @@ const app = new Hono()
         .execute();
 
       const light = results.find((r) => r.metric === "light");
-      const lightSchedule = results.find((r) => r.metric === "light/schedule");
+      const lightSchedule = results.find(
+        (r) => r.metric === "sensor/light/schedule"
+      );
       const waterLevel = results.find((r) => r.metric === "water_level");
+
+      console.log({ light });
 
       if (!device) {
         throw new HTTPException(404, {
@@ -284,7 +292,7 @@ const app = new Hono()
 
       const { state } = c.req.valid("json");
 
-      mqttClient.publish(`${mac}/light/command`, state);
+      mqttClient.publish(`${mac}/sensor/light/command`, state);
 
       return c.json({ message: `Lights set to ${state}` });
     }
@@ -314,7 +322,7 @@ const app = new Hono()
 
       // Publish JSON payload for schedule
       mqttClient.publish(
-        `${mac}/light/schedule/command`,
+        `${mac}/sensor/light/schedule/command`,
         JSON.stringify(schedule)
       );
 
