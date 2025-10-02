@@ -387,6 +387,7 @@ export interface operations {
                             mac_address: string;
                             organization_id: number;
                             last_seen: number | null;
+                            online: boolean;
                             light: number | null;
                             light_schedule: {
                                 from_hour: number;
@@ -424,6 +425,7 @@ export interface operations {
                             mac_address: string;
                             organization_id: number;
                             last_seen: number | null;
+                            online: boolean;
                         }[];
                     };
                 };

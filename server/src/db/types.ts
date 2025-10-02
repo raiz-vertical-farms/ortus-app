@@ -21,6 +21,7 @@ export interface Devices {
   last_seen: number | null;
   mac_address: string;
   name: string;
+  online: Generated<number>;
   organization_id: number;
 }
 

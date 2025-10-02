@@ -42,6 +42,7 @@ const deviceStateSchema = z.object({
   mac_address: z.string(),
   organization_id: z.number(),
   last_seen: z.number().nullable(),
+  online: z.boolean(),
   light: z.number().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
   water_level: z.string().nullable(),
@@ -181,7 +182,14 @@ const app = new Hono()
 
       const device = await db
         .selectFrom("devices")
-        .select(["id", "name", "mac_address", "organization_id", "last_seen"])
+        .select([
+          "id",
+          "name",
+          "mac_address",
+          "organization_id",
+          "last_seen",
+          "online",
+        ])
         .select((eb) =>
           eb
             .selectFrom("plants")
@@ -231,6 +239,7 @@ const app = new Hono()
       return c.json({
         state: {
           ...device,
+          online: Boolean(device.online),
           light: light ? Number(light.value_text) : null,
           light_schedule: lightSchedule
             ? JSON.parse(lightSchedule.value_text)
@@ -260,11 +269,14 @@ const app = new Hono()
     async (c) => {
       const devices = await db
         .selectFrom("devices")
-        .select(["id", "name", "mac_address", "organization_id", "last_seen"])
+        .select(["id", "name", "mac_address", "organization_id", "last_seen", "online"])
         .execute();
 
       return c.json({
-        devices,
+        devices: devices.map((device) => ({
+          ...device,
+          online: Boolean(device.online),
+        })),
       });
     }
   )

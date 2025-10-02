@@ -340,6 +340,9 @@
                             }
                           ]
                         },
+                        "online": {
+                          "type": "boolean"
+                        },
                         "light": {
                           "anyOf": [
                             {
@@ -408,6 +411,7 @@
                         "mac_address",
                         "organization_id",
                         "last_seen",
+                        "online",
                         "light",
                         "light_schedule",
                         "water_level",
@@ -476,6 +480,9 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "online": {
+                            "type": "boolean"
                           }
                         },
                         "required": [
@@ -483,7 +490,8 @@
                           "name",
                           "mac_address",
                           "organization_id",
-                          "last_seen"
+                          "last_seen",
+                          "online"
                         ]
                       }
                     }

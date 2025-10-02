@@ -27,6 +27,7 @@ private:
   void handleMqttMessage(char *topic, uint8_t *payload, unsigned int length);
   void processLightCommand(const String &command);
   String getPresenceTopic() const;
+  String getStatusTopic() const;
   String getCommandTopic() const;
   String getStateTopic() const;
   String getPublicIP();

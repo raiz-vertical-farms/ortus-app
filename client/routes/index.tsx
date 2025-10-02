@@ -59,6 +59,7 @@ function Index() {
               name={device.name}
               mac_address={device.mac_address}
               last_seen={device.last_seen}
+              online={device.online}
             />
           );
         })}

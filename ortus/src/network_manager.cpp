@@ -152,12 +152,21 @@ void NetworkManager::ensureMqttConnection()
   {
     Serial.print("Attempting MQTT connection...");
     String clientId = String("ESP32-") + macAddress;
+    const String statusTopic = getStatusTopic();
 
-    if (client.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD))
+    if (client.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, statusTopic.c_str(), 1, true, "offline"))
     {
       Serial.println("connected");
       client.subscribe(getCommandTopic().c_str());
       publishLightState();
+      if (client.publish(statusTopic.c_str(), "online", true))
+      {
+        Serial.println(F("[Network] MQTT status set to online"));
+      }
+      else
+      {
+        Serial.println(F("[Network] Failed to publish online status"));
+      }
       Serial.println(F("[Network] MQTT subscription established"));
     }
     else
@@ -272,7 +281,12 @@ void NetworkManager::processLightCommand(const String &command)
 
 String NetworkManager::getPresenceTopic() const
 {
-  return String("presence/") + macAddress;
+  return macAddress + String("/presence");
+}
+
+String NetworkManager::getStatusTopic() const
+{
+  return macAddress + String("/status");
 }
 
 String NetworkManager::getCommandTopic() const

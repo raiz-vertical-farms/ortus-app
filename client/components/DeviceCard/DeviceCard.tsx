@@ -9,6 +9,7 @@ type Device = {
   name: string;
   mac_address: string;
   last_seen: number | null;
+  online: boolean;
   number_of_plants?: number | null;
 };
 
@@ -17,29 +18,29 @@ export default function DeviceCard({
   name,
   mac_address,
   last_seen,
+  online,
   number_of_plants,
 }: Device) {
-  let statusDot = null;
+  const statusDot = (
+    <span
+      style={{
+        display: "inline-block",
+        width: "8px",
+        height: "8px",
+        borderRadius: "50%",
+        backgroundColor: online ? "green" : "red",
+        marginRight: "6px",
+      }}
+    />
+  );
 
-  if (last_seen) {
-    const seenDate = new Date(last_seen * 1000);
-    const diffMs = Date.now() - seenDate.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-
-    const isOnline = diffSec <= 30;
-    statusDot = (
-      <span
-        style={{
-          display: "inline-block",
-          width: "8px",
-          height: "8px",
-          borderRadius: "50%",
-          backgroundColor: isOnline ? "green" : "red",
-          marginRight: "6px",
-        }}
-      />
-    );
-  }
+  const statusText = online
+    ? last_seen
+      ? `Online ${formatLastSeen(last_seen)}`
+      : "Online"
+    : last_seen
+    ? `Offline since ${formatLastSeen(last_seen)}`
+    : "Offline";
 
   return (
     <Link
@@ -54,7 +55,7 @@ export default function DeviceCard({
         <Group direction="column" spacing="md">
           <Text size="xs" color="muted">
             {statusDot}{" "}
-            {last_seen ? `Online ${formatLastSeen(last_seen)}` : "Offline"}
+            {statusText}
           </Text>
 
           <Group align="center">

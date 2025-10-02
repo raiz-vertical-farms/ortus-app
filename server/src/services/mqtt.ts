@@ -1,7 +1,6 @@
 // src/index.ts
 import mqtt, { MqttClient } from "mqtt";
 import { db } from "../db";
-import { toSQLiteTimestamp } from "../utils/time";
 
 const url = `mqtts://${process.env.MQTT_BROKER_HOST}:8883`;
 
@@ -18,11 +17,19 @@ mqttClient.on("connect", () => {
   console.log("Connected to MQTT broker");
 
   // Subscribe to presence updates
-  mqttClient.subscribe("presence/#", (err) => {
+  mqttClient.subscribe("+/presence", (err) => {
     if (err) {
       console.error("Subscribe error (presence):", err);
     } else {
-      console.log("Subscribed to presence/#");
+      console.log("Subscribed to +/presence");
+    }
+  });
+
+  mqttClient.subscribe("+/status", (err) => {
+    if (err) {
+      console.error("Subscribe error (status):", err);
+    } else {
+      console.log("Subscribed to +/status");
     }
   });
 
@@ -43,9 +50,15 @@ mqttClient.on("connect", () => {
 
 mqttClient.on("message", async (topic, message) => {
   try {
+    const parts = topic.split("/");
+
     // Handle presence updates
-    if (topic.startsWith("presence/")) {
-      await handlePresence(topic, message);
+    if (parts.length >= 2 && parts[1] === "presence") {
+      await handlePresence(parts[0], message);
+    }
+    // Handle status updates
+    else if (parts.length >= 2 && parts[1] === "status") {
+      await handleStatus(parts[0], message);
     }
     // Handle sensor timeseries data
     else if (topic.includes("/sensor/")) {
@@ -56,13 +69,18 @@ mqttClient.on("message", async (topic, message) => {
   }
 });
 
-async function handlePresence(topic: string, message: Buffer) {
-  const parts = topic.split("/");
-  const mac_address = parts[1];
+async function handlePresence(mac_address: string, message: Buffer) {
+  if (!mac_address) {
+    console.warn("Presence topic missing MAC address");
+    return;
+  }
 
   await db
     .updateTable("devices")
-    .set({ last_seen: Math.floor(Date.now() / 1000) })
+    .set({
+      last_seen: Math.floor(Date.now() / 1000),
+      online: 1,
+    })
     .where("mac_address", "=", mac_address)
     .execute();
 
@@ -78,6 +96,44 @@ async function handlePresence(topic: string, message: Buffer) {
 
   console.log(
     `Updated last_seen and presence for ${mac_address} with message: ${message.toString()}`
+  );
+}
+
+async function handleStatus(mac_address: string, message: Buffer) {
+  if (!mac_address) {
+    console.warn("Status topic missing MAC address");
+    return;
+  }
+
+  const status = message.toString().trim().toLowerCase();
+  const isOnline = status === "online";
+
+  const update: { online: number; last_seen?: number } = {
+    online: isOnline ? 1 : 0,
+  };
+
+  if (isOnline) {
+    update.last_seen = Math.floor(Date.now() / 1000);
+  }
+
+  await db
+    .updateTable("devices")
+    .set(update)
+    .where("mac_address", "=", mac_address)
+    .execute();
+
+  await db
+    .insertInto("device_timeseries")
+    .values({
+      mac_address,
+      metric: "status",
+      value_text: status,
+      value_type: "text",
+    })
+    .execute();
+
+  console.log(
+    `Updated status for ${mac_address} to ${status}. Online flag: ${isOnline}`
   );
 }
 
