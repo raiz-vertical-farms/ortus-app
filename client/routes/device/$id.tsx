@@ -4,15 +4,12 @@ import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
 import { client } from "../../lib/apiClient";
 import { useState } from "react";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
 import Tabs from "../../primitives/Tabs/Tabs";
-import { LightbulbFilamentIcon } from "@phosphor-icons/react";
 import Toggle from "../../primitives/Toggle/Toggle";
-import Input from "../../primitives/Input/Input";
 import Button from "../../primitives/Button/Button";
 import LightSwitch from "../../components/LightSwitch/LightSwitch";
-import { set } from "zod";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 
 export const Route = createFileRoute("/device/$id")({
@@ -24,7 +21,9 @@ export const Route = createFileRoute("/device/$id")({
 
     return {
       layout: {
-        pageTitle: device.data?.state.name || "Device",
+        pageTitle: `${device.data?.state.name || "Device"} ${
+          device.data?.state.online ? "" : " (offline)"
+        }`,
         backButton: true,
       },
     };
@@ -54,21 +53,24 @@ function RouteComponent() {
     <Box pt="xl">
       <Group spacing="xl" justify="center">
         <Tabs
-          value={view}
+          value={data.state.online ? view : "settings"}
           onChange={setView}
           options={[
-            { value: "lights", label: "Lights" },
-            { value: "water", label: "Water" },
-            { value: "plants", label: "Plants" },
+            { value: "lights", label: "Lights", disabled: !data.state.online },
+            { value: "water", label: "Water", disabled: !data.state.online },
+            { value: "plants", label: "Plants", disabled: !data.state.online },
             { value: "settings", label: "Settings" },
           ]}
         />
       </Group>
-      {match(view)
-        .with("lights", () => <LightView deviceId={id} />)
-        .with("plants", () => <Text>Plants view coming soon!</Text>)
-        .with("water", () => <Text>Water view coming soon!</Text>)
-        .with("settings", () => <SettingsView deviceId={id} />)
+      {match({
+        view: data.state.online ? view : "settings",
+        online: data.state.online ? true : false,
+      })
+        .with({ view: "lights" }, () => <LightView deviceId={id} />)
+        .with({ view: "plants" }, () => <Text>Plants view coming soon!</Text>)
+        .with({ view: "water" }, () => <Text>Water view coming soon!</Text>)
+        .with({ view: "settings" }, () => <SettingsView deviceId={id} />)
         .exhaustive()}
     </Box>
   );
