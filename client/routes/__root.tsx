@@ -18,8 +18,8 @@ import {
 } from "@phosphor-icons/react";
 import { Text } from "../primitives/Text/Text";
 
-const NAV_HEIGHT = 80;
-const HEADER_HEIGHT = 80;
+const NAV_HEIGHT = 100;
+const HEADER_HEIGHT = 100;
 
 function NavBar() {
   return (
@@ -29,7 +29,10 @@ function NavBar() {
           align="center"
           justify="center"
           spacing="3xl"
-          style={{ height: NAV_HEIGHT }}
+          style={{
+            height: NAV_HEIGHT,
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
         >
           <Link to="/" viewTransition={{ types: ["slide-right"] }}>
             {({ isActive }) => (
