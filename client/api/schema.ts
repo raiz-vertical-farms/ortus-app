@@ -123,7 +123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/light/toggle": {
+    "/api/device/{id}/light/set": {
         parameters: {
             query?: never;
             header?: never;
@@ -132,8 +132,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Turn left light on/off */
-        post: operations["toggleLight"];
+        /** Adjust the the brightness of the light */
+        post: operations["setLight"];
         delete?: never;
         options?: never;
         head?: never;
@@ -387,7 +387,7 @@ export interface operations {
                             mac_address: string;
                             organization_id: number;
                             last_seen: number | null;
-                            light: string | null;
+                            light: number | null;
                             light_schedule: {
                                 from_hour: number;
                                 from_minute: number;
@@ -430,7 +430,7 @@ export interface operations {
             };
         };
     };
-    toggleLight: {
+    setLight: {
         parameters: {
             query?: never;
             header?: never;
@@ -442,8 +442,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    /** @enum {string} */
-                    state: "on" | "off";
+                    brightness: number;
                 };
             };
         };

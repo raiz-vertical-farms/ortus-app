@@ -15,7 +15,7 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       macAddress(""),
       lastPresenceAt(0),
       lastWiFiAttempt(0),
-      lightOn(false),
+      brightness(0),
       wifiWasConnected(false),
       waitingForCredentialsLogged(false),
       waitingBeforeRetryLogged(false)
@@ -202,15 +202,15 @@ void NetworkManager::publishPresence()
 void NetworkManager::publishLightState()
 {
   const String topic = getStateTopic();
-  const char *payload = lightOn ? "on" : "off";
+  String payload = String(brightness); // publish brightness as string
 
-  if (!client.publish(topic.c_str(), payload, true))
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
   {
     Serial.println("Failed to publish light state");
   }
   else
   {
-    Serial.print("Light state published: ");
+    Serial.print("Light brightness published: ");
     Serial.print(topic);
     Serial.print(" -> ");
     Serial.println(payload);
@@ -241,17 +241,25 @@ void NetworkManager::handleMqttMessage(char *topic, uint8_t *payload, unsigned i
 
 void NetworkManager::processLightCommand(const String &command)
 {
-  if (command == "on")
+  // Try to parse brightness value (0-100)
+  int value = command.toInt();
+
+  if (value >= 0 && value <= 100)
   {
-    lightOn = true;
-    pixels.setPixelColor(0, pixels.Color(255, 255, 255)); // White ON
-    pixels.show();
-    publishLightState();
-  }
-  else if (command == "off")
-  {
-    lightOn = false;
-    pixels.clear(); // OFF
+    brightness = value;
+
+    // Scale brightness to 0–255
+    int level = map(brightness, 0, 100, 0, 255);
+
+    if (level == 0)
+    {
+      pixels.clear();
+    }
+    else
+    {
+      pixels.setPixelColor(0, pixels.Color(level, level, level)); // white with brightness
+    }
+
     pixels.show();
     publishLightState();
   }

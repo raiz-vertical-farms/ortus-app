@@ -10,7 +10,7 @@ const deleteDeviceResponseSchema = z.object({
 });
 
 const lightToggleSchema = z.object({
-  state: z.enum(["on", "off"]),
+  brightness: z.number().min(0).max(100),
 });
 
 const lightScheduleSchema = z.object({
@@ -42,7 +42,7 @@ const deviceStateSchema = z.object({
   mac_address: z.string(),
   organization_id: z.number(),
   last_seen: z.number().nullable(),
-  light: z.string().nullable(),
+  light: z.number().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
   water_level: z.string().nullable(),
   number_of_plants: z.number(),
@@ -231,7 +231,7 @@ const app = new Hono()
       return c.json({
         state: {
           ...device,
-          light: light ? light.value_text : null,
+          light: light ? Number(light.value_text) : null,
           light_schedule: lightSchedule
             ? JSON.parse(lightSchedule.value_text)
             : null,
@@ -269,10 +269,10 @@ const app = new Hono()
     }
   )
   .post(
-    ":id/light/toggle",
+    ":id/light/set",
     describeRoute({
-      operationId: "toggleLight",
-      summary: "Turn left light on/off",
+      operationId: "setLight",
+      summary: "Adjust the the brightness of the light",
       tags: ["Devices"],
     }),
     zValidator("json", lightToggleSchema),
@@ -290,11 +290,13 @@ const app = new Hono()
           res: c.json({ message: "Device not found" }, 404),
         });
 
-      const { state } = c.req.valid("json");
+      const { brightness } = c.req.valid("json");
 
-      mqttClient.publish(`${mac}/sensor/light/command`, state);
+      console.log({ brightness });
 
-      return c.json({ message: `Lights set to ${state}` });
+      mqttClient.publish(`${mac}/sensor/light/command`, brightness.toString());
+
+      return c.json({ message: `Lights set to ${brightness}` });
     }
   )
   .post(

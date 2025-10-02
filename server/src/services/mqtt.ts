@@ -122,7 +122,7 @@ async function handleSensorData(topic: string, message: Buffer) {
 function determineValueType(value: string): string {
   // Check if numeric
   if (!isNaN(Number(value)) && value.trim() !== "") {
-    return Number.isInteger(Number(value)) ? "integer" : "float";
+    return Number.isInteger(Number(value)) ? "int" : "float";
   }
   // Check if boolean
   if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {

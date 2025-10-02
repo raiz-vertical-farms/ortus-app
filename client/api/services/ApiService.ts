@@ -1196,21 +1196,21 @@ export interface ApiService {
             error: AllDevicesError;
         };
     };
-    /** @summary Turn left light on/off */
-    toggleLight: {
-        /** @summary Turn left light on/off */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ToggleLightBody, ToggleLightParameters, TMeta, TSignal>, client?: (schema: ToggleLightSchema, options: ServiceOperationMutationFnOptions<ToggleLightBody, ToggleLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ToggleLightData, ToggleLightError>>): Promise<RequestFnResponse<ToggleLightData, ToggleLightError>>;
-        /** @summary Turn left light on/off */
-        getMutationKey(parameters: DeepReadonly<ToggleLightParameters> | void): ServiceOperationMutationKey<ToggleLightSchema, ToggleLightParameters>;
+    /** @summary Adjust the the brightness of the light */
+    setLight: {
+        /** @summary Adjust the the brightness of the light */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SetLightBody, SetLightParameters, TMeta, TSignal>, client?: (schema: SetLightSchema, options: ServiceOperationMutationFnOptions<SetLightBody, SetLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SetLightData, SetLightError>>): Promise<RequestFnResponse<SetLightData, SetLightError>>;
+        /** @summary Adjust the the brightness of the light */
+        getMutationKey(parameters: DeepReadonly<SetLightParameters> | void): ServiceOperationMutationKey<SetLightSchema, SetLightParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Turn left light on/off
+         * @summary Adjust the the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.setLight.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1219,7 +1219,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.setLight.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1228,16 +1228,16 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends ToggleLightBody, TContext = unknown>(parameters: DeepReadonly<ToggleLightParameters>, options?: ServiceOperationUseMutationOptions<ToggleLightSchema, ToggleLightData, ToggleLightParameters, TVariables, OperationError<ToggleLightError>, TContext>): UseMutationResult<ToggleLightData, OperationError<ToggleLightError>, TVariables | void, TContext>;
+        useMutation<TVariables extends SetLightBody, TContext = unknown>(parameters: DeepReadonly<SetLightParameters>, options?: ServiceOperationUseMutationOptions<SetLightSchema, SetLightData, SetLightParameters, TVariables, OperationError<SetLightError>, TContext>): UseMutationResult<SetLightData, OperationError<SetLightError>, TVariables | void, TContext>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Turn left light on/off
+         * @summary Adjust the the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.setLight.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1246,7 +1246,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.toggleLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.setLight.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1255,19 +1255,19 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ToggleLightSchema, ToggleLightData, ToggleLightParameters, TVariables, OperationError<ToggleLightError>, TContext>): UseMutationResult<ToggleLightData, OperationError<ToggleLightError>, TVariables, TContext>;
+        useMutation<TVariables extends MutationVariables<SetLightBody, SetLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<SetLightSchema, SetLightData, SetLightParameters, TVariables, OperationError<SetLightError>, TContext>): UseMutationResult<SetLightData, OperationError<SetLightError>, TVariables, TContext>;
         /**
          * Returns the count of currently in-progress mutations.
          *
-         * @summary Turn left light on/off
+         * @summary Adjust the the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
-         * const toggleLightTotal = qraft.apiService.toggleLight.useIsMutating()
+         * const setLightTotal = qraft.apiService.setLight.useIsMutating()
          * ```
          * @example Check how many mutations are currently in progress with the specified parameters.
          * ```ts
-         * const toggleLightTotal = qraft.apiService.toggleLight.useIsMutating({
+         * const setLightTotal = qraft.apiService.setLight.useIsMutating({
          *     parameters: {
          *         path: {
          *             id: id
@@ -1276,15 +1276,15 @@ export interface ApiService {
          * })
          * ```
          */
-        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): number;
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): number;
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
-         * @summary Turn left light on/off
+         * @summary Adjust the the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
-         * const toggleLightPendingMutationVariables = qraft.apiService.toggleLight.useMutationState({
+         * const setLightPendingMutationVariables = qraft.apiService.setLight.useMutationState({
          *     filters: {
          *         status: "pending"
          *     },
@@ -1293,7 +1293,7 @@ export interface ApiService {
          * ```
          * @example Get all data for specific mutations via the `parameters`.
          * ```ts
-         * const toggleLightMutationData = qraft.apiService.toggleLight.useMutationState({
+         * const setLightMutationData = qraft.apiService.setLight.useMutationState({
          *     filters: {
          *         parameters: {
          *             path: {
@@ -1305,22 +1305,22 @@ export interface ApiService {
          * })
          * ```
          */
-        useMutationState<TContext = unknown, TResult = MutationState<ToggleLightData, OperationError<ToggleLightError>, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext>>(options?: {
-            filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>;
-            select?: (mutation: Mutation<ToggleLightData, OperationError<ToggleLightError>, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext>) => TResult;
+        useMutationState<TContext = unknown, TResult = MutationState<SetLightData, OperationError<SetLightError>, MutationVariables<SetLightBody, SetLightParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>;
+            select?: (mutation: Mutation<SetLightData, OperationError<SetLightError>, MutationVariables<SetLightBody, SetLightParameters>, TContext>) => TResult;
         }): Array<TResult>;
-        /** @summary Turn left light on/off */
-        isMutating<TContext>(filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): number;
+        /** @summary Adjust the the brightness of the light */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
          *
-         * @summary Turn left light on/off
+         * @summary Adjust the the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
          *
          * @example Find a mutation with specific parameters
          * ```ts
-         * const mutationCache = qraft.apiService.toggleLight.getMutationCache();
+         * const mutationCache = qraft.apiService.setLight.getMutationCache();
          * const mutation = mutationCache.find({
          *     parameters: {
          *         path: {
@@ -1332,20 +1332,20 @@ export interface ApiService {
          *
          * @example Find all mutations for the endpoint
          * ```ts
-         * const mutationCache = qraft.apiService.toggleLight.getMutationCache();
+         * const mutationCache = qraft.apiService.setLight.getMutationCache();
          * const mutations = mutationCache.findAll();
          * ```
          */
         getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
-            find<TContext = unknown>(filters: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): Mutation<ToggleLightData, ToggleLightError, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext> | undefined;
-            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext> | MutationFiltersByMutationKey<ToggleLightSchema, ToggleLightBody, ToggleLightData, ToggleLightParameters, OperationError<ToggleLightError>, TContext>): Array<Mutation<ToggleLightData, ToggleLightError, MutationVariables<ToggleLightBody, ToggleLightParameters>, TContext>>;
+            find<TContext = unknown>(filters: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): Mutation<SetLightData, SetLightError, MutationVariables<SetLightBody, SetLightParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): Array<Mutation<SetLightData, SetLightError, MutationVariables<SetLightBody, SetLightParameters>, TContext>>;
         };
-        schema: ToggleLightSchema;
+        schema: SetLightSchema;
         types: {
-            parameters: ToggleLightParameters;
-            data: ToggleLightData;
-            error: ToggleLightError;
-            body: ToggleLightBody;
+            parameters: SetLightParameters;
+            data: SetLightData;
+            error: SetLightError;
+            body: SetLightBody;
         };
     };
     /** @summary Set a schedule for the light */
@@ -2120,16 +2120,16 @@ export const allDevices = {
     schema: AllDevicesSchema;
     [QraftServiceOperationsToken]: ApiService["allDevices"];
 };
-/** @summary Turn left light on/off */
-export const toggleLight = {
+/** @summary Adjust the the brightness of the light */
+export const setLight = {
     schema: {
         method: "post",
-        url: "/api/device/{id}/light/toggle",
+        url: "/api/device/{id}/light/set",
         mediaType: ["application/json"]
     }
 } as {
-    schema: ToggleLightSchema;
-    [QraftServiceOperationsToken]: ApiService["toggleLight"];
+    schema: SetLightSchema;
+    [QraftServiceOperationsToken]: ApiService["setLight"];
 };
 /** @summary Set a schedule for the light */
 export const scheduleLight = {
@@ -2170,7 +2170,7 @@ export const apiService = {
     deleteDevice,
     deviceState,
     allDevices,
-    toggleLight,
+    setLight,
     scheduleLight,
     myIp,
     localDevices
@@ -2257,17 +2257,17 @@ type AllDevicesSchema = {
 type AllDevicesParameters = undefined;
 type AllDevicesData = paths["/api/device/all"]["get"]["responses"]["200"]["content"]["application/json"];
 type AllDevicesError = unknown;
-type ToggleLightSchema = {
+type SetLightSchema = {
     method: "post";
-    url: "/api/device/{id}/light/toggle";
+    url: "/api/device/{id}/light/set";
     mediaType: [
         "application/json"
     ];
 };
-type ToggleLightParameters = paths["/api/device/{id}/light/toggle"]["post"]["parameters"];
-type ToggleLightData = unknown;
-type ToggleLightError = unknown;
-type ToggleLightBody = NonNullable<paths["/api/device/{id}/light/toggle"]["post"]["requestBody"]>["content"]["application/json"];
+type SetLightParameters = paths["/api/device/{id}/light/set"]["post"]["parameters"];
+type SetLightData = unknown;
+type SetLightError = unknown;
+type SetLightBody = NonNullable<paths["/api/device/{id}/light/set"]["post"]["requestBody"]>["content"]["application/json"];
 type ScheduleLightSchema = {
     method: "post";
     url: "/api/device/{id}/light/schedule";

@@ -21,7 +21,7 @@ public:
 private:
   static void mqttCallbackRouter(char *topic, uint8_t *payload, unsigned int length);
 
-    void ensureMqttConnection();
+  void ensureMqttConnection();
   void publishPresence();
   void publishLightState();
   void handleMqttMessage(char *topic, uint8_t *payload, unsigned int length);
@@ -37,7 +37,7 @@ private:
   String macAddress;
   unsigned long lastPresenceAt;
   unsigned long lastWiFiAttempt;
-  bool lightOn;
+  int brightness;
   bool wifiWasConnected;
   bool waitingForCredentialsLogged;
   bool waitingBeforeRetryLogged;

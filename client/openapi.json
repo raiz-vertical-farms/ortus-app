@@ -343,7 +343,7 @@
                         "light": {
                           "anyOf": [
                             {
-                              "type": "string"
+                              "type": "number"
                             },
                             {
                               "type": "null"
@@ -498,10 +498,10 @@
         }
       }
     },
-    "/api/device/{id}/light/toggle": {
+    "/api/device/{id}/light/set": {
       "post": {
-        "operationId": "toggleLight",
-        "summary": "Turn left light on/off",
+        "operationId": "setLight",
+        "summary": "Adjust the the brightness of the light",
         "tags": [
           "Devices"
         ],
@@ -512,16 +512,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "state": {
-                    "type": "string",
-                    "enum": [
-                      "on",
-                      "off"
-                    ]
+                  "brightness": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
                   }
                 },
                 "required": [
-                  "state"
+                  "brightness"
                 ]
               }
             }

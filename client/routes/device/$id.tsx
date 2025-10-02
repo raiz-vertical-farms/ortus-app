@@ -101,26 +101,32 @@ function LightView({ deviceId }: { deviceId: string }) {
   }>({ fromHours: 0, fromMinutes: 0, toHours: 0, toMinutes: 0 });
 
   const [showSchedule, setShowSchedule] = useState(false);
-  const [pendingLight, setPendingLight] = useState<"on" | "off" | null>(null);
+  const [pendingBrightness, setPendingBrightness] = useState<number | null>(
+    null
+  );
 
-  const { data, error, isLoading, refetch } = client.api.deviceState.useQuery(
+  const { data, refetch } = client.api.deviceState.useQuery(
     {
       path: { id: deviceId },
     },
-    { refetchInterval: 3000, enabled: pendingLight === null }
+    { refetchInterval: 3000, enabled: pendingBrightness === null }
   );
 
   const debouncedRefetch = useDebouncedCallback(() => {
-    setPendingLight(null);
+    setPendingBrightness(null);
     refetch();
   }, 3000);
 
-  const { mutate: toggleLight } = client.api.toggleLight.useMutation(
-    undefined,
-    {
-      onSuccess: debouncedRefetch,
-    }
-  );
+  const { mutate: setLight } = client.api.setLight.useMutation(undefined, {
+    onSuccess: debouncedRefetch,
+  });
+
+  const debouncedSetLight = useDebouncedCallback((brightness: number) => {
+    setLight({
+      path: { id: deviceId },
+      body: { brightness },
+    });
+  }, 400);
 
   const { mutate: scheduleLights } = client.api.scheduleLight.useMutation(
     undefined,
@@ -131,15 +137,14 @@ function LightView({ deviceId }: { deviceId: string }) {
     <Box pt="5xl">
       <Group direction="column" align="center" justify="center" spacing="xl">
         <LightSwitch
-          checked={
-            pendingLight ? pendingLight === "on" : data?.state.light === "on"
+          brightness={
+            pendingBrightness !== null
+              ? pendingBrightness
+              : data?.state.light || 0
           }
-          onChange={(e) => {
-            setPendingLight(e ? "on" : "off");
-            toggleLight({
-              path: { id: deviceId },
-              body: { state: e ? "on" : "off" },
-            });
+          onChange={(val) => {
+            setPendingBrightness(val);
+            debouncedSetLight(val);
           }}
         />
       </Group>
