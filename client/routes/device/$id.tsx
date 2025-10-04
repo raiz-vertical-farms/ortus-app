@@ -115,8 +115,9 @@ function LightView({ deviceId }: { deviceId: string }) {
   );
 
   const debouncedRefetch = useDebouncedCallback(() => {
-    setPendingBrightness(null);
-    refetch();
+    refetch().then(() => {
+      setPendingBrightness(null);
+    });
   }, 8000);
 
   const { mutate: setLight } = client.api.setLight.useMutation(undefined, {
