@@ -30,8 +30,17 @@ function Page() {
   const [ip, setIp] = useState("");
   const [macAddress, setMacAddress] = useState("");
 
+  const { mutate: createDevice, error } = client.api.createDevice.useMutation(
+    undefined,
+    {
+      onSuccess: () => {
+        router.navigate({ to: "/" });
+      },
+    }
+  );
+
   useEffect(() => {
-    getPublicIp().then(setIp);
+    //getPublicIp().then(setIp);
   }, []);
 
   const { isSupported } = useBluetooth();
@@ -153,18 +162,6 @@ function BluetoothProvision({
     .with({ isConnected: false }, () => {
       return (
         <Box pt="7xl">
-          {devices.map((device) => (
-            <BluetoothDeviceCard
-              key={device.deviceId}
-              name={device.name}
-              deviceId={device.deviceId}
-              onClick={() =>
-                connect(device.deviceId).catch((e) => {
-                  console.log("Something happened when connecting?", e);
-                })
-              }
-            />
-          ))}
           <Group direction="column" align="center" spacing="xl">
             {devices.length > 0 ? null : hasScanned ? (
               <Text>No Ortus found yet.</Text>
@@ -174,6 +171,18 @@ function BluetoothProvision({
                 can start growing.
               </Text>
             )}
+            {devices.map((device) => (
+              <BluetoothDeviceCard
+                key={device.deviceId}
+                name={device.name}
+                deviceId={device.deviceId}
+                onClick={() =>
+                  connect(device.deviceId).catch((e) => {
+                    console.log("Something happened when connecting?", e);
+                  })
+                }
+              />
+            ))}
             <Button
               full
               disabled={isScanning}
@@ -208,25 +217,29 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
   );
 
   return (
-    <Group direction="column" spacing="xl">
-      <Input
-        full
-        onChange={(e) => setName(e.target.value)}
-        value={name}
-        label="Name your garden"
-        placeholder="Kitchen herb tower"
-      />
-      <Button
-        full
-        onClick={() => {
-          createDevice({
-            body: { name, mac_address: deviceId, organization_id: 1 },
-          });
-        }}
-      >
-        Save this Ortus
-      </Button>
-      {error ? getErrorMessage(error) : null}
-    </Group>
+    <Box pt="6xl">
+      <Group direction="column" spacing="xl">
+        <Input
+          full
+          inputSize="lg"
+          onChange={(e) => setName(e.target.value)}
+          value={name}
+          label="Name your garden"
+          placeholder="Kitchen herb tower"
+        />
+        <Button
+          full
+          size="lg"
+          onClick={() => {
+            createDevice({
+              body: { name, mac_address: deviceId, organization_id: 1 },
+            });
+          }}
+        >
+          Save this Ortus
+        </Button>
+        {error ? getErrorMessage(error) : null}
+      </Group>
+    </Box>
   );
 }
