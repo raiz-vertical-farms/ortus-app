@@ -12,7 +12,7 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     return {
       layout: {
-        pageTitle: "Home",
+        pageTitle: "My Garden",
         center: true,
         rightSection: () => {
           const router = useRouter();
@@ -55,16 +55,21 @@ function Index() {
         {connectedDevices?.devices.length === 0 && (
           <Group direction="column" align="center" spacing="md">
             <Text align="center" size="lg">
-              No devices connected yet!
+              No Ortus connected yet.
             </Text>
             <Button
               size="sm"
               onClick={() => router.navigate({ to: "/device/connect" })}
             >
-              Connect a new device
+              Add an Ortus
             </Button>
           </Group>
         )}
+        {connectedDevices?.devices.length ? (
+          <Text align="center" color="muted">
+            Tap an Ortus to check on it.
+          </Text>
+        ) : null}
         {connectedDevices?.devices.map((device) => {
           return (
             <DeviceCard

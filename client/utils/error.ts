@@ -7,16 +7,16 @@ export function getErrorMessage(e: unknown): string {
 
     // Handle case with error array
     if (Array.isArray(anyE.error) && anyE.error.length > 0) {
-      return anyE.error[0].message ?? "An unknown error occurred";
+      return anyE.error[0].message ?? "Something unexpected happened.";
     }
 
     return (
       anyE.message ??
       anyE.data?.message ??
       anyE.response?.data?.message ??
-      "An unknown error occurred"
+      "Something unexpected happened."
     );
   }
 
-  return "An unknown error occurred";
+  return "Something unexpected happened.";
 }

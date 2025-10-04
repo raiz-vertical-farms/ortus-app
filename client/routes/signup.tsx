@@ -42,7 +42,10 @@ function Signup() {
             Raiz.
           </Text>
           <Text size="xl" align="center" color="muted">
-            Get growing
+            Grow something good.
+          </Text>
+          <Text align="center" color="muted">
+            Sign in or create an account to guide your Ortus garden.
           </Text>
         </Box>
 
@@ -54,7 +57,7 @@ function Signup() {
             setFormState((s) => ({ ...s, email: e.target.value }))
           }
           value={formState.email}
-          placeholder=""
+          placeholder="you@example.com"
           inputSize="lg"
         />
 
@@ -66,12 +69,12 @@ function Signup() {
             setFormState((s) => ({ ...s, password: e.target.value }))
           }
           value={formState.password}
-          placeholder=""
+          placeholder="Create a password"
           inputSize="lg"
         />
 
         <Button size="lg" onClick={() => signup({ ...formState })} full>
-          Log In
+          Continue
         </Button>
 
         {signupError ? (

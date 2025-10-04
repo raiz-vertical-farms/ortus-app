@@ -14,7 +14,10 @@ export default function BluetoothDeviceCard({
   return (
     <div className={styles.card} onClick={onClick}>
       <Group direction="column" spacing="md">
-        <Text size="lg">{name || "Unknown Device"}</Text>
+        <Text size="lg">{name || "Unnamed Ortus"}</Text>
+        <Text size="sm" color="muted">
+          Tap to connect
+        </Text>
         <Text size="xs" color="muted">
           {deviceId}
         </Text>

@@ -55,37 +55,42 @@ export function useBluetooth(): UseBluetoothReturn {
   const initialize = useCallback(async () => {
     try {
       await initializeBLE();
-      setStatus("BLE initialized");
+      setStatus("Bluetooth is ready.");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Init failed";
-      setStatus(`Init failed: ${message}`);
+      const message =
+        err instanceof Error ? err.message : "Bluetooth setup failed";
+      setStatus(`Bluetooth setup failed: ${message}`);
       throw err;
     }
   }, []);
 
   const scanForDevices = useCallback(async () => {
     try {
-      setStatus("Scanning for devices...");
+      setStatus("Looking for nearby Ortus...");
       const foundDevices = await scanForOrtusDevices(5000);
       setDevices(foundDevices);
 
       if (foundDevices.length === 0) {
-        setStatus("No Ortus devices found");
+        setStatus("No Ortus spotted nearby.");
       } else {
-        setStatus(`Found ${foundDevices.length} device(s)`);
+        setStatus(
+          foundDevices.length === 1
+            ? "Found 1 Ortus"
+            : `Found ${foundDevices.length} Ortus`
+        );
       }
 
       return foundDevices;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Scan failed";
-      setStatus(`Scan error: ${message}`);
+      setStatus(`Scan hiccup: ${message}`);
       throw err;
     }
   }, []);
 
   const connect = useCallback(async (deviceId: string) => {
     try {
-      setStatus("Connecting...");
+      setStatus("Connecting to your Ortus...");
 
       const connection = await connectToDevice(deviceId, {
         onStatusUpdate: (s) => setStatus(s),
@@ -94,17 +99,18 @@ export function useBluetooth(): UseBluetoothReturn {
           setIsConnected(false);
           setSelectedDeviceId(null);
           connectionRef.current = null;
-          setStatus("Disconnected");
+          setStatus("Bluetooth disconnected.");
         },
       });
 
       connectionRef.current = connection;
       setSelectedDeviceId(deviceId);
       setIsConnected(true);
-      setStatus("Connected");
+      setStatus("Connected!");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Connection failed";
-      setStatus(`Connection error: ${message}`);
+      const message =
+        err instanceof Error ? err.message : "Connection failed";
+      setStatus(`Couldn't connect: ${message}`);
       setIsConnected(false);
       throw err;
     }
@@ -113,12 +119,12 @@ export function useBluetooth(): UseBluetoothReturn {
   const provision = useCallback(
     async (ssid: string, password: string) => {
       if (!connectionRef.current || !selectedDeviceId) {
-        throw new Error("Not connected to device");
+        throw new Error("Not connected to an Ortus.");
       }
 
       try {
         setIsProvisioning(true);
-        setStatus("Sending WiFi credentials...");
+        setStatus("Sending Wi-Fi details...");
 
         // Don't pass callbacks - they're already set up from connect()
         const mac = await provisionWiFiCore(
@@ -128,12 +134,12 @@ export function useBluetooth(): UseBluetoothReturn {
         );
 
         setMacAddress(mac);
-        setStatus("Provisioning successful!");
+        setStatus("Wi-Fi shared successfully!");
         return mac;
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Provisioning failed";
-        setStatus(`Provisioning failed: ${message}`);
+        setStatus(`Couldn't share Wi-Fi: ${message}`);
         throw err;
       } finally {
         setIsProvisioning(false);
@@ -145,15 +151,16 @@ export function useBluetooth(): UseBluetoothReturn {
   const sendCommand = useCallback(
     async (command: string) => {
       if (!connectionRef.current || !selectedDeviceId) {
-        throw new Error("Not connected to device");
+        throw new Error("Not connected to an Ortus.");
       }
 
       try {
         await sendCommandCore(connectionRef.current, command);
-        setStatus(`Command "${command}" sent`);
+        setStatus(`Sent command: ${command}`);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Command failed";
-        setStatus(`Command error: ${message}`);
+        const message =
+          err instanceof Error ? err.message : "Command failed";
+        setStatus(`Command hiccup: ${message}`);
         throw err;
       }
     },
@@ -167,7 +174,7 @@ export function useBluetooth(): UseBluetoothReturn {
     }
     setIsConnected(false);
     setSelectedDeviceId(null);
-    setStatus("Disconnected");
+    setStatus("Bluetooth disconnected.");
   }, []);
 
   return {

@@ -19,11 +19,12 @@ export const Route = createFileRoute("/device/$id")({
       parameters: { path: { id: params.id } },
     });
 
+    const name = device.data?.state.name?.trim() || "Ortus";
+    const offlineSuffix = device.data?.state.online ? "" : " - offline";
+
     return {
       layout: {
-        pageTitle: `${device.data?.state.name || "Device"} ${
-          device.data?.state.online ? "" : " (offline)"
-        }`,
+        pageTitle: `${name}${offlineSuffix}`,
         backButton: true,
       },
     };
@@ -42,7 +43,7 @@ function RouteComponent() {
   });
 
   if (isLoading || !data) {
-    return "Loading...";
+    return "Loading your garden...";
   }
 
   if (error) {
@@ -68,8 +69,12 @@ function RouteComponent() {
         online: data.state.online ? true : false,
       })
         .with({ view: "lights" }, () => <LightView deviceId={id} />)
-        .with({ view: "plants" }, () => <Text>Plants view coming soon!</Text>)
-        .with({ view: "water" }, () => <Text>Water view coming soon!</Text>)
+        .with({ view: "plants" }, () => (
+          <Text>Plant view is sprouting soon.</Text>
+        ))
+        .with({ view: "water" }, () => (
+          <Text>Water view is bubbling up soon.</Text>
+        ))
         .with({ view: "settings" }, () => <SettingsView deviceId={id} />)
         .exhaustive()}
     </Box>
@@ -86,9 +91,9 @@ function SettingsView({ deviceId }: { deviceId: string }) {
 
   return (
     <Box pt="5xl">
-      <Text>Danger zone</Text>
+      <Text>Danger zone (careful!)</Text>
       <Button onClick={() => mutate({ path: { id: deviceId } })}>
-        Delete device
+        Remove this Ortus
       </Button>
     </Box>
   );
@@ -152,13 +157,13 @@ function LightView({ deviceId }: { deviceId: string }) {
         />
       </Group>
       <Box pt="5xl">
-        <Group direction="column" align="center" justify="center" spacing="xl">
+      <Group direction="column" align="center" justify="center" spacing="xl">
           <Text align="center" size="lg">
-            Schedule
+            Light schedule
           </Text>
           <Toggle
-            onLabel="Manual"
-            offLabel="Auto"
+            onLabel="Schedule on"
+            offLabel="Manual control"
             checked={showSchedule}
             onChange={(e) => setShowSchedule(e.target.checked)}
           />
@@ -171,7 +176,7 @@ function LightView({ deviceId }: { deviceId: string }) {
                 spacing="xl"
               >
                 <Text align="left" size="lg">
-                  From
+                  Lights on
                 </Text>
                 <select
                   onChange={(e) =>
@@ -206,7 +211,7 @@ function LightView({ deviceId }: { deviceId: string }) {
                 spacing="xl"
               >
                 <Text align="left" size="lg">
-                  To
+                  Lights off
                 </Text>
                 <select
                   onChange={(e) =>
@@ -246,7 +251,7 @@ function LightView({ deviceId }: { deviceId: string }) {
                     });
                   }}
                 >
-                  Schedule
+                  Save schedule
                 </Button>
               </Group>
             </>

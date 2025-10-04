@@ -35,11 +35,9 @@ export default function DeviceCard({
   );
 
   const statusText = online
-    ? last_seen
-      ? `Online ${formatLastSeen(last_seen)}`
-      : "Online"
+    ? "Online now"
     : last_seen
-    ? `Offline since ${formatLastSeen(last_seen)}`
+    ? `Went offline ${formatLastSeen(last_seen)}`
     : "Offline";
 
   return (
@@ -60,13 +58,15 @@ export default function DeviceCard({
 
           <Group align="center">
             <Text size="lg">{name}</Text>
-            <Text size="xs"> - {mac_address}</Text>
+            <Text size="xs" color="muted">
+              ID: {mac_address}
+            </Text>
           </Group>
 
           <Text size="sm" color="muted">
-            {number_of_plants
-              ? `${number_of_plants} plant(s)`
-              : "No plants added"}
+            {number_of_plants && number_of_plants > 0
+              ? `${number_of_plants} plant${number_of_plants === 1 ? "" : "s"}`
+              : "No plants tracked yet"}
           </Text>
         </Group>
       </Group>
@@ -75,7 +75,7 @@ export default function DeviceCard({
 }
 
 function formatLastSeen(last_seen: number): string {
-  if (!last_seen) return "Offline";
+  if (!last_seen) return "at an unknown time";
 
   const date = new Date(last_seen * 1000);
   const now = new Date();
@@ -97,17 +97,17 @@ function formatLastSeen(last_seen: number): string {
     minute: "2-digit",
   });
 
-  if (diffDays === 0) return `today ${time}`;
-  if (diffDays === 1) return `yesterday ${time}`;
+  if (diffDays === 0) return `today at ${time}`;
+  if (diffDays === 1) return `yesterday at ${time}`;
   if (diffDays < 7) {
     const weekday = new Intl.DateTimeFormat([], { weekday: "long" }).format(
       date
     );
-    return `${weekday} ${time}`;
+    return `${weekday} at ${time}`;
   }
 
   const formattedDate = new Intl.DateTimeFormat([], {
     dateStyle: "medium",
   }).format(date);
-  return `${formattedDate} ${time}`;
+  return `${formattedDate} at ${time}`;
 }

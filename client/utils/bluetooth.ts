@@ -122,7 +122,7 @@ export const connectToDevice = async (
       macResolver = resolve;
 
       setTimeout(() => {
-        reject(new Error("Timeout waiting for MAC address"));
+        reject(new Error("Timed out waiting for the device ID."));
         macResolver = null;
       }, timeoutMs);
     });
@@ -233,7 +233,7 @@ export const completeProvisioning = async (
   const devices = await scanForOrtusDevices(5000);
 
   if (devices.length === 0) {
-    throw new Error("No Ortus device found");
+    throw new Error("Couldn't find an Ortus nearby.");
   }
 
   const connection = await connectToDevice(devices[0].deviceId, callbacks);

@@ -65,7 +65,7 @@ export default function LightSwitch(props: Props) {
               size={60}
             />
             <Text size="sm">
-              {props.brightness > 0 ? `${props.brightness}%` : "Off"}
+              {props.brightness > 0 ? `${props.brightness}%` : "Lights off"}
             </Text>
           </div>
         </button>

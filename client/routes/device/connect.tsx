@@ -17,7 +17,7 @@ export const Route = createFileRoute("/device/connect")({
   component: Page,
   staticData: {
     layout: {
-      pageTitle: "Connect device",
+      pageTitle: "Connect Your Ortus",
       hideNav: true,
       closeButton: true,
     },
@@ -84,7 +84,7 @@ function WifiProvision({
 
   return (
     <div>
-      You need the app to be able to provision your Ortus device via Bluetooth.
+      You'll need the Raiz mobile app to set up your Ortus over Bluetooth.
     </div>
   );
 }
@@ -112,20 +112,20 @@ function BluetoothProvision({
       return (
         <Box pt="7xl">
           <Box pb="3xl">
-            <Text size="lg">Give your Ortus access to your network</Text>
+            <Text size="lg">Let Ortus hop onto your Wi-Fi</Text>
           </Box>
           <Group direction="column" spacing="md">
             <Input
               full
               inputSize="lg"
-              label="SSID"
+              label="Wi-Fi name (SSID)"
               value={ssid}
               onChange={(e) => setSsid(e.target.value)}
             />
             <Input
               full
               inputSize="lg"
-              label="Password"
+              label="Wi-Fi password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -138,18 +138,21 @@ function BluetoothProvision({
               }
             >
               {isProvisioning
-                ? "Giving credentials to device..."
-                : "Connect to network"}
+                ? "Sending Wi-Fi details..."
+                : "Connect to Wi-Fi"}
             </Button>
           </Group>
         </Box>
       );
     })
     .with({ isConnected: false }, () => {
+      const [hasScanned, setHasScanned] = useState(false);
+
       return (
         <Box pt="7xl">
           {devices.map((device) => (
             <BluetoothDeviceCard
+              key={device.deviceId}
               name={device.name}
               deviceId={device.deviceId}
               onClick={() =>
@@ -163,16 +166,26 @@ function BluetoothProvision({
               }
             />
           ))}
-          <Group direction="column" spacing="xl">
+          <Group direction="column" align="center" spacing="xl">
+            {devices.length > 0 ? null : hasScanned ? (
+              <Text>No Ortus found yet.</Text>
+            ) : (
+              <Text>
+                Scan for your Ortus over Bluetooth, then share your Wi-Fi so it
+                can start growing.
+              </Text>
+            )}
             <Button
+              full
               onClick={async () => {
                 await initialize();
                 await scanForDevices();
+                setHasScanned(true);
               }}
             >
-              Scan for devices
+              Scan for your Ortus
             </Button>
-            <Text>{status}</Text>
+            {status ? <Text>{status}</Text> : null}
           </Group>
         </Box>
       );
@@ -200,8 +213,8 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
         full
         onChange={(e) => setName(e.target.value)}
         value={name}
-        label="Name"
-        placeholder="My Ortus"
+        label="Name your garden"
+        placeholder="Kitchen herb tower"
       />
       <Button
         full
@@ -211,7 +224,7 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
           });
         }}
       >
-        Save
+        Save this Ortus
       </Button>
       {error ? getErrorMessage(error) : null}
     </Group>

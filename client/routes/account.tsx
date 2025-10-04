@@ -8,7 +8,7 @@ export const Route = createFileRoute("/account")({
   component: Page,
   staticData: {
     layout: {
-      pageTitle: "Account",
+      pageTitle: "Account settings",
     },
   },
 });
@@ -24,7 +24,10 @@ function Page() {
   return (
     <Box pt="xl">
       <Group direction="column" align="center" spacing="xl">
-        <Button onClick={handleLogout}>Logout</Button>
+        <Text align="center" color="muted">
+          Want to switch gardeners? Sign out below.
+        </Text>
+        <Button onClick={handleLogout}>Sign out</Button>
       </Group>
     </Box>
   );

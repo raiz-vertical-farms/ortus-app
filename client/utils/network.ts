@@ -10,7 +10,7 @@ export async function getCurrentSSID() {
         return data.value;
       });
     } else {
-      throw new Error("permission denied");
+      throw new Error("Permission denied");
     }
   }
   if (value === "granted") {
@@ -19,5 +19,5 @@ export async function getCurrentSSID() {
     });
   }
 
-  throw new Error("permission denied");
+  throw new Error("Permission denied");
 }
