@@ -2,7 +2,6 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import Button from "../../primitives/Button/Button";
 import { Group } from "../../primitives/Group/Group";
 import { Text } from "../../primitives/Text/Text";
-import BluetoothDeviceCard from "../../components/BluetoothDeviceCard/BluetoothDeviceCard";
 import Input from "../../primitives/Input/Input";
 import { useEffect, useState } from "react";
 import { useBluetooth } from "../../hooks/useBluetooth";
@@ -11,6 +10,8 @@ import { client } from "../../lib/apiClient";
 import { getErrorMessage } from "../../utils/error";
 import { getPublicIp } from "../../utils/ip";
 import Box from "../../primitives/Box/Box";
+import { getCurrentSSID } from "../../utils/network";
+import BluetoothDeviceCard from "../../components/BluetoothDeviceCard/BluetoothDeviceCard";
 
 export const Route = createFileRoute("/device/connect")({
   component: Page,
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/device/connect")({
 
 function Page() {
   const router = useRouter();
-  const [view, setView] = useState<"main" | "provision" | "save">("main");
+  const [view, setView] = useState<"main" | "save">("main");
   const [ip, setIp] = useState("");
   const [macAddress, setMacAddress] = useState("");
 
@@ -33,8 +34,7 @@ function Page() {
     getPublicIp().then(setIp);
   }, []);
 
-  const { isSupported, scanAndConnect, initialize, status, provisionWiFi } =
-    useBluetooth();
+  const { isSupported } = useBluetooth();
 
   return (
     <div style={{ viewTransitionName: "main-content" }}>
@@ -48,27 +48,10 @@ function Page() {
           />
         ))
         .with({ view: "main", isSupported: true }, () => (
-          <FindDevice
-            onScanAndConnect={async () => {
-              await initialize();
-              const ok = await scanAndConnect();
-              if (ok) {
-                setView("provision");
-              }
-            }}
-            status={status}
-          />
-        ))
-        .with({ view: "provision" }, () => (
-          <ProvisionDevice
-            status={status}
-            onStartProvision={async (ssid, password) => {
-              const res = await provisionWiFi(ssid, password);
-              console.log("Provision result:", res);
-              if (res) {
-                setMacAddress(res);
-                setView("save");
-              }
+          <BluetoothProvision
+            onProvisionSucceeded={(mac) => {
+              setMacAddress(mac);
+              setView("save");
             }}
           />
         ))
@@ -101,99 +84,100 @@ function WifiProvision({
 
   return (
     <div>
-      <Box pb="3xl">
-        <Text>Here we need WIFI provision setup explanation.</Text>
-      </Box>
-      <Text>
-        {devices.length === 0
-          ? "Looking for devices on your network..."
-          : "Devices found"}
-      </Text>
-      {devices.map((device) => (
-        <Box
-          p="xl"
-          style={{
-            cursor: "pointer",
-            background: "white",
-            borderRadius: "4px",
-            border: "1px solid black",
-          }}
-          onClick={() => {
-            onMacAddressChange(device.mac_address);
-            onSaveDevice();
-          }}
-          key={device.mac_address}
-        >
-          <Text>Ortus</Text>
-          <Text>{device.mac_address}</Text>
-        </Box>
-      ))}
-      <Box py="md">
-        <Text>Or you can enter MAC address manually</Text>
-      </Box>
-      <Group align="center" spacing="lg">
-        <Input
-          placeholder="00:00:00:00:00:00"
-          full
-          value={macAddress}
-          onChange={(e) => onMacAddressChange(e.target.value)}
-        />
-        <Button onClick={onSaveDevice}>Add device</Button>
-      </Group>
+      You need the app to be able to provision your Ortus device via Bluetooth.
     </div>
   );
 }
 
-function FindDevice({
-  onScanAndConnect,
-  status,
+function BluetoothProvision({
+  onProvisionSucceeded,
 }: {
-  onScanAndConnect: () => void;
-  status: string;
+  onProvisionSucceeded: (mac: string) => void;
 }) {
-  return (
-    <Box pt="7xl">
-      <Group direction="column" spacing="xl">
-        <Button onClick={onScanAndConnect}>Connect to Ortus</Button>
-        <Text>{status}</Text>
-      </Group>
-    </Box>
-  );
-}
+  const [ssid, setSsid] = useState("");
+  const [password, setPassword] = useState("");
+  const {
+    devices,
+    scanForDevices,
+    initialize,
+    isConnected,
+    connect,
+    provision,
+    isProvisioning,
+    status,
+  } = useBluetooth();
 
-function ProvisionDevice({
-  onStartProvision,
-  status,
-}: {
-  status: string;
-  onStartProvision: (ssid: string, password: string) => void;
-}) {
-  const [ssid, setSsid] = useState("Vodafone-166BC8");
-  const [password, setPassword] = useState("ZeMzq5mn5avqYuVp");
-
-  return (
-    <Group direction="column" spacing="xl">
-      <Input
-        full
-        onChange={(e) => setSsid(e.target.value)}
-        value={ssid}
-        label="WiFi SSID"
-        placeholder="MyWiFiNetwork"
-      />
-      <Input
-        full
-        type="password"
-        onChange={(e) => setPassword(e.target.value)}
-        value={password}
-        label="WiFi Password"
-        placeholder="••••••••"
-      />
-      <Button full onClick={() => onStartProvision(ssid, password)}>
-        Connect
-      </Button>
-      <Text>{status}</Text>
-    </Group>
-  );
+  return match({ isConnected })
+    .with({ isConnected: true }, () => {
+      return (
+        <Box pt="7xl">
+          <Box pb="3xl">
+            <Text size="lg">Give your Ortus access to your network</Text>
+          </Box>
+          <Group direction="column" spacing="md">
+            <Input
+              full
+              inputSize="lg"
+              label="SSID"
+              value={ssid}
+              onChange={(e) => setSsid(e.target.value)}
+            />
+            <Input
+              full
+              inputSize="lg"
+              label="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button
+              size="lg"
+              full
+              disabled={isProvisioning}
+              onClick={() =>
+                provision(ssid, password).then(onProvisionSucceeded)
+              }
+            >
+              {isProvisioning
+                ? "Giving credentials to device..."
+                : "Connect to network"}
+            </Button>
+          </Group>
+        </Box>
+      );
+    })
+    .with({ isConnected: false }, () => {
+      return (
+        <Box pt="7xl">
+          {devices.map((device) => (
+            <BluetoothDeviceCard
+              name={device.name}
+              deviceId={device.deviceId}
+              onClick={() =>
+                connect(device.deviceId).then(() => {
+                  getCurrentSSID()
+                    .then((val) => setSsid(val))
+                    .catch((e) => {
+                      console.error(e);
+                    });
+                })
+              }
+            />
+          ))}
+          <Group direction="column" spacing="xl">
+            <Button
+              onClick={async () => {
+                await initialize();
+                await scanForDevices();
+              }}
+            >
+              Scan for devices
+            </Button>
+            <Text>{status}</Text>
+          </Group>
+        </Box>
+      );
+    })
+    .exhaustive();
 }
 
 function SaveDevice({ deviceId }: { deviceId: string }) {

@@ -1,98 +1,172 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
-  ESP32Provisioning,
-  checkIfBluetoothIsSupported,
-} from "../utils/bluetooth"; // export your class from the file above
+  initializeBLE,
+  isBluetoothSupported,
+  scanForOrtusDevices,
+  connectToDevice,
+  provisionWiFi as provisionWiFiCore,
+  sendCommand as sendCommandCore,
+  type OrtusDevice,
+  type BLEConnection,
+} from "../utils/bluetooth";
 
-export function useBluetooth() {
+interface UseBluetoothReturn {
+  // State
+  status: string;
+  isSupported: boolean;
+  macAddress: string;
+  isConnected: boolean;
+  isProvisioning: boolean;
+  devices: OrtusDevice[];
+  selectedDeviceId: string | null;
+
+  // Actions
+  initialize: () => Promise<void>;
+  scanForDevices: () => Promise<OrtusDevice[]>;
+  connect: (deviceId: string) => Promise<void>;
+  provision: (ssid: string, password: string) => Promise<string>;
+  sendCommand: (command: string) => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+
+export function useBluetooth(): UseBluetoothReturn {
   const [isSupported, setIsSupported] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [macAddress, setMacAddress] = useState<string>("");
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isProvisioning, setIsProvisioning] = useState<boolean>(false);
-  const provisioningRef = useRef<ESP32Provisioning | null>(null);
+  const [devices, setDevices] = useState<OrtusDevice[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
 
+  const connectionRef = useRef<BLEConnection | null>(null);
+
+  // Check Bluetooth support on mount
   useEffect(() => {
-    checkIfBluetoothIsSupported().then((supported) => {
-      setIsSupported(supported);
-    });
+    setIsSupported(isBluetoothSupported());
   }, []);
 
-  // Initialize provisioning instance with callbacks
+  // Cleanup on unmount
   useEffect(() => {
-    if (isSupported) {
-      provisioningRef.current = new ESP32Provisioning({
-        onStatusUpdate: (s) => setStatus(s),
-        onMacAddressReceived: (mac) => setMacAddress(mac),
-        onConnected: () => setIsConnected(true),
-        onDisconnected: () => setIsConnected(false),
-        onError: (err) => setStatus(`Error: ${err.message}`),
-      });
-    }
-
     return () => {
-      provisioningRef.current?.disconnect();
-      provisioningRef.current = null;
+      connectionRef.current?.disconnect();
     };
-  }, [isSupported]);
+  }, []);
 
   const initialize = useCallback(async () => {
     try {
-      await provisioningRef.current?.initialize();
+      await initializeBLE();
       setStatus("BLE initialized");
-    } catch (err: any) {
-      setStatus(`Init failed: ${err.message}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Init failed";
+      setStatus(`Init failed: ${message}`);
+      throw err;
     }
   }, []);
 
-  const scanAndConnect = useCallback(async () => {
+  const scanForDevices = useCallback(async () => {
     try {
       setStatus("Scanning for devices...");
-      const deviceId = await provisioningRef.current?.scanForDevice(5000);
-      if (!deviceId) {
-        setStatus("No Ortus device found");
-        return false;
+      const foundDevices = await scanForOrtusDevices(5000);
+      setDevices(foundDevices);
+
+      if (foundDevices.length === 0) {
+        setStatus("No Ortus devices found");
+      } else {
+        setStatus(`Found ${foundDevices.length} device(s)`);
       }
+
+      return foundDevices;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Scan failed";
+      setStatus(`Scan error: ${message}`);
+      throw err;
+    }
+  }, []);
+
+  const connect = useCallback(async (deviceId: string) => {
+    try {
       setStatus("Connecting...");
-      await provisioningRef.current?.connect(deviceId);
-      return true;
-    } catch (err: any) {
-      setStatus(`Scan/connect error: ${err.message}`);
-      return false;
+
+      const connection = await connectToDevice(deviceId, {
+        onStatusUpdate: (s) => setStatus(s),
+        onMacAddressReceived: (mac) => setMacAddress(mac),
+        onDisconnected: () => {
+          setIsConnected(false);
+          setSelectedDeviceId(null);
+          connectionRef.current = null;
+          setStatus("Disconnected");
+        },
+      });
+
+      connectionRef.current = connection;
+      setSelectedDeviceId(deviceId);
+      setIsConnected(true);
+      setStatus("Connected");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Connection failed";
+      setStatus(`Connection error: ${message}`);
+      setIsConnected(false);
+      throw err;
     }
   }, []);
 
-  const provisionWiFi = useCallback(async (ssid: string, password: string) => {
-    if (!provisioningRef.current) return;
-    try {
-      setIsProvisioning(true);
-      setStatus("Sending WiFi credentials...");
-      const mac = await provisioningRef.current.provisionWiFi(ssid, password);
-      setMacAddress(mac);
-      setStatus("Provisioning successful!");
-      return mac;
-    } catch (err: any) {
-      const message =
-        (typeof err === "object" && err?.message) ||
-        (typeof err === "string" ? err : "Unknown provisioning error");
-      setStatus(`Provisioning failed: ${message}`);
-      throw err instanceof Error ? err : new Error(message);
-    } finally {
-      setIsProvisioning(false);
-    }
-  }, []);
+  const provision = useCallback(
+    async (ssid: string, password: string) => {
+      if (!connectionRef.current || !selectedDeviceId) {
+        throw new Error("Not connected to device");
+      }
 
-  const sendCommand = useCallback(async (command: string) => {
-    try {
-      await provisioningRef.current?.sendCommand(command);
-      setStatus(`Command "${command}" sent`);
-    } catch (err: any) {
-      setStatus(`Command error: ${err.message}`);
-    }
-  }, []);
+      try {
+        setIsProvisioning(true);
+        setStatus("Sending WiFi credentials...");
+
+        // Don't pass callbacks - they're already set up from connect()
+        const mac = await provisionWiFiCore(
+          connectionRef.current,
+          ssid,
+          password
+        );
+
+        setMacAddress(mac);
+        setStatus("Provisioning successful!");
+        return mac;
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Provisioning failed";
+        setStatus(`Provisioning failed: ${message}`);
+        throw err;
+      } finally {
+        setIsProvisioning(false);
+      }
+    },
+    [selectedDeviceId]
+  );
+
+  const sendCommand = useCallback(
+    async (command: string) => {
+      if (!connectionRef.current || !selectedDeviceId) {
+        throw new Error("Not connected to device");
+      }
+
+      try {
+        await sendCommandCore(connectionRef.current, command);
+        setStatus(`Command "${command}" sent`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Command failed";
+        setStatus(`Command error: ${message}`);
+        throw err;
+      }
+    },
+    [selectedDeviceId]
+  );
 
   const disconnect = useCallback(async () => {
-    await provisioningRef.current?.disconnect();
+    if (connectionRef.current) {
+      await connectionRef.current.disconnect();
+      connectionRef.current = null;
+    }
+    setIsConnected(false);
+    setSelectedDeviceId(null);
     setStatus("Disconnected");
   }, []);
 
@@ -102,9 +176,12 @@ export function useBluetooth() {
     macAddress,
     isConnected,
     isProvisioning,
+    devices,
+    selectedDeviceId,
     initialize,
-    scanAndConnect,
-    provisionWiFi,
+    scanForDevices,
+    connect,
+    provision,
     sendCommand,
     disconnect,
   };

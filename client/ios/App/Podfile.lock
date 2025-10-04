@@ -4,11 +4,14 @@ PODS:
   - CapacitorCommunityBluetoothLe (7.2.0):
     - Capacitor
   - CapacitorCordova (7.4.3)
+  - FalconetaCapacitorWifiConnect (7.0.0):
+    - Capacitor
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorCommunityBluetoothLe (from `../../node_modules/@capacitor-community/bluetooth-le`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "FalconetaCapacitorWifiConnect (from `../../node_modules/@falconeta/capacitor-wifi-connect`)"
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -17,12 +20,15 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor-community/bluetooth-le"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  FalconetaCapacitorWifiConnect:
+    :path: "../../node_modules/@falconeta/capacitor-wifi-connect"
 
 SPEC CHECKSUMS:
   Capacitor: 28d6c01026a9a3f7156529498ec1f389a2a28dbc
   CapacitorCommunityBluetoothLe: a8a3b904ef86aee80d4e22b8aa3a4b07e9fe5067
   CapacitorCordova: 435121e81a2df4d0034f0fb11fcefab5104cfdb5
+  FalconetaCapacitorWifiConnect: c8c26550fe3fca67cf7aac174b09f0805aabf107
 
-PODFILE CHECKSUM: 76fc7effa5ee8a59363cbeb5754b229c51a9b525
+PODFILE CHECKSUM: 456675e8955a2dc46971c633455b63100ff94b6f
 
 COCOAPODS: 1.16.2

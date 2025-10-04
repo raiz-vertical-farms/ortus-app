@@ -18,6 +18,7 @@
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "@falconeta/capacitor-wifi-connect": "^7.0.0",
     "@openapi-qraft/react": "^2.12.0",
     "@openapi-qraft/tanstack-query-react-types": "^2.12.0",
     "@phosphor-icons/react": "^2.1.10",

@@ -51,5 +51,7 @@
 	<array>
 		<string>bluetooth-central</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to find you current SSID, to make onboarding of Wifi provisioning easier.</string>
 </dict>
 </plist>

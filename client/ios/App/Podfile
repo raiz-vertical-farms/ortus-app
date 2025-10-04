@@ -12,6 +12,7 @@ def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCommunityBluetoothLe', :path => '../../node_modules/@capacitor-community/bluetooth-le'
+  pod 'FalconetaCapacitorWifiConnect', :path => '../../node_modules/@falconeta/capacitor-wifi-connect'
 end
 
 target 'App' do
