@@ -117,7 +117,9 @@ function BluetoothProvision({
       return (
         <Box pt="7xl">
           <Box pb="3xl">
-            <Text size="lg">Let Ortus hop onto your Wi-Fi</Text>
+            <Text size="lg" align="center">
+              Let Ortus hop onto your Wi-Fi
+            </Text>
           </Box>
           <Group direction="column" spacing="md">
             <Input
