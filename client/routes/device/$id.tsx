@@ -4,7 +4,7 @@ import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
 import { client } from "../../lib/apiClient";
 import { useState } from "react";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
 import Tabs from "../../primitives/Tabs/Tabs";
 import Toggle from "../../primitives/Toggle/Toggle";
@@ -111,7 +111,7 @@ function LightView({ deviceId }: { deviceId: string }) {
     {
       path: { id: deviceId },
     },
-    { refetchInterval: 3000, enabled: pendingBrightness === null }
+    { refetchInterval: 3000, staleTime: 0, enabled: pendingBrightness === null }
   );
 
   const debouncedRefetch = useDebouncedCallback(() => {
