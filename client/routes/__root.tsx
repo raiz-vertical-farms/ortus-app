@@ -17,6 +17,8 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { Text } from "../primitives/Text/Text";
+import React from "react";
+import Box from "../primitives/Box/Box";
 
 const NAV_HEIGHT = 100;
 const HEADER_HEIGHT = 100;
@@ -137,7 +139,7 @@ function RootLayout() {
         : "100dvh";
 
   return (
-    <div>
+    <ErrorBoundary>
       {showHeader && (
         <header
           style={{
@@ -149,11 +151,11 @@ function RootLayout() {
         >
           <Container>
             <Group justify="between" align="center">
-              <div style={{ width: "30%", textAlign: "left" }}>{left}</div>
+              <div style={{ width: "15%", textAlign: "left" }}>{left}</div>
               <div style={{ flex: 1, width: "100%", textAlign: "center" }}>
                 {middle}
               </div>
-              <div style={{ width: "30%", textAlign: "right" }}>{right}</div>
+              <div style={{ width: "15%", textAlign: "right" }}>{right}</div>
             </Group>
           </Container>
         </header>
@@ -171,8 +173,38 @@ function RootLayout() {
       </Container>
       {!hideNav && <NavBar />}
       <TanStackRouterDevtools />
-    </div>
+    </ErrorBoundary>
   );
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    // Update state so the next render will show the fallback UI.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    // You can also log the error to an error reporting service
+    console.error(error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // You can render any custom fallback UI
+      return (
+        <Box pt="7xl">
+          <Text align="center">Something went wrong.</Text>
+        </Box>
+      );
+    }
+
+    return <div>{this.props.children}</div>;
+  }
 }
 
 export const Route = createRootRoute({ component: RootLayout });

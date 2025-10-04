@@ -94,10 +94,12 @@ function BluetoothProvision({
 }: {
   onProvisionSucceeded: (mac: string) => void;
 }) {
+  const [hasScanned, setHasScanned] = useState(false);
   const [ssid, setSsid] = useState("");
   const [password, setPassword] = useState("");
   const {
     devices,
+    isScanning,
     scanForDevices,
     initialize,
     isConnected,
@@ -107,8 +109,11 @@ function BluetoothProvision({
     status,
   } = useBluetooth();
 
+  console.log("IS connected now", isConnected);
+
   return match({ isConnected })
     .with({ isConnected: true }, () => {
+      console.log("Trying to render connected view");
       return (
         <Box pt="7xl">
           <Box pb="3xl">
@@ -133,21 +138,17 @@ function BluetoothProvision({
               size="lg"
               full
               disabled={isProvisioning}
-              onClick={() =>
-                provision(ssid, password).then(onProvisionSucceeded)
-              }
+              onClick={() => {
+                provision(ssid, password).then(onProvisionSucceeded);
+              }}
             >
-              {isProvisioning
-                ? "Sending Wi-Fi details..."
-                : "Connect to Wi-Fi"}
+              {isProvisioning ? "Sending Wi-Fi details..." : "Connect to Wi-Fi"}
             </Button>
           </Group>
         </Box>
       );
     })
     .with({ isConnected: false }, () => {
-      const [hasScanned, setHasScanned] = useState(false);
-
       return (
         <Box pt="7xl">
           {devices.map((device) => (
@@ -156,12 +157,8 @@ function BluetoothProvision({
               name={device.name}
               deviceId={device.deviceId}
               onClick={() =>
-                connect(device.deviceId).then(() => {
-                  getCurrentSSID()
-                    .then((val) => setSsid(val))
-                    .catch((e) => {
-                      console.error(e);
-                    });
+                connect(device.deviceId).catch((e) => {
+                  console.log("Something happened when connecting?", e);
                 })
               }
             />
@@ -177,13 +174,14 @@ function BluetoothProvision({
             )}
             <Button
               full
+              disabled={isScanning}
               onClick={async () => {
                 await initialize();
                 await scanForDevices();
                 setHasScanned(true);
               }}
             >
-              Scan for your Ortus
+              {isScanning ? "Scanning..." : "Scan for Ortus"}
             </Button>
             {status ? <Text>{status}</Text> : null}
           </Group>

@@ -19,7 +19,6 @@ export const Route = createFileRoute("/")({
 
           return (
             <Button
-              size="sm"
               variant="ghost"
               square
               onClick={() =>
@@ -31,7 +30,7 @@ export const Route = createFileRoute("/")({
             >
               <PlusCircleIcon
                 fill="currentColor"
-                size={24}
+                size={32}
                 style={{ marginLeft: 8 }}
               />
             </Button>

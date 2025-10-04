@@ -9,6 +9,7 @@ import {
   type OrtusDevice,
   type BLEConnection,
 } from "../utils/bluetooth";
+import { set } from "zod";
 
 interface UseBluetoothReturn {
   // State
@@ -17,6 +18,7 @@ interface UseBluetoothReturn {
   macAddress: string;
   isConnected: boolean;
   isProvisioning: boolean;
+  isScanning: boolean;
   devices: OrtusDevice[];
   selectedDeviceId: string | null;
 
@@ -30,6 +32,7 @@ interface UseBluetoothReturn {
 }
 
 export function useBluetooth(): UseBluetoothReturn {
+  const [isScanning, setIsScanning] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [status, setStatus] = useState<string>("");
   const [macAddress, setMacAddress] = useState<string>("");
@@ -48,7 +51,7 @@ export function useBluetooth(): UseBluetoothReturn {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      connectionRef.current?.disconnect();
+      // connectionRef.current?.disconnect();
     };
   }, []);
 
@@ -66,6 +69,7 @@ export function useBluetooth(): UseBluetoothReturn {
 
   const scanForDevices = useCallback(async () => {
     try {
+      setIsScanning(true);
       setStatus("Looking for nearby Ortus...");
       const foundDevices = await scanForOrtusDevices(5000);
       setDevices(foundDevices);
@@ -84,7 +88,9 @@ export function useBluetooth(): UseBluetoothReturn {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Scan failed";
       setStatus(`Scan hiccup: ${message}`);
-      throw err;
+      return [];
+    } finally {
+      setIsScanning(false);
     }
   }, []);
 
@@ -108,18 +114,19 @@ export function useBluetooth(): UseBluetoothReturn {
       setIsConnected(true);
       setStatus("Connected!");
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Connection failed";
+      const message = err instanceof Error ? err.message : "Connection failed";
       setStatus(`Couldn't connect: ${message}`);
       setIsConnected(false);
-      throw err;
+      setSelectedDeviceId(null);
+      connectionRef.current = null;
     }
   }, []);
 
   const provision = useCallback(
     async (ssid: string, password: string) => {
       if (!connectionRef.current || !selectedDeviceId) {
-        throw new Error("Not connected to an Ortus.");
+        setStatus("Not connected to an Ortus. Try connecting again.");
+        return;
       }
 
       try {
@@ -140,7 +147,8 @@ export function useBluetooth(): UseBluetoothReturn {
         const message =
           err instanceof Error ? err.message : "Provisioning failed";
         setStatus(`Couldn't share Wi-Fi: ${message}`);
-        throw err;
+        console.error(err);
+        return null;
       } finally {
         setIsProvisioning(false);
       }
@@ -151,17 +159,17 @@ export function useBluetooth(): UseBluetoothReturn {
   const sendCommand = useCallback(
     async (command: string) => {
       if (!connectionRef.current || !selectedDeviceId) {
-        throw new Error("Not connected to an Ortus.");
+        setStatus("Not connected to an Ortus. Try connecting again.");
+        return;
       }
 
       try {
         await sendCommandCore(connectionRef.current, command);
         setStatus(`Sent command: ${command}`);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Command failed";
+        const message = err instanceof Error ? err.message : "Command failed";
         setStatus(`Command hiccup: ${message}`);
-        throw err;
+        console.error(err);
       }
     },
     [selectedDeviceId]
@@ -185,6 +193,7 @@ export function useBluetooth(): UseBluetoothReturn {
     isProvisioning,
     devices,
     selectedDeviceId,
+    isScanning,
     initialize,
     scanForDevices,
     connect,
