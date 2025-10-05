@@ -37,7 +37,7 @@ function RouteComponent() {
   }
 
   return (
-    <PageLayout layout={{ pageTitle: data.state.name }}>
+    <PageLayout layout={{ pageTitle: data.state.name, backButton: true }}>
       <Box pt="xl">
         <Group spacing="xl" justify="center">
           <Tabs
