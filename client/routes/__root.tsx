@@ -3,19 +3,13 @@ import {
   Link,
   Outlet,
   useMatches,
-  useRouter,
 } from "@tanstack/react-router";
 import { StaticDataRouteOption } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useCheckJWT } from "../hooks/useCheckJwt";
 import Container from "../primitives/Container/Container";
 import { Group } from "../primitives/Group/Group";
-import {
-  ArrowLeftIcon,
-  PlantIcon,
-  UserCircleIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+import { PlantIcon, UserCircleIcon } from "@phosphor-icons/react";
 import { Text } from "../primitives/Text/Text";
 import React from "react";
 import Box from "../primitives/Box/Box";
@@ -61,7 +55,6 @@ function NavBar() {
 function RootLayout() {
   useCheckJWT();
 
-  const router = useRouter();
   const match = useMatches({});
 
   const getLayout = (m: any) => m.context?.layout ?? m.staticData?.layout;
@@ -73,104 +66,22 @@ function RootLayout() {
     {} as StaticDataRouteOption["layout"]
   );
 
-  const {
-    pageTitle,
-    hideNav,
-    leftSection,
-    rightSection,
-    middleSection,
-    backButton,
-    closeButton,
-  } = layout || {};
+  const { hideNav } = layout || {};
 
-  const left = leftSection ? (
-    typeof leftSection === "function" ? (
-      leftSection()
-    ) : (
-      leftSection
-    )
-  ) : backButton ? (
-    <Link to="/" viewTransition={{ types: ["slide-right"] }}>
-      <ArrowLeftIcon size={24} />
-    </Link>
-  ) : null;
-
-  const middle = middleSection ? (
-    typeof middleSection === "function" ? (
-      middleSection()
-    ) : (
-      middleSection
-    )
-  ) : (
-    <Text size="lg">{pageTitle ? pageTitle : ""}</Text>
-  );
-
-  const right = rightSection ? (
-    typeof rightSection === "function" ? (
-      rightSection()
-    ) : (
-      rightSection
-    )
-  ) : closeButton ? (
-    <XIcon
-      size={24}
-      onClick={() =>
-        router.navigate({
-          to: "/",
-          viewTransition: { types: ["slide-down"] },
-        })
-      }
-    />
-  ) : null;
-
-  const showHeader =
-    pageTitle ||
-    backButton ||
-    closeButton ||
-    leftSection ||
-    middleSection ||
-    rightSection;
-
-  const mainHeight =
-    showHeader && !hideNav
-      ? `calc(100dvh - ${NAV_HEIGHT + HEADER_HEIGHT}px)`
-      : showHeader || !hideNav
-        ? `calc(100dvh - ${NAV_HEIGHT}px)`
-        : "100dvh";
+  const mainHeight = `calc(100vh - ${NAV_HEIGHT}px)`;
 
   return (
     <ErrorBoundary>
-      {showHeader && (
-        <header
-          style={{
-            height: HEADER_HEIGHT,
-            display: "flex",
-            alignItems: "center",
-            paddingTop: "env(safe-area-inset-top)",
-          }}
-        >
-          <Container>
-            <Group justify="between" align="center">
-              <div style={{ width: "15%", textAlign: "left" }}>{left}</div>
-              <div style={{ flex: 1, width: "100%", textAlign: "center" }}>
-                {middle}
-              </div>
-              <div style={{ width: "15%", textAlign: "right" }}>{right}</div>
-            </Group>
-          </Container>
-        </header>
-      )}
-      <Container
+      <div
         style={{
+          width: "100%",
           viewTransitionName: "main-content",
           height: mainHeight,
           overflow: "auto",
         }}
       >
-        <div style={{ width: "100%" }}>
-          <Outlet />
-        </div>
-      </Container>
+        <Outlet />
+      </div>
       {!hideNav && <NavBar />}
       <TanStackRouterDevtools />
     </ErrorBoundary>

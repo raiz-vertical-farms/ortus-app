@@ -11,24 +11,10 @@ import Toggle from "../../primitives/Toggle/Toggle";
 import Button from "../../primitives/Button/Button";
 import LightSwitch from "../../components/LightSwitch/LightSwitch";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
+import PageLayout from "../../layout/PageLayout/PageLayout";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
-  beforeLoad: async ({ params }) => {
-    const device = await client.api.deviceState({
-      parameters: { path: { id: params.id } },
-    });
-
-    const name = device.data?.state.name?.trim() || "Ortus";
-    const offlineSuffix = device.data?.state.online ? "" : " - offline";
-
-    return {
-      layout: {
-        pageTitle: `${name}${offlineSuffix}`,
-        backButton: true,
-      },
-    };
-  },
 });
 
 function RouteComponent() {
@@ -51,33 +37,43 @@ function RouteComponent() {
   }
 
   return (
-    <Box pt="xl">
-      <Group spacing="xl" justify="center">
-        <Tabs
-          value={data.state.online ? view : "settings"}
-          onChange={setView}
-          options={[
-            { value: "lights", label: "Lights", disabled: !data.state.online },
-            { value: "water", label: "Water", disabled: !data.state.online },
-            { value: "plants", label: "Plants", disabled: !data.state.online },
-            { value: "settings", label: "Settings" },
-          ]}
-        />
-      </Group>
-      {match({
-        view: data.state.online ? view : "settings",
-        online: data.state.online ? true : false,
-      })
-        .with({ view: "lights" }, () => <LightView deviceId={id} />)
-        .with({ view: "plants" }, () => (
-          <Text>Plant view is sprouting soon.</Text>
-        ))
-        .with({ view: "water" }, () => (
-          <Text>Water view is bubbling up soon.</Text>
-        ))
-        .with({ view: "settings" }, () => <SettingsView deviceId={id} />)
-        .exhaustive()}
-    </Box>
+    <PageLayout layout={{ pageTitle: data.state.name }}>
+      <Box pt="xl">
+        <Group spacing="xl" justify="center">
+          <Tabs
+            value={data.state.online ? view : "settings"}
+            onChange={setView}
+            options={[
+              {
+                value: "lights",
+                label: "Lights",
+                disabled: !data.state.online,
+              },
+              { value: "water", label: "Water", disabled: !data.state.online },
+              {
+                value: "plants",
+                label: "Plants",
+                disabled: !data.state.online,
+              },
+              { value: "settings", label: "Settings" },
+            ]}
+          />
+        </Group>
+        {match({
+          view: data.state.online ? view : "settings",
+          online: data.state.online ? true : false,
+        })
+          .with({ view: "lights" }, () => <LightView deviceId={id} />)
+          .with({ view: "plants" }, () => (
+            <Text>Plant view is sprouting soon.</Text>
+          ))
+          .with({ view: "water" }, () => (
+            <Text>Water view is bubbling up soon.</Text>
+          ))
+          .with({ view: "settings" }, () => <SettingsView deviceId={id} />)
+          .exhaustive()}
+      </Box>
+    </PageLayout>
   );
 }
 
@@ -157,7 +153,7 @@ function LightView({ deviceId }: { deviceId: string }) {
         />
       </Group>
       <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
+        <Group direction="column" align="center" justify="center" spacing="xl">
           <Text align="center" size="lg">
             Light schedule
           </Text>

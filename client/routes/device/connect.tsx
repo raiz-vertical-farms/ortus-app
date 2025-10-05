@@ -3,7 +3,10 @@ import { useState } from "react";
 import { match } from "ts-pattern";
 
 import BluetoothDeviceCard from "../../components/BluetoothDeviceCard/BluetoothDeviceCard";
-import { useBluetooth, type UseBluetoothReturn } from "../../hooks/useBluetooth";
+import {
+  useBluetooth,
+  type UseBluetoothReturn,
+} from "../../hooks/useBluetooth";
 import Box from "../../primitives/Box/Box";
 import Button from "../../primitives/Button/Button";
 import { Group } from "../../primitives/Group/Group";
@@ -11,14 +14,13 @@ import Input from "../../primitives/Input/Input";
 import { Text } from "../../primitives/Text/Text";
 import { client } from "../../lib/apiClient";
 import { getErrorMessage } from "../../utils/error";
+import PageLayout from "../../layout/PageLayout/PageLayout";
 
 export const Route = createFileRoute("/device/connect")({
   component: Page,
   staticData: {
     layout: {
-      pageTitle: "Connect Your Ortus",
       hideNav: true,
-      closeButton: true,
     },
   },
 });
@@ -36,56 +38,28 @@ function Page() {
   };
 
   return (
-    <div style={{ viewTransitionName: "main-content" }}>
+    <PageLayout layout={{ pageTitle: "Connect Your Ortus", closeButton: true }}>
       {match({ view, implementation: bluetooth.implementation })
         .with({ view: "main", implementation: "capacitor" }, () => (
-          <BluetoothProvision
+          <ProvisionFlow
+            variant="capacitor"
             bluetooth={bluetooth}
             onProvisionSucceeded={handleProvisionSucceeded}
           />
         ))
         .with({ view: "main", implementation: "web" }, () => (
-          <WebBluetooth
+          <ProvisionFlow
+            variant="web"
             bluetooth={bluetooth}
             onProvisionSucceeded={handleProvisionSucceeded}
           />
         ))
-        .with({ view: "main" }, () => <WebBluetoothUnsupported />)
+        .with({ view: "main", implementation: "unsupported" }, () => (
+          <WebBluetoothUnsupported />
+        ))
         .with({ view: "save" }, () => <SaveDevice deviceId={macAddress} />)
         .exhaustive()}
-    </div>
-  );
-}
-
-function BluetoothProvision({
-  bluetooth,
-  onProvisionSucceeded,
-}: {
-  bluetooth: UseBluetoothReturn;
-  onProvisionSucceeded: (mac: string) => void;
-}) {
-  return (
-    <ProvisionFlow
-      variant="capacitor"
-      bluetooth={bluetooth}
-      onProvisionSucceeded={onProvisionSucceeded}
-    />
-  );
-}
-
-function WebBluetooth({
-  bluetooth,
-  onProvisionSucceeded,
-}: {
-  bluetooth: UseBluetoothReturn;
-  onProvisionSucceeded: (mac: string) => void;
-}) {
-  return (
-    <ProvisionFlow
-      variant="web"
-      bluetooth={bluetooth}
-      onProvisionSucceeded={onProvisionSucceeded}
-    />
+    </PageLayout>
   );
 }
 
@@ -199,7 +173,6 @@ function ProvisionFlow({
             <BluetoothDeviceCard
               key={device.deviceId}
               name={device.name}
-              deviceId={device.deviceId}
               onClick={() => handleConnect(device.deviceId)}
             />
           ))}
