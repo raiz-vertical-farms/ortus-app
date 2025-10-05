@@ -1,20 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import {
   initializeBLE,
-  isBluetoothSupported,
   scanForOrtusDevices,
   connectToDevice,
   provisionWiFi as provisionWiFiCore,
   sendCommand as sendCommandCore,
   type OrtusDevice,
   type BLEConnection,
+  getBluetoothImplementation,
+  type BluetoothImplementation,
 } from "../utils/bluetooth";
-import { set } from "zod";
 
-interface UseBluetoothReturn {
+export interface UseBluetoothReturn {
   // State
   status: string;
   isSupported: boolean;
+  implementation: BluetoothImplementation;
   macAddress: string;
   isConnected: boolean;
   isProvisioning: boolean;
@@ -33,7 +34,12 @@ interface UseBluetoothReturn {
 
 export function useBluetooth(): UseBluetoothReturn {
   const [isScanning, setIsScanning] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
+  const [implementation, setImplementation] = useState<BluetoothImplementation>(
+    getBluetoothImplementation()
+  );
+  const [isSupported, setIsSupported] = useState(
+    implementation !== "unsupported"
+  );
   const [status, setStatus] = useState<string>("");
   const [macAddress, setMacAddress] = useState<string>("");
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -45,7 +51,9 @@ export function useBluetooth(): UseBluetoothReturn {
 
   // Check Bluetooth support on mount
   useEffect(() => {
-    setIsSupported(isBluetoothSupported());
+    const nextImplementation = getBluetoothImplementation();
+    setImplementation(nextImplementation);
+    setIsSupported(nextImplementation !== "unsupported");
   }, []);
 
   // Cleanup on unmount
@@ -86,6 +94,15 @@ export function useBluetooth(): UseBluetoothReturn {
 
       return foundDevices;
     } catch (err) {
+      if (
+        typeof DOMException !== "undefined" &&
+        err instanceof DOMException &&
+        err.name === "NotFoundError"
+      ) {
+        setStatus("Scan canceled.");
+        return [];
+      }
+
       const message = err instanceof Error ? err.message : "Scan failed";
       setStatus(`Scan hiccup: ${message}`);
       throw err;
@@ -186,6 +203,7 @@ export function useBluetooth(): UseBluetoothReturn {
   return {
     status,
     isSupported,
+    implementation,
     macAddress,
     isConnected,
     isProvisioning,
