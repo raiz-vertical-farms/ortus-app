@@ -68,7 +68,7 @@ function RootLayout() {
 
   const { hideNav } = layout || {};
 
-  const mainHeight = `calc(100vh - ${NAV_HEIGHT}px)`;
+  const mainHeight = hideNav ? "100dvh" : `calc(100dvh - ${NAV_HEIGHT}px)`;
 
   return (
     <ErrorBoundary>
