@@ -12,6 +12,9 @@ import Button from "../../primitives/Button/Button";
 import LightSwitch from "../../components/LightSwitch/LightSwitch";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import PageLayout from "../../layout/PageLayout/PageLayout";
+import Modal from "../../primitives/Modal/Modal";
+import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
+import { set } from "zod";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -70,15 +73,24 @@ function RouteComponent() {
           .with({ view: "water" }, () => (
             <Text>Water view is bubbling up soon.</Text>
           ))
-          .with({ view: "settings" }, () => <SettingsView deviceId={id} />)
+          .with({ view: "settings" }, () => (
+            <SettingsView macAddress={data.state.mac_address} deviceId={id} />
+          ))
           .exhaustive()}
       </Box>
     </PageLayout>
   );
 }
 
-function SettingsView({ deviceId }: { deviceId: string }) {
+function SettingsView({
+  deviceId,
+  macAddress,
+}: {
+  deviceId: string;
+  macAddress: string;
+}) {
   const router = useRouter();
+  const [showReconnect, setShowReconnect] = useState(false);
   const { mutate } = client.api.deleteDevice.useMutation(undefined, {
     onSuccess: () => {
       router.navigate({ to: "/" });
@@ -86,12 +98,29 @@ function SettingsView({ deviceId }: { deviceId: string }) {
   });
 
   return (
-    <Box pt="5xl">
-      <Text>Danger zone (careful!)</Text>
-      <Button onClick={() => mutate({ path: { id: deviceId } })}>
-        Remove this Ortus
-      </Button>
-    </Box>
+    <>
+      <Box pt="5xl">
+        <Text>Danger zone (careful!)</Text>
+        <Button onClick={() => mutate({ path: { id: deviceId } })}>
+          Remove this Ortus
+        </Button>
+        <Text>Reconnect to a device</Text>
+        <Button onClick={() => setShowReconnect(true)}>
+          Reconnect to device
+        </Button>
+      </Box>
+      <Modal
+        open={showReconnect}
+        onClose={() => setShowReconnect(false)}
+        title="Reconnect to Ortus"
+      >
+        <ProvisionFlow
+          onProvisionSucceeded={(mac) => {
+            setShowReconnect(false);
+          }}
+        />
+      </Modal>
+    </>
   );
 }
 

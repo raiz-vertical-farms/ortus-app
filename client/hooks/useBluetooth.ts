@@ -26,7 +26,7 @@ export interface UseBluetoothReturn {
   // Actions
   initialize: () => Promise<void>;
   scanForDevices: () => Promise<OrtusDevice[]>;
-  connect: (deviceId: string) => Promise<void>;
+  connect: (deviceId: string) => Promise<string>;
   provision: (ssid: string, password: string) => Promise<string>;
   sendCommand: (command: string) => Promise<void>;
   disconnect: () => Promise<void>;
@@ -59,7 +59,7 @@ export function useBluetooth(): UseBluetoothReturn {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // connectionRef.current?.disconnect();
+      connectionRef.current?.disconnect();
     };
   }, []);
 
@@ -111,33 +111,62 @@ export function useBluetooth(): UseBluetoothReturn {
     }
   }, []);
 
-  const connect = useCallback(async (deviceId: string) => {
-    try {
-      setStatus("Connecting to your Ortus...");
+  const connect = useCallback(async (deviceId: string): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      let timeout: NodeJS.Timeout | null = null;
+      let macResolved = false;
 
-      const connection = await connectToDevice(deviceId, {
-        onStatusUpdate: (s) => setStatus(s),
-        onMacAddressReceived: (mac) => setMacAddress(mac),
-        onDisconnected: () => {
-          setIsConnected(false);
-          setSelectedDeviceId(null);
-          connectionRef.current = null;
-          setStatus("Bluetooth disconnected.");
-        },
-      });
+      try {
+        setStatus("Connecting to your Ortus...");
 
-      connectionRef.current = connection;
-      setSelectedDeviceId(deviceId);
-      setIsConnected(true);
-      setStatus("Connected!");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Connection failed";
-      setStatus(`Couldn't connect: ${message}`);
-      setIsConnected(false);
-      setSelectedDeviceId(null);
-      connectionRef.current = null;
-      throw err;
-    }
+        const connection = await connectToDevice(deviceId, {
+          onStatusUpdate: (s) => setStatus(s),
+          onMacAddressReceived: (mac) => {
+            setMacAddress(mac);
+            if (!macResolved) {
+              macResolved = true;
+              if (timeout) clearTimeout(timeout);
+              resolve(mac);
+            }
+          },
+          onDisconnected: () => {
+            setIsConnected(false);
+            setSelectedDeviceId(null);
+            connectionRef.current = null;
+            setStatus("Bluetooth disconnected.");
+
+            if (!macResolved) {
+              macResolved = true;
+              if (timeout) clearTimeout(timeout);
+              reject(new Error("Disconnected before MAC address was received"));
+            }
+          },
+        });
+
+        // Start timeout timer
+        timeout = setTimeout(() => {
+          if (!macResolved) {
+            macResolved = true;
+            connection.disconnect().catch(() => {});
+            reject(new Error("Timed out waiting for MAC address"));
+          }
+        }, 3_000);
+
+        connectionRef.current = connection;
+        setSelectedDeviceId(deviceId);
+        setIsConnected(true);
+        setStatus("Connected!");
+      } catch (err) {
+        if (timeout) clearTimeout(timeout);
+        const message =
+          err instanceof Error ? err.message : "Connection failed";
+        setStatus(`Couldn't connect: ${message}`);
+        setIsConnected(false);
+        setSelectedDeviceId(null);
+        connectionRef.current = null;
+        reject(err);
+      }
+    });
   }, []);
 
   const provision = useCallback(

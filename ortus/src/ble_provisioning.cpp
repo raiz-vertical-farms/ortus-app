@@ -129,6 +129,7 @@ void BluetoothProvisioning::onConnect(BLEServer *pServer)
     provisionSawDisconnect = false;
     lastWifiConnected = (WiFi.status() == WL_CONNECTED);
     updateStatus("Device connected");
+    updateMACAddress();
 }
 
 void BluetoothProvisioning::onDisconnect(BLEServer *pServer)

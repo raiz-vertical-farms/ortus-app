@@ -18,7 +18,7 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, var(--opacity-25));
   max-width: 600px;
   width: 90%;
-  padding: var(--spacing-6);
+  padding: var(--spacing-md);
   animation: slideUp 0.25s ease;
 }
 
@@ -26,18 +26,19 @@
   font-family: var(--font-family-heading);
   font-size: var(--font-size-xl);
   font-weight: 600;
-  margin-bottom: var(--spacing-4);
+  text-align: center;
+  padding: var(--spacing-sm);
 }
 
 .body {
   font-size: var(--font-size-base);
-  margin-bottom: var(--spacing-6);
+  margin-bottom: var(--spacing-md);
 }
 
 .footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-3);
+  gap: var(--spacing-md);
 }
 
 /* Animations */
