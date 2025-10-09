@@ -3,7 +3,7 @@ import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
 import { client } from "../../lib/apiClient";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { match } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
 import Tabs from "../../primitives/Tabs/Tabs";
@@ -14,7 +14,7 @@ import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import PageLayout from "../../layout/PageLayout/PageLayout";
 import Modal from "../../primitives/Modal/Modal";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
-import { set } from "zod";
+import { useDevice } from "../../hooks/useDevice";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -27,46 +27,50 @@ function RouteComponent() {
     "lights"
   );
 
-  const { data, error, isLoading } = client.api.deviceState.useQuery({
-    path: { id },
-  });
+  const device = useDevice(id);
 
-  if (isLoading || !data) {
+  if (device.isLoading || !device.state) {
     return "Loading your garden...";
   }
 
-  if (error) {
-    return getErrorMessage(error);
+  if (device.error) {
+    return getErrorMessage(device.error);
   }
 
   return (
-    <PageLayout layout={{ pageTitle: data.state.name, backButton: true }}>
+    <PageLayout layout={{ pageTitle: device.state.name, backButton: true }}>
       <Box pt="xl">
         <Group spacing="xl" justify="center">
           <Tabs
-            value={data.state.online ? view : "settings"}
+            value={device.state.online ? view : "settings"}
             onChange={setView}
             options={[
               {
                 value: "lights",
                 label: "Lights",
-                disabled: !data.state.online,
+                disabled: !device.state.online,
               },
-              { value: "water", label: "Water", disabled: !data.state.online },
+              {
+                value: "water",
+                label: "Water",
+                disabled: !device.state.online,
+              },
               {
                 value: "plants",
                 label: "Plants",
-                disabled: !data.state.online,
+                disabled: !device.state.online,
               },
               { value: "settings", label: "Settings" },
             ]}
           />
         </Group>
         {match({
-          view: data.state.online ? view : "settings",
-          online: data.state.online ? true : false,
+          view: device.state.online ? view : "settings",
+          online: device.state.online ? true : false,
         })
-          .with({ view: "lights" }, () => <LightView deviceId={id} />)
+          .with({ view: "lights" }, () => (
+            <LightView deviceId={id} device={device} />
+          ))
           .with({ view: "plants" }, () => (
             <Text>Plant view is sprouting soon.</Text>
           ))
@@ -74,7 +78,7 @@ function RouteComponent() {
             <Text>Water view is bubbling up soon.</Text>
           ))
           .with({ view: "settings" }, () => (
-            <SettingsView macAddress={data.state.mac_address} deviceId={id} />
+            <SettingsView macAddress={device.state.mac_address} deviceId={id} />
           ))
           .exhaustive()}
       </Box>
@@ -124,7 +128,13 @@ function SettingsView({
   );
 }
 
-function LightView({ deviceId }: { deviceId: string }) {
+function LightView({
+  deviceId,
+  device,
+}: {
+  deviceId: string;
+  device: ReturnType<typeof useDevice>;
+}) {
   const [scheduleState, setScheduleState] = useState<{
     fromHours: number;
     fromMinutes: number;
@@ -137,49 +147,68 @@ function LightView({ deviceId }: { deviceId: string }) {
     null
   );
 
-  const { data, refetch } = client.api.deviceState.useQuery(
-    {
-      path: { id: deviceId },
+  useEffect(() => {
+    const schedule = device.state?.light_schedule;
+    if (schedule) {
+      setScheduleState({
+        fromHours: schedule.from_hour ?? 0,
+        fromMinutes: schedule.from_minute ?? 0,
+        toHours: schedule.to_hour ?? 0,
+        toMinutes: schedule.to_minute ?? 0,
+      });
+    }
+  }, [device.state?.light_schedule]);
+
+  useEffect(() => {
+    if (pendingBrightness === null) {
+      return;
+    }
+
+    if (device.state && device.state.light === pendingBrightness) {
+      const timeout = setTimeout(() => setPendingBrightness(null), 150);
+      return () => clearTimeout(timeout);
+    }
+  }, [pendingBrightness, device.state?.light]);
+
+  const debouncedSetLight = useDebouncedCallback(
+    (brightness: number) => {
+      device
+        .setBrightness(brightness)
+        .catch((error) => console.error("Failed to set brightness", error));
     },
-    { refetchInterval: 3000, staleTime: 0, enabled: pendingBrightness === null }
+    device.isWebSocketConnected ? 0 : 1000
   );
 
-  const debouncedRefetch = useDebouncedCallback(() => {
-    refetch().then(() => {
-      setPendingBrightness(null);
-    });
-  }, 8000);
+  const handleBrightnessChange = (value: number) => {
+    setPendingBrightness(value);
+    debouncedSetLight(value);
+  };
 
-  const { mutate: setLight } = client.api.setLight.useMutation(undefined, {
-    onSuccess: debouncedRefetch,
-  });
+  const currentBrightness = pendingBrightness ?? device.state?.light ?? 0;
 
-  const debouncedSetLight = useDebouncedCallback((brightness: number) => {
-    setLight({
-      path: { id: deviceId },
-      body: { brightness },
-    });
-  }, 300);
-
-  const { mutate: scheduleLights } = client.api.scheduleLight.useMutation(
-    undefined,
-    { onSuccess: () => refetch() }
-  );
+  const handleScheduleSave = () => {
+    device
+      .scheduleLights({
+        fromHours: scheduleState.fromHours,
+        fromMinutes: scheduleState.fromMinutes,
+        toHours: scheduleState.toHours,
+        toMinutes: scheduleState.toMinutes,
+      })
+      .catch((error) => console.error("Failed to schedule lights", error));
+  };
 
   return (
     <Box pt="5xl">
       <Group direction="column" align="center" justify="center" spacing="xl">
         <LightSwitch
-          brightness={
-            pendingBrightness !== null
-              ? pendingBrightness
-              : data?.state.light || 0
-          }
-          onChange={(val) => {
-            setPendingBrightness(val);
-            debouncedSetLight(val);
-          }}
+          brightness={currentBrightness}
+          onChange={handleBrightnessChange}
         />
+        <Text size="sm">
+          {device.isWebSocketConnected
+            ? "LAN control active"
+            : "Using cloud fallback"}
+        </Text>
       </Group>
       <Box pt="5xl">
         <Group direction="column" align="center" justify="center" spacing="xl">
@@ -210,8 +239,9 @@ function LightView({ deviceId }: { deviceId: string }) {
                       fromHours: parseInt(e.target.value),
                     })
                   }
+                  value={scheduleState.fromHours}
                 >
-                  {new Array(23).fill(null).map((_, i) => (
+                  {new Array(24).fill(null).map((_, i) => (
                     <option key={i}>{i}</option>
                   ))}
                 </select>
@@ -222,11 +252,13 @@ function LightView({ deviceId }: { deviceId: string }) {
                       fromMinutes: parseInt(e.target.value),
                     })
                   }
+                  value={scheduleState.fromMinutes}
                 >
-                  <option>00</option>
-                  <option>15</option>
-                  <option>30</option>
-                  <option>45</option>
+                  {["00", "15", "30", "45"].map((label) => (
+                    <option key={label} value={parseInt(label)}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </Group>
               <Group
@@ -245,8 +277,9 @@ function LightView({ deviceId }: { deviceId: string }) {
                       toHours: parseInt(e.target.value),
                     })
                   }
+                  value={scheduleState.toHours}
                 >
-                  {new Array(23).fill(null).map((_, i) => (
+                  {new Array(24).fill(null).map((_, i) => (
                     <option key={i}>{i}</option>
                   ))}
                 </select>
@@ -257,27 +290,15 @@ function LightView({ deviceId }: { deviceId: string }) {
                       toMinutes: parseInt(e.target.value),
                     })
                   }
+                  value={scheduleState.toMinutes}
                 >
-                  <option>00</option>
-                  <option>15</option>
-                  <option>30</option>
-                  <option>45</option>
+                  {["00", "15", "30", "45"].map((label) => (
+                    <option key={label} value={parseInt(label)}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
-                <Button
-                  onClick={() => {
-                    scheduleLights({
-                      path: { id: deviceId },
-                      body: {
-                        from_hour: scheduleState.fromHours,
-                        from_minute: scheduleState.fromMinutes,
-                        to_hour: scheduleState.toHours,
-                        to_minute: scheduleState.toMinutes,
-                      },
-                    });
-                  }}
-                >
-                  Save schedule
-                </Button>
+                <Button onClick={handleScheduleSave}>Save schedule</Button>
               </Group>
             </>
           )}

@@ -1,6 +1,7 @@
 // src/index.ts
 import mqtt, { MqttClient } from "mqtt";
 import { db } from "../db";
+import { z } from "zod";
 
 const url = `mqtts://${process.env.MQTT_BROKER_HOST}:8883`;
 
@@ -75,12 +76,52 @@ async function handlePresence(mac_address: string, message: Buffer) {
     return;
   }
 
+  const rawMessage = message.toString();
+
+  const presenceSchema = z.object({
+    publicIp: z.string().trim().min(1).optional(),
+    localIp: z.string().trim().min(1).optional(),
+    wsPort: z
+      .union([z.string().regex(/^\d+$/), z.number().int().nonnegative()])
+      .optional(),
+  });
+
+  const parsed = presenceSchema.safeParse(
+    (() => {
+      try {
+        return JSON.parse(rawMessage);
+      } catch (error) {
+        return undefined;
+      }
+    })()
+  );
+
+  const update: Record<string, number | string | null> = {
+    last_seen: Math.floor(Date.now() / 1000),
+    online: 1,
+  };
+
+  if (parsed.success) {
+    const payload = parsed.data;
+
+    if (payload.localIp) {
+      update.lan_ip = payload.localIp;
+    }
+
+    if (payload.wsPort !== undefined) {
+      const portValue =
+        typeof payload.wsPort === "number"
+          ? payload.wsPort
+          : Number.parseInt(payload.wsPort, 10);
+      if (!Number.isNaN(portValue)) {
+        update.lan_ws_port = portValue;
+      }
+    }
+  }
+
   await db
     .updateTable("devices")
-    .set({
-      last_seen: Math.floor(Date.now() / 1000),
-      online: 1,
-    })
+    .set(update)
     .where("mac_address", "=", mac_address)
     .execute();
 
@@ -89,14 +130,21 @@ async function handlePresence(mac_address: string, message: Buffer) {
     .values({
       mac_address: mac_address,
       metric: "presence",
-      value_text: message.toString(),
-      value_type: "text",
+      value_text: parsed.success ? JSON.stringify(parsed.data) : rawMessage,
+      value_type: parsed.success ? "json" : "text",
     })
     .execute();
 
-  console.log(
-    `Updated last_seen and presence for ${mac_address} with message: ${message.toString()}`
-  );
+  if (parsed.success) {
+    const { publicIp, localIp, wsPort } = parsed.data;
+    console.log(
+      `Updated presence for ${mac_address} (public IP: ${publicIp ?? "unknown"}, LAN: ${localIp ?? "unknown"}, WS port: ${wsPort ?? "n/a"})`
+    );
+  } else {
+    console.warn(
+      `Presence payload for ${mac_address} failed validation, stored as text`
+    );
+  }
 }
 
 async function handleStatus(mac_address: string, message: Buffer) {

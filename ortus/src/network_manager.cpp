@@ -1,4 +1,5 @@
 #include <Adafruit_NeoPixel.h>
+#include <WiFi.h>
 #include "network_manager.h"
 #include "config.h"
 
@@ -12,15 +13,24 @@ NetworkManager *NetworkManager::instance_ = nullptr;
 NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
     : credentials(credentialsStore),
       client(espClient),
+      mqttAdapter(espClient, client),
+      websocketAdapter(WS_SERVER_PORT),
+      transports{&mqttAdapter, &websocketAdapter},
+      transportCount(2),
       macAddress(""),
       lastPresenceAt(0),
       lastWiFiAttempt(0),
-      brightness(0),
+      lastPublicIpFetch(0),
       wifiWasConnected(false),
+      mqttWasConnected(false),
       waitingForCredentialsLogged(false),
-      waitingBeforeRetryLogged(false)
+      waitingBeforeRetryLogged(false),
+      adaptersInitialized(false)
 {
   instance_ = this;
+  deviceState.brightness = 0;
+  deviceState.hasSchedule = false;
+  cachedPublicIp.reserve(32);
 }
 
 void NetworkManager::begin()
@@ -33,11 +43,19 @@ void NetworkManager::begin()
 
   connectWiFi();
 
-  espClient.setInsecure();
-  client.setServer(MQTT_BROKER_HOST, MQTT_PORT);
-  client.setCallback(NetworkManager::mqttCallbackRouter);
+  mqttAdapter.setCredentials(MQTT_BROKER_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD);
+  mqttAdapter.begin();
+  websocketAdapter.begin();
+
+  for (size_t i = 0; i < transportCount; ++i)
+  {
+    transports[i]->setCommandHandler([this](const DeviceCommand &command) {
+      handleDeviceCommand(command);
+    });
+  }
 
   pixels.begin();
+  applyBrightnessToPixels();
 }
 
 void NetworkManager::loop()
@@ -52,22 +70,20 @@ void NetworkManager::loop()
 
   if (!wifiWasConnected)
   {
-    wifiWasConnected = true;
-    macAddress = WiFi.macAddress();
-
-    Serial.println("[Network] Wi-Fi connected");
-    Serial.print("[Network] Local IP: ");
-    Serial.println(WiFi.localIP());
-    Serial.printf("[Network] Signal strength: %d dBm\n", WiFi.RSSI());
+    onWiFiConnected();
   }
 
-  if (!client.connected())
+  ensureAdapterIdentity();
+
+  mqttAdapter.loop();
+  const bool mqttConnected = mqttAdapter.isConnected();
+  if (mqttConnected && !mqttWasConnected)
   {
-    ensureMqttConnection();
-    Serial.println(F("[Network] Ensuring MQTT connection"));
+    broadcastState();
   }
+  mqttWasConnected = mqttConnected;
 
-  client.loop();
+  websocketAdapter.loop();
 
   const unsigned long now = millis();
   if (now - lastPresenceAt >= PRESENCE_INTERVAL_MS)
@@ -77,12 +93,165 @@ void NetworkManager::loop()
   }
 }
 
-void NetworkManager::mqttCallbackRouter(char *topic, uint8_t *payload, unsigned int length)
+void NetworkManager::onWiFiConnected()
 {
-  if (instance_ != nullptr)
+  wifiWasConnected = true;
+  macAddress = WiFi.macAddress();
+
+  Serial.println(F("[Network] Wi-Fi connected"));
+  Serial.print(F("[Network] Local IP: "));
+  Serial.println(WiFi.localIP());
+  Serial.printf("[Network] Signal strength: %d dBm\n", WiFi.RSSI());
+
+  adaptersInitialized = false;
+  lastPresenceAt = 0;
+  publishPresence();
+}
+
+void NetworkManager::handleDeviceCommand(const DeviceCommand &command)
+{
+  switch (command.type)
   {
-    instance_->handleMqttMessage(topic, payload, length);
+  case CommandType::SetBrightness:
+    setBrightness(command.brightness);
+    break;
+  case CommandType::ScheduleLights:
+    updateSchedule(command.schedule);
+    break;
   }
+}
+
+void NetworkManager::setBrightness(int value)
+{
+  if (value < 0 || value > 100)
+  {
+    Serial.print(F("[Device] Ignoring invalid brightness: "));
+    Serial.println(value);
+    return;
+  }
+
+  if (deviceState.brightness == value)
+  {
+    broadcastState();
+    return;
+  }
+
+  deviceState.brightness = value;
+  applyBrightnessToPixels();
+  broadcastState();
+}
+
+void NetworkManager::updateSchedule(const LightSchedule &schedule)
+{
+  deviceState.hasSchedule = schedule.enabled;
+  deviceState.schedule = schedule;
+  broadcastState();
+}
+
+void NetworkManager::broadcastState()
+{
+  for (size_t i = 0; i < transportCount; ++i)
+  {
+    transports[i]->notifyState(deviceState);
+  }
+}
+
+void NetworkManager::publishPresence()
+{
+  if (!mqttAdapter.isConnected())
+  {
+    Serial.println(F("[Network] Presence skipped (MQTT not connected)"));
+    return;
+  }
+
+  cachedPublicIp = getPublicIP();
+  const String payload = buildPresencePayload();
+  mqttAdapter.publishPresence(payload);
+}
+
+String NetworkManager::buildPresencePayload() const
+{
+  String payload = "{";
+  payload += "\"publicIp\":\"";
+  payload += cachedPublicIp.length() ? cachedPublicIp : String("unknown");
+  payload += "\",\"localIp\":\"";
+  payload += WiFi.localIP().toString();
+  payload += "\",\"wsPort\":";
+  payload += String(websocketAdapter.port());
+  payload += "}";
+  return payload;
+}
+
+void NetworkManager::ensureAdapterIdentity()
+{
+  if (adaptersInitialized || macAddress.isEmpty())
+  {
+    return;
+  }
+
+  mqttAdapter.setIdentity(macAddress);
+  adaptersInitialized = true;
+  broadcastState();
+}
+
+String NetworkManager::getPublicIP()
+{
+  const unsigned long now = millis();
+  if (!cachedPublicIp.isEmpty() && now - lastPublicIpFetch < PUBLIC_IP_REFRESH_MS)
+  {
+    return cachedPublicIp;
+  }
+
+  WiFiClientSecure https;
+  https.setInsecure();
+
+  if (!https.connect("api.ipify.org", 443))
+  {
+    Serial.println(F("[Network] Connection to ipify failed"));
+    return cachedPublicIp.length() ? cachedPublicIp : String("unknown");
+  }
+
+  https.println("GET /?format=text HTTP/1.1");
+  https.println("Host: api.ipify.org");
+  https.println("User-Agent: ESP32");
+  https.println("Connection: close");
+  https.println();
+
+  while (https.connected())
+  {
+    String line = https.readStringUntil('\n');
+    if (line == "\r")
+    {
+      break;
+    }
+  }
+
+  String ip = https.readString();
+  ip.trim();
+
+  if (ip.length() > 0)
+  {
+    cachedPublicIp = ip;
+    lastPublicIpFetch = now;
+  }
+
+  return cachedPublicIp.length() ? cachedPublicIp : String("unknown");
+}
+
+void NetworkManager::applyBrightnessToPixels()
+{
+  const int level = map(deviceState.brightness, 0, 100, 0, 255);
+
+  if (level == 0)
+  {
+    pixels.clear();
+  }
+  else
+  {
+    pixels.setPixelColor(0, pixels.Color(level, level, level));
+  }
+
+  pixels.show();
 }
 
 void NetworkManager::connectWiFi()
@@ -96,7 +265,7 @@ void NetworkManager::connectWiFi()
   {
     if (!waitingForCredentialsLogged)
     {
-      Serial.println("[Network] Waiting for Wi-Fi credentials...");
+      Serial.println(F("[Network] Waiting for Wi-Fi credentials..."));
       waitingForCredentialsLogged = true;
     }
     return;
@@ -121,11 +290,8 @@ void NetworkManager::connectWiFi()
   const String ssid = credentials.getSsid();
   const String password = credentials.getPassword();
 
-  Serial.print("[Network] Connecting to ");
+  Serial.print(F("[Network] Connecting to "));
   Serial.println(ssid);
-
-  Serial.print("[Network] Password: ");
-  Serial.println(password);
 
   WiFi.begin(ssid.c_str(), password.c_str());
 }
@@ -134,199 +300,13 @@ void NetworkManager::forceReconnect()
 {
   Serial.println(F("[Network] Forcing Wi-Fi reconnect"));
   wifiWasConnected = false;
+  mqttWasConnected = false;
   waitingForCredentialsLogged = false;
-  lastWiFiAttempt = 0;
   waitingBeforeRetryLogged = false;
+  lastWiFiAttempt = 0;
+  macAddress = "";
+  adaptersInitialized = false;
+  mqttAdapter.setIdentity("");
   WiFi.disconnect(true, true);
   connectWiFi();
-}
-
-void NetworkManager::ensureMqttConnection()
-{
-  if (WiFi.status() != WL_CONNECTED)
-  {
-    return;
-  }
-
-  while (!client.connected())
-  {
-    Serial.print("Attempting MQTT connection...");
-    String clientId = String("ESP32-") + macAddress;
-    const String statusTopic = getStatusTopic();
-
-    if (client.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, statusTopic.c_str(), 1, true, "offline"))
-    {
-      Serial.println("connected");
-      client.subscribe(getCommandTopic().c_str());
-      publishLightState();
-      if (client.publish(statusTopic.c_str(), "online", true))
-      {
-        Serial.println(F("[Network] MQTT status set to online"));
-      }
-      else
-      {
-        Serial.println(F("[Network] Failed to publish online status"));
-      }
-      Serial.println(F("[Network] MQTT subscription established"));
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
-      if (WiFi.status() != WL_CONNECTED)
-      {
-        return;
-      }
-    }
-  }
-}
-
-void NetworkManager::publishPresence()
-{
-  if (!client.connected())
-  {
-    Serial.println(F("[Network] Presence skipped (MQTT not connected)"));
-    return;
-  }
-
-  const String topic = getPresenceTopic();
-  const String payload = getPublicIP();
-
-  if (!client.publish(topic.c_str(), payload.c_str()))
-  {
-    Serial.println("Failed to publish presence");
-  }
-  else
-  {
-    Serial.print("Published to ");
-    Serial.print(topic);
-    Serial.print(": ");
-    Serial.println(payload);
-    Serial.println(F("[Network] Presence heartbeat sent"));
-  }
-}
-
-void NetworkManager::publishLightState()
-{
-  const String topic = getStateTopic();
-  String payload = String(brightness); // publish brightness as string
-
-  if (!client.publish(topic.c_str(), payload.c_str(), true))
-  {
-    Serial.println("Failed to publish light state");
-  }
-  else
-  {
-    Serial.print("Light brightness published: ");
-    Serial.print(topic);
-    Serial.print(" -> ");
-    Serial.println(payload);
-  }
-}
-
-void NetworkManager::handleMqttMessage(char *topic, uint8_t *payload, unsigned int length)
-{
-  const String commandTopic = getCommandTopic();
-
-  if (!commandTopic.equals(topic))
-  {
-    return;
-  }
-
-  String message;
-  message.reserve(length);
-  for (unsigned int i = 0; i < length; i++)
-  {
-    message += static_cast<char>(payload[i]);
-  }
-
-  message.trim();
-  message.toLowerCase();
-
-  processLightCommand(message);
-}
-
-void NetworkManager::processLightCommand(const String &command)
-{
-  // Try to parse brightness value (0-100)
-  int value = command.toInt();
-
-  if (value >= 0 && value <= 100)
-  {
-    brightness = value;
-
-    // Scale brightness to 0–255
-    int level = map(brightness, 0, 100, 0, 255);
-
-    if (level == 0)
-    {
-      pixels.clear();
-    }
-    else
-    {
-      pixels.setPixelColor(0, pixels.Color(level, level, level)); // white with brightness
-    }
-
-    pixels.show();
-    publishLightState();
-  }
-  else
-  {
-    Serial.print("Unknown light command: ");
-    Serial.println(command);
-  }
-}
-
-String NetworkManager::getPresenceTopic() const
-{
-  return macAddress + String("/presence");
-}
-
-String NetworkManager::getStatusTopic() const
-{
-  return macAddress + String("/status");
-}
-
-String NetworkManager::getCommandTopic() const
-{
-  return macAddress + String("/sensor/light/command");
-}
-
-String NetworkManager::getStateTopic() const
-{
-  return macAddress + String("/sensor/light/state");
-}
-
-String NetworkManager::getPublicIP()
-{
-  WiFiClientSecure https;
-  https.setInsecure();
-
-  if (!https.connect("api.ipify.org", 443))
-  {
-    Serial.println("Connection to ipify failed");
-    return "unknown";
-  }
-
-  https.println("GET / HTTP/1.1");
-  https.println("Host: api.ipify.org");
-  https.println("User-Agent: ESP32");
-  https.println("Connection: close");
-  https.println();
-
-  String line;
-  while (https.connected())
-  {
-    line = https.readStringUntil('\n');
-    if (line == "\r")
-    {
-      break;
-    }
-  }
-
-  String ip = https.readString();
-  ip.trim();
-  return ip.length() > 0 ? ip : "unknown";
 }
