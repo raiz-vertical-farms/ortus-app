@@ -209,8 +209,8 @@ const app = new Hono()
         .select(["metric", "value_text"])
         .where("mac_address", "=", device.mac_address)
         .where("metric", "in", [
-          "light",
-          "sensor/light/schedule",
+          "light/brightness",
+          "light/schedule",
           "water_level",
         ])
         .where((eb) =>
@@ -226,10 +226,8 @@ const app = new Hono()
         )
         .execute();
 
-      const light = results.find((r) => r.metric === "light");
-      const lightSchedule = results.find(
-        (r) => r.metric === "sensor/light/schedule"
-      );
+      const light = results.find((r) => r.metric === "light/brightness");
+      const lightSchedule = results.find((r) => r.metric === "light/schedule");
       const waterLevel = results.find((r) => r.metric === "water_level");
 
       console.log({ light });
