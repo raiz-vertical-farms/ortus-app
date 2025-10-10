@@ -16,8 +16,8 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       stateStore(),
       mqttAdapter(espClient, client),
       websocketAdapter(WS_SERVER_PORT),
-      transports{&mqttAdapter, &websocketAdapter},
-      transportCount(2),
+      transports{&websocketAdapter, nullptr},
+      transportCount(1),
       macAddress(""),
       lastPresenceAt(0),
       lastWiFiAttempt(0),
@@ -61,6 +61,10 @@ void NetworkManager::begin()
   mqttAdapter.setCredentials(MQTT_BROKER_HOST, MQTT_PORT, MQTT_USERNAME, MQTT_PASSWORD);
   mqttAdapter.begin();
   websocketAdapter.begin();
+
+  mqttAdapter.setCommandHandler([this](const DeviceCommand &command) {
+    handleDeviceCommand(command);
+  });
 
   for (size_t i = 0; i < transportCount; ++i)
   {
@@ -146,29 +150,32 @@ void NetworkManager::setBrightness(int value)
     return;
   }
 
-  if (deviceState.brightness == value)
+  const bool changed = deviceState.brightness != value;
+  deviceState.brightness = value;
+
+  if (changed)
   {
-    broadcastState();
-    return;
+    applyBrightnessToPixels();
+    stateStore.save(deviceState);
   }
 
-  deviceState.brightness = value;
-  applyBrightnessToPixels();
-  stateStore.save(deviceState);
+  mqttAdapter.publishBrightnessState(deviceState.brightness);
   broadcastState();
 }
 
 void NetworkManager::updateSchedule(const LightSchedule &schedule)
 {
-  if (deviceState.hasSchedule == schedule.enabled && deviceState.schedule == schedule)
-  {
-    broadcastState();
-    return;
-  }
+  const bool changed = deviceState.hasSchedule != schedule.enabled || deviceState.schedule != schedule;
 
   deviceState.hasSchedule = schedule.enabled;
   deviceState.schedule = schedule;
-  stateStore.save(deviceState);
+
+  if (changed)
+  {
+    stateStore.save(deviceState);
+  }
+
+  mqttAdapter.publishScheduleState(deviceState.hasSchedule, deviceState.schedule);
   broadcastState();
 }
 
@@ -182,6 +189,11 @@ void NetworkManager::broadcastState(bool force)
   for (size_t i = 0; i < transportCount; ++i)
   {
     transports[i]->notifyState(deviceState);
+  }
+
+  if (force)
+  {
+    mqttAdapter.notifyState(deviceState);
   }
 
   lastBroadcastState = deviceState;

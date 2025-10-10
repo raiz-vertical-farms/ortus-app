@@ -55,48 +55,8 @@ void MqttCommandAdapter::loop()
 
 void MqttCommandAdapter::notifyState(const DeviceState &state)
 {
-  if (!client.connected() || macAddress.isEmpty())
-  {
-    return;
-  }
-
-  const String stateTopic = getStateTopic();
-  const String brightnessPayload = String(state.brightness);
-  if (!client.publish(stateTopic.c_str(), brightnessPayload.c_str(), true))
-  {
-    Serial.println(F("[MQTT] Failed to publish brightness state"));
-  }
-  else
-  {
-    Serial.print(F("[MQTT] Brightness state → "));
-    Serial.print(stateTopic);
-    Serial.print(F(" = "));
-    Serial.println(brightnessPayload);
-  }
-
-  const String scheduleTopic = getScheduleStateTopic();
-  JsonDocument doc;
-  JsonObject scheduleRoot = doc.to<JsonObject>();
-  scheduleRoot["enabled"] = state.hasSchedule && state.schedule.enabled;
-  scheduleRoot["from_hour"] = state.schedule.fromHour;
-  scheduleRoot["from_minute"] = state.schedule.fromMinute;
-  scheduleRoot["to_hour"] = state.schedule.toHour;
-  scheduleRoot["to_minute"] = state.schedule.toMinute;
-
-  String schedulePayload;
-  serializeJson(doc, schedulePayload);
-
-  if (!client.publish(scheduleTopic.c_str(), schedulePayload.c_str(), true))
-  {
-    Serial.println(F("[MQTT] Failed to publish schedule state"));
-  }
-  else
-  {
-    Serial.print(F("[MQTT] Schedule state → "));
-    Serial.print(scheduleTopic);
-    Serial.print(F(" = "));
-    Serial.println(schedulePayload);
-  }
+  publishBrightnessState(state.brightness);
+  publishScheduleState(state.hasSchedule, state.schedule);
 }
 
 void MqttCommandAdapter::publishPresence(const String &payload)
@@ -124,6 +84,60 @@ void MqttCommandAdapter::publishPresence(const String &payload)
 bool MqttCommandAdapter::isConnected() const
 {
   return client.connected();
+}
+
+void MqttCommandAdapter::publishBrightnessState(int brightness)
+{
+  if (!client.connected() || macAddress.isEmpty())
+  {
+    return;
+  }
+
+  const String topic = getBrightnessStateTopic();
+  const String payload = String(brightness);
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
+  {
+    Serial.println(F("[MQTT] Failed to publish brightness state"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Brightness state → "));
+    Serial.print(topic);
+    Serial.print(F(" = "));
+    Serial.println(payload);
+  }
+}
+
+void MqttCommandAdapter::publishScheduleState(bool hasSchedule, const LightSchedule &schedule)
+{
+  if (!client.connected() || macAddress.isEmpty())
+  {
+    return;
+  }
+
+  const String topic = getScheduleStateTopic();
+  JsonDocument doc;
+  JsonObject scheduleRoot = doc.to<JsonObject>();
+  scheduleRoot["enabled"] = hasSchedule && schedule.enabled;
+  scheduleRoot["from_hour"] = schedule.fromHour;
+  scheduleRoot["from_minute"] = schedule.fromMinute;
+  scheduleRoot["to_hour"] = schedule.toHour;
+  scheduleRoot["to_minute"] = schedule.toMinute;
+
+  String payload;
+  serializeJson(doc, payload);
+
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
+  {
+    Serial.println(F("[MQTT] Failed to publish schedule state"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Schedule state → "));
+    Serial.print(topic);
+    Serial.print(F(" = "));
+    Serial.println(payload);
+  }
 }
 
 void MqttCommandAdapter::handleMessageRouter(char *topic, uint8_t *payload, unsigned int length)
@@ -242,9 +256,9 @@ String MqttCommandAdapter::getCommandTopic() const
   return macAddress + String("/sensor/light/command");
 }
 
-String MqttCommandAdapter::getStateTopic() const
+String MqttCommandAdapter::getBrightnessStateTopic() const
 {
-  return macAddress + String("/sensor/light/state");
+  return macAddress + String("/sensor/light/brightness/state");
 }
 
 String MqttCommandAdapter::getScheduleCommandTopic() const

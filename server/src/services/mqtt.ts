@@ -17,53 +17,38 @@ console.log("Connecting to MQTT broker...");
 mqttClient.on("connect", () => {
   console.log("Connected to MQTT broker");
 
-  // Subscribe to presence updates
-  mqttClient.subscribe("+/presence", (err) => {
-    if (err) {
-      console.error("Subscribe error (presence):", err);
-    } else {
-      console.log("Subscribed to +/presence");
-    }
-  });
+  const subscriptions: Array<[string, string]> = [
+    ["+/presence", "presence"],
+    ["+/status", "status"],
+    ["+/sensor/#", "sensor"],
+  ];
 
-  mqttClient.subscribe("+/status", (err) => {
-    if (err) {
-      console.error("Subscribe error (status):", err);
-    } else {
-      console.log("Subscribed to +/status");
-    }
-  });
-
-  // Subscribe to sensor data (adjust pattern based on your ESPHome config)
-  mqttClient.subscribe("+/sensor/+/state", (err) => {
-    if (err) {
-      console.error("Subscribe error (sensor):", err);
-    } else {
-      console.log("Subscribed to +/sensor/+/state");
-    }
-  });
-
-  mqttClient.subscribe("+/sensor/+/schedule/state", (err) => {
-    if (err) console.error("Subscribe error (schedule):", err);
-    else console.log("Subscribed to +/sensor/+/schedule/state");
-  });
+  for (const [pattern, label] of subscriptions) {
+    mqttClient.subscribe(pattern, (err) => {
+      if (err) {
+        console.error(`Subscribe error (${label}):`, err);
+      } else {
+        console.log(`Subscribed to ${pattern}`);
+      }
+    });
+  }
 });
 
 mqttClient.on("message", async (topic, message) => {
   try {
     const parts = topic.split("/");
+    const [mac, category] = parts;
 
-    // Handle presence updates
-    if (parts.length >= 2 && parts[1] === "presence") {
-      await handlePresence(parts[0], message);
+    if (!mac || !category) {
+      return;
     }
-    // Handle status updates
-    else if (parts.length >= 2 && parts[1] === "status") {
-      await handleStatus(parts[0], message);
-    }
-    // Handle sensor timeseries data
-    else if (topic.includes("/sensor/")) {
-      await handleSensorData(topic, message);
+
+    if (category === "presence") {
+      await handlePresence(mac, message);
+    } else if (category === "status") {
+      await handleStatus(mac, message);
+    } else if (category === "sensor") {
+      await handleSensorData(mac, parts.slice(2), message);
     }
   } catch (err) {
     console.error("Error processing message:", err);
@@ -185,45 +170,34 @@ async function handleStatus(mac_address: string, message: Buffer) {
   );
 }
 
-async function handleSensorData(topic: string, message: Buffer) {
-  // Topic format: <device_name>/sensor/<metric_name>/state
-  // or: <mac_address>/sensor/<metric_name>/state
-  const parts = topic.split("/");
-  const deviceIdentifier = parts[0]; // Could be device name or MAC
-  const metricParts = parts.slice(2, parts.length - 1); // everything between "sensor" and "state"
-  const metric = metricParts.join("/"); // "light" or "light/schedule"
-  const valueStr = message.toString();
-
-  // Determine value type
-  const valueType = determineValueType(valueStr);
-
-  console.log({ valueStr, valueType });
-
-  // Get MAC address from device name if needed
-  const macAddress = await getMacAddress(deviceIdentifier);
-
-  if (!macAddress) {
-    console.warn(`Could not find MAC address for device: ${deviceIdentifier}`);
+async function handleSensorData(mac: string, pathParts: string[], message: Buffer) {
+  if (pathParts.length < 2) {
     return;
   }
 
-  console.log(`Received MQTT message for ${macAddress}: ${metric}=${valueStr}`);
+  const stateSuffix = pathParts[pathParts.length - 1];
+  if (stateSuffix !== "state") {
+    return;
+  }
 
-  // Insert timeseries data
+  const metric = pathParts.slice(0, -1).join("/");
+  const valueStr = message.toString();
+  const valueType = inferValueType(valueStr);
+
   await db
     .insertInto("device_timeseries")
     .values({
-      mac_address: macAddress,
+      mac_address: mac,
       metric: metric,
       value_text: valueStr,
       value_type: valueType,
     })
     .execute();
 
-  console.log(`Recorded ${metric}=${valueStr} for ${macAddress}`);
+  console.log(`Recorded ${metric}=${valueStr} for ${mac}`);
 }
 
-function determineValueType(value: string): string {
+function inferValueType(value: string): string {
   // Check if numeric
   if (!isNaN(Number(value)) && value.trim() !== "") {
     return Number.isInteger(Number(value)) ? "int" : "float";
@@ -234,25 +208,6 @@ function determineValueType(value: string): string {
   }
   // Default to string
   return "text";
-}
-
-async function getMacAddress(deviceIdentifier: string): Promise<string | null> {
-  // WIP: For now just return the device identifier
-  return deviceIdentifier;
-
-  // If it already looks like a MAC address, return it
-  if (/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(deviceIdentifier)) {
-    return deviceIdentifier;
-  }
-
-  // Otherwise, look up by device name
-  const device = await db
-    .selectFrom("devices")
-    .select("mac_address")
-    .where("name", "=", deviceIdentifier)
-    .executeTakeFirst();
-
-  return device?.mac_address || null;
 }
 
 mqttClient.on("error", (err) => console.error("MQTT error:", err));
