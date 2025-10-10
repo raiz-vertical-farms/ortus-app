@@ -16,8 +16,12 @@ export interface _Migrations {
 }
 
 export interface Devices {
+  bluetooth_device_id: string | null;
+  bluetooth_implementation: string | null;
   created_at: Generated<number | null>;
   id: Generated<number | null>;
+  lan_ip: string | null;
+  lan_ws_port: number | null;
   last_seen: number | null;
   mac_address: string;
   name: string;

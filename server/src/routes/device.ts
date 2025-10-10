@@ -47,6 +47,8 @@ const deviceStateSchema = z.object({
   light_schedule: lightScheduleSchema.nullable(),
   water_level: z.string().nullable(),
   number_of_plants: z.number(),
+  lan_ip: z.string().nullable(),
+  lan_ws_port: z.number().nullable(),
 });
 
 const deviceStateResponseSchema = z.object({
@@ -189,6 +191,8 @@ const app = new Hono()
           "organization_id",
           "last_seen",
           "online",
+          "lan_ip",
+          "lan_ws_port",
         ])
         .select((eb) =>
           eb
@@ -269,7 +273,16 @@ const app = new Hono()
     async (c) => {
       const devices = await db
         .selectFrom("devices")
-        .select(["id", "name", "mac_address", "organization_id", "last_seen", "online"])
+        .select([
+          "id",
+          "name",
+          "mac_address",
+          "organization_id",
+          "last_seen",
+          "online",
+          "lan_ip",
+          "lan_ws_port",
+        ])
         .execute();
 
       return c.json({
@@ -306,7 +319,10 @@ const app = new Hono()
 
       console.log({ brightness });
 
-      mqttClient.publish(`${mac}/sensor/light/command`, brightness.toString());
+      mqttClient.publish(
+        `${mac}/sensor/light/brightness/command`,
+        brightness.toString()
+      );
 
       return c.json({ message: `Lights set to ${brightness}` });
     }

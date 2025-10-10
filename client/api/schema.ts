@@ -397,6 +397,8 @@ export interface operations {
                             } | null;
                             water_level: string | null;
                             number_of_plants: number;
+                            lan_ip: string | null;
+                            lan_ws_port: number | null;
                         };
                     };
                 };
@@ -426,6 +428,8 @@ export interface operations {
                             organization_id: number;
                             last_seen: number | null;
                             online: boolean;
+                            lan_ip: string | null;
+                            lan_ws_port: number | null;
                         }[];
                     };
                 };

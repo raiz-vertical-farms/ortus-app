@@ -1,211 +1,161 @@
-// src/index.ts
 import mqtt, { MqttClient } from "mqtt";
+import { z } from "zod";
 import { db } from "../db";
 
-const url = `mqtts://${process.env.MQTT_BROKER_HOST}:8883`;
-
-const options = {
-  username: process.env.MQTT_USERNAME!,
-  password: process.env.MQTT_PASSWORD!,
+const MQTT_CONFIG = {
+  url: `mqtts://${process.env.MQTT_BROKER_HOST}:8883`,
+  options: {
+    username: process.env.MQTT_USERNAME!,
+    password: process.env.MQTT_PASSWORD!,
+  },
+  subscriptions: ["+/presence", "+/status", "+/sensor/#"],
 };
 
-export const mqttClient: MqttClient = mqtt.connect(url, options);
+export const mqttClient: MqttClient = mqtt.connect(
+  MQTT_CONFIG.url,
+  MQTT_CONFIG.options
+);
 
 console.log("Connecting to MQTT broker...");
 
 mqttClient.on("connect", () => {
   console.log("Connected to MQTT broker");
-
-  // Subscribe to presence updates
-  mqttClient.subscribe("+/presence", (err) => {
-    if (err) {
-      console.error("Subscribe error (presence):", err);
-    } else {
-      console.log("Subscribed to +/presence");
-    }
-  });
-
-  mqttClient.subscribe("+/status", (err) => {
-    if (err) {
-      console.error("Subscribe error (status):", err);
-    } else {
-      console.log("Subscribed to +/status");
-    }
-  });
-
-  // Subscribe to sensor data (adjust pattern based on your ESPHome config)
-  mqttClient.subscribe("+/sensor/+/state", (err) => {
-    if (err) {
-      console.error("Subscribe error (sensor):", err);
-    } else {
-      console.log("Subscribed to +/sensor/+/state");
-    }
-  });
-
-  mqttClient.subscribe("+/sensor/+/schedule/state", (err) => {
-    if (err) console.error("Subscribe error (schedule):", err);
-    else console.log("Subscribed to +/sensor/+/schedule/state");
-  });
+  MQTT_CONFIG.subscriptions.forEach((topic) =>
+    mqttClient.subscribe(topic, (err) =>
+      err
+        ? console.error(`❌ Failed to subscribe ${topic}:`, err)
+        : console.log(`✅ Subscribed to ${topic}`)
+    )
+  );
 });
 
-mqttClient.on("message", async (topic, message) => {
+function safeJSON<T>(str: string): T | undefined {
   try {
-    const parts = topic.split("/");
-
-    // Handle presence updates
-    if (parts.length >= 2 && parts[1] === "presence") {
-      await handlePresence(parts[0], message);
-    }
-    // Handle status updates
-    else if (parts.length >= 2 && parts[1] === "status") {
-      await handleStatus(parts[0], message);
-    }
-    // Handle sensor timeseries data
-    else if (topic.includes("/sensor/")) {
-      await handleSensorData(topic, message);
-    }
-  } catch (err) {
-    console.error("Error processing message:", err);
+    return JSON.parse(str) as T;
+  } catch {
+    return undefined;
   }
-});
-
-async function handlePresence(mac_address: string, message: Buffer) {
-  if (!mac_address) {
-    console.warn("Presence topic missing MAC address");
-    return;
-  }
-
-  await db
-    .updateTable("devices")
-    .set({
-      last_seen: Math.floor(Date.now() / 1000),
-      online: 1,
-    })
-    .where("mac_address", "=", mac_address)
-    .execute();
-
-  await db
-    .insertInto("device_timeseries")
-    .values({
-      mac_address: mac_address,
-      metric: "presence",
-      value_text: message.toString(),
-      value_type: "text",
-    })
-    .execute();
-
-  console.log(
-    `Updated last_seen and presence for ${mac_address} with message: ${message.toString()}`
-  );
 }
 
-async function handleStatus(mac_address: string, message: Buffer) {
-  if (!mac_address) {
-    console.warn("Status topic missing MAC address");
-    return;
-  }
-
-  const status = message.toString().trim().toLowerCase();
-  const isOnline = status === "online";
-
-  const update: { online: number; last_seen?: number } = {
-    online: isOnline ? 1 : 0,
-  };
-
-  if (isOnline) {
-    update.last_seen = Math.floor(Date.now() / 1000);
-  }
-
-  await db
-    .updateTable("devices")
-    .set(update)
-    .where("mac_address", "=", mac_address)
-    .execute();
-
-  await db
-    .insertInto("device_timeseries")
-    .values({
-      mac_address,
-      metric: "status",
-      value_text: status,
-      value_type: "text",
-    })
-    .execute();
-
-  console.log(
-    `Updated status for ${mac_address} to ${status}. Online flag: ${isOnline}`
-  );
-}
-
-async function handleSensorData(topic: string, message: Buffer) {
-  // Topic format: <device_name>/sensor/<metric_name>/state
-  // or: <mac_address>/sensor/<metric_name>/state
-  const parts = topic.split("/");
-  const deviceIdentifier = parts[0]; // Could be device name or MAC
-  const metricParts = parts.slice(2, parts.length - 1); // everything between "sensor" and "state"
-  const metric = metricParts.join("/"); // "light" or "light/schedule"
-  const valueStr = message.toString();
-
-  // Determine value type
-  const valueType = determineValueType(valueStr);
-
-  console.log({ valueStr, valueType });
-
-  // Get MAC address from device name if needed
-  const macAddress = await getMacAddress(deviceIdentifier);
-
-  if (!macAddress) {
-    console.warn(`Could not find MAC address for device: ${deviceIdentifier}`);
-    return;
-  }
-
-  console.log(`Received MQTT message for ${macAddress}: ${metric}=${valueStr}`);
-
-  // Insert timeseries data
-  await db
-    .insertInto("device_timeseries")
-    .values({
-      mac_address: macAddress,
-      metric: metric,
-      value_text: valueStr,
-      value_type: valueType,
-    })
-    .execute();
-
-  console.log(`Recorded ${metric}=${valueStr} for ${macAddress}`);
-}
-
-function determineValueType(value: string): string {
-  // Check if numeric
-  if (!isNaN(Number(value)) && value.trim() !== "") {
-    return Number.isInteger(Number(value)) ? "int" : "float";
-  }
-  // Check if boolean
-  if (value.toLowerCase() === "true" || value.toLowerCase() === "false") {
-    return "boolean";
-  }
-  // Default to string
+function inferValueType(value: string): "int" | "float" | "boolean" | "text" {
+  const v = value.trim().toLowerCase();
+  if (v === "true" || v === "false") return "boolean";
+  const num = Number(value);
+  if (!isNaN(num)) return Number.isInteger(num) ? "int" : "float";
   return "text";
 }
 
-async function getMacAddress(deviceIdentifier: string): Promise<string | null> {
-  // WIP: For now just return the device identifier
-  return deviceIdentifier;
+const presenceSchema = z.object({
+  publicIp: z.string().trim().optional(),
+  localIp: z.string().trim().optional(),
+  wsPort: z.preprocess(
+    (v) => (typeof v === "string" ? parseInt(v, 10) : v),
+    z.number().int().nonnegative().optional()
+  ),
+});
 
-  // If it already looks like a MAC address, return it
-  if (/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/.test(deviceIdentifier)) {
-    return deviceIdentifier;
+type PresencePayload = z.infer<typeof presenceSchema>;
+
+type Handler = (mac: string, path: string[], payload: Buffer) => Promise<void>;
+type Handlers = Record<string, Handler>;
+
+const handlers: Handlers = {
+  async presence(mac, _path, payload) {
+    const raw = payload.toString();
+    const parsed = presenceSchema.safeParse(safeJSON<PresencePayload>(raw));
+
+    const update: Record<string, string | number | null> = {
+      last_seen: Math.floor(Date.now() / 1000),
+      online: 1,
+    };
+
+    if (parsed.success) {
+      const { localIp, wsPort } = parsed.data;
+      if (localIp) update.lan_ip = localIp;
+      if (wsPort !== undefined) update.lan_ws_port = wsPort;
+    }
+
+    await db
+      .updateTable("devices")
+      .set(update)
+      .where("mac_address", "=", mac)
+      .execute();
+
+    await db
+      .insertInto("device_timeseries")
+      .values({
+        mac_address: mac,
+        metric: "presence",
+        value_text: parsed.success ? JSON.stringify(parsed.data) : raw,
+        value_type: parsed.success ? "json" : "text",
+      })
+      .execute();
+
+    console.log(
+      `Presence ${mac}: IP=${parsed.data?.localIp ?? "?"}, WS=${parsed.data?.wsPort ?? "?"}`
+    );
+  },
+
+  async status(mac, _path, payload) {
+    const status = payload.toString().trim().toLowerCase();
+    const isOnline = status === "online";
+
+    await db
+      .updateTable("devices")
+      .set({
+        online: isOnline ? 1 : 0,
+        last_seen: Math.floor(Date.now() / 1000),
+      })
+      .where("mac_address", "=", mac)
+      .execute();
+
+    await db
+      .insertInto("device_timeseries")
+      .values({
+        mac_address: mac,
+        metric: "status",
+        value_text: status,
+        value_type: "text",
+      })
+      .execute();
+
+    console.log(`Status ${mac}: ${status}`);
+  },
+
+  async sensor(mac, path, payload) {
+    if (path.at(-1) !== "state") return;
+
+    const metric = path.slice(0, -1).join("/");
+    const valueStr = payload.toString();
+    const valueType = inferValueType(valueStr);
+
+    await db
+      .insertInto("device_timeseries")
+      .values({
+        mac_address: mac,
+        metric,
+        value_text: valueStr,
+        value_type: valueType,
+      })
+      .execute();
+
+    console.log(`Sensor ${mac}: ${metric}=${valueStr}`);
+  },
+};
+
+mqttClient.on("message", async (topic, payload) => {
+  const [mac, category, ...path] = topic.split("/");
+  if (!mac || !category) return;
+
+  const handler = handlers[category];
+  if (!handler) return;
+
+  try {
+    await handler(mac, path, payload);
+  } catch (err) {
+    console.error(`Error handling ${category} for ${mac}:`, err);
   }
-
-  // Otherwise, look up by device name
-  const device = await db
-    .selectFrom("devices")
-    .select("mac_address")
-    .where("name", "=", deviceIdentifier)
-    .executeTakeFirst();
-
-  return device?.mac_address || null;
-}
+});
 
 mqttClient.on("error", (err) => console.error("MQTT error:", err));
 mqttClient.on("reconnect", () => console.log("Reconnecting..."));

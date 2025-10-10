@@ -403,6 +403,26 @@
                         },
                         "number_of_plants": {
                           "type": "number"
+                        },
+                        "lan_ip": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "lan_ws_port": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -415,7 +435,9 @@
                         "light",
                         "light_schedule",
                         "water_level",
-                        "number_of_plants"
+                        "number_of_plants",
+                        "lan_ip",
+                        "lan_ws_port"
                       ]
                     }
                   },
@@ -483,6 +505,26 @@
                           },
                           "online": {
                             "type": "boolean"
+                          },
+                          "lan_ip": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lan_ws_port": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -491,7 +533,9 @@
                           "mac_address",
                           "organization_id",
                           "last_seen",
-                          "online"
+                          "online",
+                          "lan_ip",
+                          "lan_ws_port"
                         ]
                       }
                     }
