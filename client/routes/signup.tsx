@@ -7,6 +7,7 @@ import Box from "../primitives/Box/Box";
 import { useState } from "react";
 import { client } from "../lib/apiClient";
 import { getErrorMessage } from "../utils/error";
+import PageLayout from "../layout/PageLayout/PageLayout";
 
 export const Route = createFileRoute("/signup")({
   component: Signup,
@@ -35,9 +36,9 @@ function Signup() {
   );
 
   return (
-    <div style={{ height: "100dvh", display: "grid", placeItems: "center" }}>
+    <PageLayout>
       <Group direction="column" spacing="xl">
-        <Box style={{ width: "100%" }} pb="xl">
+        <Box style={{ width: "100%" }} pt="7xl" pb="xl">
           <Text size="4xl" align="center" color="strong">
             Raiz.
           </Text>
@@ -81,6 +82,6 @@ function Signup() {
           <Text align="center">{getErrorMessage(signupError)}</Text>
         ) : null}
       </Group>
-    </div>
+    </PageLayout>
   );
 }
