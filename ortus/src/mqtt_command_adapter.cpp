@@ -75,12 +75,13 @@ void MqttCommandAdapter::notifyState(const DeviceState &state)
   }
 
   const String scheduleTopic = getScheduleStateTopic();
-  StaticJsonDocument<192> doc;
-  doc["enabled"] = state.hasSchedule && state.schedule.enabled;
-  doc["from_hour"] = state.schedule.fromHour;
-  doc["from_minute"] = state.schedule.fromMinute;
-  doc["to_hour"] = state.schedule.toHour;
-  doc["to_minute"] = state.schedule.toMinute;
+  JsonDocument doc;
+  JsonObject scheduleRoot = doc.to<JsonObject>();
+  scheduleRoot["enabled"] = state.hasSchedule && state.schedule.enabled;
+  scheduleRoot["from_hour"] = state.schedule.fromHour;
+  scheduleRoot["from_minute"] = state.schedule.fromMinute;
+  scheduleRoot["to_hour"] = state.schedule.toHour;
+  scheduleRoot["to_minute"] = state.schedule.toMinute;
 
   String schedulePayload;
   serializeJson(doc, schedulePayload);
@@ -163,7 +164,7 @@ void MqttCommandAdapter::handleMessage(char *topic, uint8_t *payload, unsigned i
   }
   else if (topicStr == getScheduleCommandTopic())
   {
-    StaticJsonDocument<256> doc;
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, payload, length);
     if (error)
     {

@@ -65,7 +65,7 @@ void WebSocketCommandAdapter::handleEvent(uint8_t clientNum, WStype_t type, uint
   }
   case WStype_TEXT:
   {
-    StaticJsonDocument<256> doc;
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, payload, length);
     if (error)
     {
@@ -101,14 +101,22 @@ void WebSocketCommandAdapter::handleEvent(uint8_t clientNum, WStype_t type, uint
     else if (typeValue == "schedulelights")
     {
       LightSchedule schedule;
-      if (doc.containsKey("schedule"))
+      JsonVariant scheduleVariant = doc["schedule"];
+      if (scheduleVariant.is<JsonObject>())
       {
-        JsonObject scheduleObj = doc["schedule"].as<JsonObject>();
+        JsonObject scheduleObj = scheduleVariant.as<JsonObject>();
         schedule.fromHour = scheduleObj["from_hour"].as<int>();
         schedule.fromMinute = scheduleObj["from_minute"].as<int>();
         schedule.toHour = scheduleObj["to_hour"].as<int>();
         schedule.toMinute = scheduleObj["to_minute"].as<int>();
-        schedule.enabled = scheduleObj.containsKey("enabled") ? scheduleObj["enabled"].as<bool>() : true;
+        if (scheduleObj["enabled"].is<bool>())
+        {
+          schedule.enabled = scheduleObj["enabled"].as<bool>();
+        }
+        else
+        {
+          schedule.enabled = true;
+        }
       }
       else
       {
@@ -116,7 +124,14 @@ void WebSocketCommandAdapter::handleEvent(uint8_t clientNum, WStype_t type, uint
         schedule.fromMinute = doc["from_minute"].as<int>();
         schedule.toHour = doc["to_hour"].as<int>();
         schedule.toMinute = doc["to_minute"].as<int>();
-        schedule.enabled = doc.containsKey("enabled") ? doc["enabled"].as<bool>() : true;
+        if (doc["enabled"].is<bool>())
+        {
+          schedule.enabled = doc["enabled"].as<bool>();
+        }
+        else
+        {
+          schedule.enabled = true;
+        }
       }
 
       if (!schedule.isValid())
@@ -145,18 +160,20 @@ void WebSocketCommandAdapter::handleEvent(uint8_t clientNum, WStype_t type, uint
 
 void WebSocketCommandAdapter::broadcastState(const DeviceState &state)
 {
-  StaticJsonDocument<256> doc;
-  doc["type"] = "state";
-  doc["brightness"] = state.brightness;
-  doc["schedule"]["enabled"] = state.hasSchedule && state.schedule.enabled;
-  doc["schedule"]["from_hour"] = state.schedule.fromHour;
-  doc["schedule"]["from_minute"] = state.schedule.fromMinute;
-  doc["schedule"]["to_hour"] = state.schedule.toHour;
-  doc["schedule"]["to_minute"] = state.schedule.toMinute;
+  JsonDocument doc;
+  JsonObject root = doc.to<JsonObject>();
+  root["type"] = "state";
+  root["brightness"] = state.brightness;
+
+  JsonObject scheduleObj = root["schedule"].to<JsonObject>();
+  scheduleObj["enabled"] = state.hasSchedule && state.schedule.enabled;
+  scheduleObj["from_hour"] = state.schedule.fromHour;
+  scheduleObj["from_minute"] = state.schedule.fromMinute;
+  scheduleObj["to_hour"] = state.schedule.toHour;
+  scheduleObj["to_minute"] = state.schedule.toMinute;
 
   String payload;
   serializeJson(doc, payload);
 
   server.broadcastTXT(payload);
 }
-
