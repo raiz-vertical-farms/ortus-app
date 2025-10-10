@@ -62,7 +62,8 @@ export interface ProvisioningCallbacks {
 export type BluetoothImplementation = "capacitor" | "web" | "unsupported";
 
 const isWebBluetoothAvailable = (): boolean =>
-  typeof navigator !== "undefined" && typeof navigator.bluetooth !== "undefined";
+  typeof navigator !== "undefined" &&
+  typeof navigator.bluetooth !== "undefined";
 
 export const getBluetoothImplementation = (): BluetoothImplementation => {
   if (Capacitor.isNativePlatform()) {
@@ -124,19 +125,22 @@ const capacitorAdapter: BluetoothAdapter = {
   scan: async (timeoutMs: number = 5000) => {
     const devices: OrtusDevice[] = [];
 
-    await BleClient.requestLEScan({ services: [BLE_SERVICE_UUID] }, (result) => {
-      if (result.device.name?.startsWith("Ortus")) {
-        const device: OrtusDevice = {
-          deviceId: result.device.deviceId,
-          name: result.device.name,
-        };
+    await BleClient.requestLEScan(
+      { services: [BLE_SERVICE_UUID] },
+      (result) => {
+        if (result.device.name?.startsWith("Ortus")) {
+          const device: OrtusDevice = {
+            deviceId: result.device.deviceId,
+            name: result.device.name,
+          };
 
-        if (!devices.some((d) => d.deviceId === device.deviceId)) {
-          devices.push(device);
-          console.log("Found device:", device);
+          if (!devices.some((d) => d.deviceId === device.deviceId)) {
+            devices.push(device);
+            console.log("Found device:", device);
+          }
         }
       }
-    });
+    );
 
     await delay(timeoutMs);
     await BleClient.stopLEScan();
@@ -261,7 +265,9 @@ const webConnections = new Map<string, WebConnectionData>();
 const requireWebConnection = (deviceId: string): WebConnectionData => {
   const connection = webConnections.get(deviceId);
   if (!connection) {
-    throw new Error("No active Web Bluetooth connection found. Please reconnect.");
+    throw new Error(
+      "No active Web Bluetooth connection found. Please reconnect."
+    );
   }
   return connection;
 };
@@ -344,15 +350,8 @@ const webAdapter: BluetoothAdapter = {
 
     let device = await requestDevice({
       filters: [{ namePrefix: "Ortus" }],
-      optionalServices: [BLE_SERVICE_UUID],
+      // optionalServices: [BLE_SERVICE_UUID],
     });
-
-    if (!device) {
-      device = await requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [BLE_SERVICE_UUID],
-      });
-    }
 
     if (!device) {
       return [];
