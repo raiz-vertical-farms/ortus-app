@@ -298,7 +298,7 @@ function LightView({
                   }
                   value={scheduleState.toMinutes}
                 >
-                  {["00", "15", "30", "45"].map((label) => (
+                  {["00", "15", "30", "36", "45"].map((label) => (
                     <option key={label} value={parseInt(label)}>
                       {label}
                     </option>

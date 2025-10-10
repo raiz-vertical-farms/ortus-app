@@ -34,7 +34,7 @@ private:
   String buildPresencePayload() const;
   void ensureAdapterIdentity();
   String getPublicIP();
-  void applyBrightnessToPixels(int value);
+  void applyBrightnessToRelays(int value);
   void configureTime();
   void evaluateSchedule(bool force = false);
   void applyScheduledOutput();

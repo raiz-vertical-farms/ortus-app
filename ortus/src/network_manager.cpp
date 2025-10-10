@@ -1,9 +1,12 @@
-#include <Adafruit_NeoPixel.h>
 #include <WiFi.h>
 #include <esp_sntp.h>
 #include <time.h>
 #include "network_manager.h"
 #include "config.h"
+#include <Adafruit_NeoPixel.h>
+
+#define RELAY_LEFT_PIN 16
+#define RELAY_RIGHT_PIN 17
 
 #define LED_PIN 38
 #define NUM_LEDS 1
@@ -68,18 +71,21 @@ void NetworkManager::begin()
   mqttAdapter.begin();
   websocketAdapter.begin();
 
-  mqttAdapter.setCommandHandler([this](const DeviceCommand &command) {
-    handleDeviceCommand(command);
-  });
+  mqttAdapter.setCommandHandler([this](const DeviceCommand &command)
+                                { handleDeviceCommand(command); });
 
   for (size_t i = 0; i < transportCount; ++i)
   {
-    transports[i]->setCommandHandler([this](const DeviceCommand &command) {
-      handleDeviceCommand(command);
-    });
+    transports[i]->setCommandHandler([this](const DeviceCommand &command)
+                                     { handleDeviceCommand(command); });
   }
 
   pixels.begin();
+  pinMode(RELAY_LEFT_PIN, OUTPUT);
+  pinMode(RELAY_RIGHT_PIN, OUTPUT);
+  digitalWrite(RELAY_LEFT_PIN, HIGH); // assuming active LOW relays
+  digitalWrite(RELAY_RIGHT_PIN, HIGH);
+
   applyScheduledOutput();
   broadcastState(true);
 }
@@ -368,7 +374,7 @@ void NetworkManager::applyScheduledOutput()
   }
 
   appliedBrightness = target;
-  applyBrightnessToPixels(target);
+  applyBrightnessToRelays(target);
 }
 
 String NetworkManager::getPublicIP()
@@ -415,17 +421,12 @@ String NetworkManager::getPublicIP()
   return cachedPublicIp.length() ? cachedPublicIp : String("unknown");
 }
 
-void NetworkManager::applyBrightnessToPixels(int value)
+void NetworkManager::applyBrightnessToRelays(int value)
 {
-  int clamped = value;
-  if (clamped < 0)
-  {
-    clamped = 0;
-  }
-  else if (clamped > 100)
-  {
-    clamped = 100;
-  }
+  int clamped = constrain(value, 0, 100);
+
+  // Active when brightness > 0
+  bool on = clamped > 0;
 
   const int level = map(clamped, 0, 100, 0, 255);
 
@@ -439,6 +440,12 @@ void NetworkManager::applyBrightnessToPixels(int value)
   }
 
   pixels.show();
+
+  // Assuming relay module is active LOW:
+  digitalWrite(RELAY_LEFT_PIN, on ? LOW : HIGH);
+  digitalWrite(RELAY_RIGHT_PIN, on ? LOW : HIGH);
+
+  Serial.printf("[Relays] %s (brightness %d)\n", on ? "ON" : "OFF", clamped);
 }
 
 void NetworkManager::connectWiFi()

@@ -319,7 +319,10 @@ const app = new Hono()
 
       console.log({ brightness });
 
-      mqttClient.publish(`${mac}/sensor/light/command`, brightness.toString());
+      mqttClient.publish(
+        `${mac}/sensor/light/brightness/command`,
+        brightness.toString()
+      );
 
       return c.json({ message: `Lights set to ${brightness}` });
     }

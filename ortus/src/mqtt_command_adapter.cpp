@@ -253,7 +253,7 @@ String MqttCommandAdapter::getStatusTopic() const
 
 String MqttCommandAdapter::getCommandTopic() const
 {
-  return macAddress + String("/sensor/light/command");
+  return macAddress + String("/sensor/light/brightness/command");
 }
 
 String MqttCommandAdapter::getBrightnessStateTopic() const
