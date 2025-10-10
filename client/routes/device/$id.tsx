@@ -29,8 +29,14 @@ function RouteComponent() {
 
   const device = useDevice(id);
 
-  if (device.isLoading || !device.state) {
+  if (device.isLoading || device.state === null) {
     return "Loading your garden...";
+  }
+
+  const state = device.state;
+
+  if (state === null) {
+    return "Device not found";
   }
 
   if (device.error) {
@@ -38,35 +44,35 @@ function RouteComponent() {
   }
 
   return (
-    <PageLayout layout={{ pageTitle: device.state.name, backButton: true }}>
+    <PageLayout layout={{ pageTitle: state.name, backButton: true }}>
       <Box pt="xl">
         <Group spacing="xl" justify="center">
           <Tabs
-            value={device.state.online ? view : "settings"}
+            value={state.online ? view : "settings"}
             onChange={setView}
             options={[
               {
                 value: "lights",
                 label: "Lights",
-                disabled: !device.state.online,
+                disabled: !state.online,
               },
               {
                 value: "water",
                 label: "Water",
-                disabled: !device.state.online,
+                disabled: !state.online,
               },
               {
                 value: "plants",
                 label: "Plants",
-                disabled: !device.state.online,
+                disabled: !state.online,
               },
               { value: "settings", label: "Settings" },
             ]}
           />
         </Group>
         {match({
-          view: device.state.online ? view : "settings",
-          online: device.state.online ? true : false,
+          view: state.online ? view : "settings",
+          online: state.online ? true : false,
         })
           .with({ view: "lights" }, () => (
             <LightView deviceId={id} device={device} />
@@ -78,7 +84,7 @@ function RouteComponent() {
             <Text>Water view is bubbling up soon.</Text>
           ))
           .with({ view: "settings" }, () => (
-            <SettingsView macAddress={device.state.mac_address} deviceId={id} />
+            <SettingsView macAddress={state.mac_address!} deviceId={id} />
           ))
           .exhaustive()}
       </Box>
