@@ -7,6 +7,7 @@
 
 #include "command_adapter.h"
 #include "command_types.h"
+#include "device_state_store.h"
 #include "mqtt_command_adapter.h"
 #include "websocket_command_adapter.h"
 #include "wifi_credentials.h"
@@ -28,7 +29,7 @@ private:
   void handleDeviceCommand(const DeviceCommand &command);
   void setBrightness(int value);
   void updateSchedule(const LightSchedule &schedule);
-  void broadcastState();
+  void broadcastState(bool force = false);
   void publishPresence();
   String buildPresencePayload() const;
   void ensureAdapterIdentity();
@@ -38,6 +39,7 @@ private:
   WiFiCredentialsStore &credentials;
   WiFiClientSecure espClient;
   PubSubClient client;
+  DeviceStateStore stateStore;
   MqttCommandAdapter mqttAdapter;
   WebSocketCommandAdapter websocketAdapter;
   CommandAdapter *transports[2];
@@ -47,11 +49,13 @@ private:
   unsigned long lastWiFiAttempt;
   unsigned long lastPublicIpFetch;
   DeviceState deviceState;
+  DeviceState lastBroadcastState;
   bool wifiWasConnected;
   bool mqttWasConnected;
   bool waitingForCredentialsLogged;
   bool waitingBeforeRetryLogged;
   bool adaptersInitialized;
+  bool hasBroadcastState;
   String cachedPublicIp;
 
   static NetworkManager *instance_;

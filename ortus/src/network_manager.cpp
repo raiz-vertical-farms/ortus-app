@@ -13,6 +13,7 @@ NetworkManager *NetworkManager::instance_ = nullptr;
 NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
     : credentials(credentialsStore),
       client(espClient),
+      stateStore(),
       mqttAdapter(espClient, client),
       websocketAdapter(WS_SERVER_PORT),
       transports{&mqttAdapter, &websocketAdapter},
@@ -21,15 +22,16 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       lastPresenceAt(0),
       lastWiFiAttempt(0),
       lastPublicIpFetch(0),
+      deviceState(),
+      lastBroadcastState(),
       wifiWasConnected(false),
       mqttWasConnected(false),
       waitingForCredentialsLogged(false),
       waitingBeforeRetryLogged(false),
-      adaptersInitialized(false)
+      adaptersInitialized(false),
+      hasBroadcastState(false)
 {
   instance_ = this;
-  deviceState.brightness = 0;
-  deviceState.hasSchedule = false;
   cachedPublicIp.reserve(32);
 }
 
@@ -40,6 +42,19 @@ void NetworkManager::begin()
   WiFi.mode(WIFI_STA);
   WiFi.persistent(false);
   WiFi.setAutoReconnect(true);
+
+  stateStore.begin();
+  DeviceState restoredState = deviceState;
+  const bool restored = stateStore.load(restoredState);
+  if (restored)
+  {
+    deviceState = restoredState;
+    Serial.printf("[Network] Restored brightness %d (schedule %s)\n", deviceState.brightness, deviceState.hasSchedule ? "enabled" : "disabled");
+  }
+  else
+  {
+    stateStore.save(deviceState);
+  }
 
   connectWiFi();
 
@@ -56,6 +71,7 @@ void NetworkManager::begin()
 
   pixels.begin();
   applyBrightnessToPixels();
+  broadcastState(true);
 }
 
 void NetworkManager::loop()
@@ -79,7 +95,7 @@ void NetworkManager::loop()
   const bool mqttConnected = mqttAdapter.isConnected();
   if (mqttConnected && !mqttWasConnected)
   {
-    broadcastState();
+    broadcastState(true);
   }
   mqttWasConnected = mqttConnected;
 
@@ -138,22 +154,38 @@ void NetworkManager::setBrightness(int value)
 
   deviceState.brightness = value;
   applyBrightnessToPixels();
+  stateStore.save(deviceState);
   broadcastState();
 }
 
 void NetworkManager::updateSchedule(const LightSchedule &schedule)
 {
+  if (deviceState.hasSchedule == schedule.enabled && deviceState.schedule == schedule)
+  {
+    broadcastState();
+    return;
+  }
+
   deviceState.hasSchedule = schedule.enabled;
   deviceState.schedule = schedule;
+  stateStore.save(deviceState);
   broadcastState();
 }
 
-void NetworkManager::broadcastState()
+void NetworkManager::broadcastState(bool force)
 {
+  if (!force && hasBroadcastState && deviceState == lastBroadcastState)
+  {
+    return;
+  }
+
   for (size_t i = 0; i < transportCount; ++i)
   {
     transports[i]->notifyState(deviceState);
   }
+
+  lastBroadcastState = deviceState;
+  hasBroadcastState = true;
 }
 
 void NetworkManager::publishPresence()
@@ -191,7 +223,7 @@ void NetworkManager::ensureAdapterIdentity()
 
   mqttAdapter.setIdentity(macAddress);
   adaptersInitialized = true;
-  broadcastState();
+  broadcastState(true);
 }
 
 String NetworkManager::getPublicIP()

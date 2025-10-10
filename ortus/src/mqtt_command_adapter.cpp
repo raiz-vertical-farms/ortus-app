@@ -13,8 +13,7 @@ MqttCommandAdapter::MqttCommandAdapter(WiFiClientSecure &secureClientRef, PubSub
       host(nullptr),
       port(0),
       username(nullptr),
-      password(nullptr),
-      hasPublishedState(false)
+      password(nullptr)
 {
 }
 
@@ -29,7 +28,6 @@ void MqttCommandAdapter::setCredentials(const char *hostValue, uint16_t portValu
 void MqttCommandAdapter::setIdentity(const String &mac)
 {
   macAddress = mac;
-  hasPublishedState = false;
 }
 
 void MqttCommandAdapter::begin()
@@ -62,58 +60,41 @@ void MqttCommandAdapter::notifyState(const DeviceState &state)
     return;
   }
 
-  bool stateChanged = !hasPublishedState || state.brightness != lastPublishedState.brightness;
-  bool scheduleChanged = !hasPublishedState || state.hasSchedule != lastPublishedState.hasSchedule;
-  scheduleChanged = scheduleChanged || (state.hasSchedule && lastPublishedState.hasSchedule &&
-                                        (state.schedule.fromHour != lastPublishedState.schedule.fromHour ||
-                                         state.schedule.fromMinute != lastPublishedState.schedule.fromMinute ||
-                                         state.schedule.toHour != lastPublishedState.schedule.toHour ||
-                                         state.schedule.toMinute != lastPublishedState.schedule.toMinute));
-
-  lastPublishedState = state;
-  hasPublishedState = true;
-
-  if (stateChanged)
+  const String stateTopic = getStateTopic();
+  const String brightnessPayload = String(state.brightness);
+  if (!client.publish(stateTopic.c_str(), brightnessPayload.c_str(), true))
   {
-    const String topic = getStateTopic();
-    const String payload = String(state.brightness);
-    if (!client.publish(topic.c_str(), payload.c_str(), true))
-    {
-      Serial.println(F("[MQTT] Failed to publish brightness state"));
-    }
-    else
-    {
-      Serial.print(F("[MQTT] Brightness state → "));
-      Serial.print(topic);
-      Serial.print(F(" = "));
-      Serial.println(payload);
-    }
+    Serial.println(F("[MQTT] Failed to publish brightness state"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Brightness state → "));
+    Serial.print(stateTopic);
+    Serial.print(F(" = "));
+    Serial.println(brightnessPayload);
   }
 
-  if (scheduleChanged)
+  const String scheduleTopic = getScheduleStateTopic();
+  StaticJsonDocument<192> doc;
+  doc["enabled"] = state.hasSchedule && state.schedule.enabled;
+  doc["from_hour"] = state.schedule.fromHour;
+  doc["from_minute"] = state.schedule.fromMinute;
+  doc["to_hour"] = state.schedule.toHour;
+  doc["to_minute"] = state.schedule.toMinute;
+
+  String schedulePayload;
+  serializeJson(doc, schedulePayload);
+
+  if (!client.publish(scheduleTopic.c_str(), schedulePayload.c_str(), true))
   {
-    const String topic = getScheduleStateTopic();
-    StaticJsonDocument<192> doc;
-    doc["enabled"] = state.hasSchedule && state.schedule.enabled;
-    doc["from_hour"] = state.schedule.fromHour;
-    doc["from_minute"] = state.schedule.fromMinute;
-    doc["to_hour"] = state.schedule.toHour;
-    doc["to_minute"] = state.schedule.toMinute;
-
-    String payload;
-    serializeJson(doc, payload);
-
-    if (!client.publish(topic.c_str(), payload.c_str(), true))
-    {
-      Serial.println(F("[MQTT] Failed to publish schedule state"));
-    }
-    else
-    {
-      Serial.print(F("[MQTT] Schedule state → "));
-      Serial.print(topic);
-      Serial.print(F(" = "));
-      Serial.println(payload);
-    }
+    Serial.println(F("[MQTT] Failed to publish schedule state"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Schedule state → "));
+    Serial.print(scheduleTopic);
+    Serial.print(F(" = "));
+    Serial.println(schedulePayload);
   }
 }
 
@@ -230,7 +211,6 @@ void MqttCommandAdapter::ensureConnection()
       client.subscribe(getCommandTopic().c_str());
       client.subscribe(getScheduleCommandTopic().c_str());
       client.publish(statusTopic.c_str(), "online", true);
-      hasPublishedState = false;
     }
     else
     {
@@ -275,4 +255,3 @@ String MqttCommandAdapter::getScheduleStateTopic() const
 {
   return macAddress + String("/sensor/light/schedule/state");
 }
-

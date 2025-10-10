@@ -37,7 +37,4 @@ private:
   uint16_t port;
   const char *username;
   const char *password;
-  bool hasPublishedState;
-  DeviceState lastPublishedState;
 };
-

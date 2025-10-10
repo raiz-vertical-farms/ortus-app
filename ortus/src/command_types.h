@@ -38,3 +38,28 @@ struct DeviceCommand
   LightSchedule schedule;
 };
 
+inline bool operator==(const LightSchedule &lhs, const LightSchedule &rhs)
+{
+  return lhs.fromHour == rhs.fromHour &&
+         lhs.fromMinute == rhs.fromMinute &&
+         lhs.toHour == rhs.toHour &&
+         lhs.toMinute == rhs.toMinute &&
+         lhs.enabled == rhs.enabled;
+}
+
+inline bool operator!=(const LightSchedule &lhs, const LightSchedule &rhs)
+{
+  return !(lhs == rhs);
+}
+
+inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
+{
+  return lhs.brightness == rhs.brightness &&
+         lhs.hasSchedule == rhs.hasSchedule &&
+         lhs.schedule == rhs.schedule;
+}
+
+inline bool operator!=(const DeviceState &lhs, const DeviceState &rhs)
+{
+  return !(lhs == rhs);
+}
