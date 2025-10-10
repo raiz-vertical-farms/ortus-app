@@ -39,7 +39,7 @@ bool DeviceStateStore::load(DeviceState &outState)
   loaded.schedule.fromMinute = preferences.getInt("from_minute", outState.schedule.fromMinute);
   loaded.schedule.toHour = preferences.getInt("to_hour", outState.schedule.toHour);
   loaded.schedule.toMinute = preferences.getInt("to_minute", outState.schedule.toMinute);
-  loaded.schedule.enabled = preferences.getBool("schedule_enabled", outState.schedule.enabled);
+  loaded.schedule.enabled = preferences.getBool("sched_en", outState.schedule.enabled);
 
   outState = loaded;
   lastPersistedState = loaded;
@@ -67,7 +67,7 @@ bool DeviceStateStore::save(const DeviceState &state)
   preferences.putInt("from_minute", state.schedule.fromMinute);
   preferences.putInt("to_hour", state.schedule.toHour);
   preferences.putInt("to_minute", state.schedule.toMinute);
-  preferences.putBool("schedule_enabled", state.schedule.enabled);
+  preferences.putBool("sched_en", state.schedule.enabled);
   preferences.putBool("initialized", true);
 
   lastPersistedState = state;
@@ -94,4 +94,3 @@ bool DeviceStateStore::ensureStarted(const char *context)
   started = true;
   return true;
 }
-
