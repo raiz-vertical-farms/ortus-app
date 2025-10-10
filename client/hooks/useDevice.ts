@@ -103,7 +103,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
   const [liveState, setLiveState] = useState<DeviceState | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
-  const [isWebSocketConnected, setIsWebSocketConnected] = useState<boolean>(false);
+  const [isWebSocketConnected, setIsWebSocketConnected] =
+    useState<boolean>(false);
   const [wsReconnectToken, setWsReconnectToken] = useState<number>(0);
 
   useEffect(() => {
@@ -118,7 +119,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
           ...latest,
           ...current,
           light: current.light ?? latest.light ?? null,
-          light_schedule: current.light_schedule ?? latest.light_schedule ?? null,
+          light_schedule:
+            current.light_schedule ?? latest.light_schedule ?? null,
         };
       });
     }
@@ -153,8 +155,14 @@ export function useDevice(deviceId: string): UseDeviceResult {
       }, 5000);
     };
 
-    const socket = new WebSocket(wsUrl);
-    socketRef.current = socket;
+    let socket: WebSocket;
+
+    try {
+      socket = new WebSocket(wsUrl);
+      socketRef.current = socket;
+    } catch (error) {
+      return;
+    }
 
     socket.onopen = () => {
       if (!isMounted) {
@@ -172,7 +180,10 @@ export function useDevice(deviceId: string): UseDeviceResult {
         const parsed = JSON.parse(event.data) as WsStateMessage;
         if (parsed.type === "state") {
           setLiveState((prev) => {
-            const base = prev ?? (deviceQuery.data?.state as DeviceState | undefined) ?? null;
+            const base =
+              prev ??
+              (deviceQuery.data?.state as DeviceState | undefined) ??
+              null;
             if (!base) {
               return null;
             }
@@ -181,7 +192,10 @@ export function useDevice(deviceId: string): UseDeviceResult {
                 ? parsed.brightness
                 : base.light;
 
-            const schedule = mergeSchedule(base.light_schedule, parsed.schedule);
+            const schedule = mergeSchedule(
+              base.light_schedule,
+              parsed.schedule
+            );
 
             return {
               ...base,
@@ -221,16 +235,13 @@ export function useDevice(deviceId: string): UseDeviceResult {
     };
   }, [wsUrl, wsReconnectToken, deviceQuery.data?.state]);
 
-  const sendOverWebSocket = useCallback(
-    (payload: Record<string, unknown>) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify(payload));
-        return true;
-      }
-      return false;
-    },
-    []
-  );
+  const sendOverWebSocket = useCallback((payload: Record<string, unknown>) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify(payload));
+      return true;
+    }
+    return false;
+  }, []);
 
   const setBrightness = useCallback(
     async (value: number) => {
@@ -299,7 +310,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
   }, [deviceQuery]);
 
   return {
-    state: (liveState ?? (deviceQuery.data?.state as DeviceState | undefined)) ?? null,
+    state:
+      liveState ?? (deviceQuery.data?.state as DeviceState | undefined) ?? null,
     isLoading: deviceQuery.isLoading,
     error: deviceQuery.error,
     isWebSocketConnected,
