@@ -19,7 +19,11 @@ const HEADER_HEIGHT = 100;
 
 function NavBar() {
   return (
-    <div style={{ borderTop: "1px solid #e5e7eb" }}>
+    <div
+      style={{
+        borderTop: "1px solid var(--color-border)",
+      }}
+    >
       <Container>
         <Group
           align="center"

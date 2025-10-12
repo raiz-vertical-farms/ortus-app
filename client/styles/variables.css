@@ -13,30 +13,71 @@
   --color-text: #2f2f2f;
   --color-text-muted: #898989;
 
-  --color-secondary: #fff;
+  --color-secondary: #ffffff;
   --color-secondary-foreground: #111827;
-  --color-secondary-hover: #e5e7eb;
-  --color-secondary-active: #d1d5db;
+  --color-secondary-hover: #f4f4f4;
+  --color-secondary-active: #e6e6e6;
 
   --color-accent: #10b981;
   --color-accent-foreground: #ffffff;
-  --color-accent-hover: #059669;
-  --color-accent-active: #047857;
+  --color-accent-hover: #0ea271;
+  --color-accent-active: #0b815a;
 
   --color-destructive: #fd294e;
   --color-destructive-foreground: #ffffff;
-  --color-destructive-hover: #ea1237;
+  --color-destructive-hover: #e02041;
   --color-destructive-active: #b91c1c;
 
   --color-card-background: #ffffff;
   --color-card-background-hover: #f9fafb;
-  --color-card-border: #959595;
-  --color-card-shadow: rgba(0, 0, 0, 0.1);
+  --color-card-border: #d6d6d6;
+  --color-card-shadow: rgba(0, 0, 0, 0.05);
 
-  --color-border: #515151;
-  --color-input: #d1d5db;
+  --color-border: #c8c8c8;
+  --color-input: #e5e7eb;
   --color-ring: #0a8270;
+}
 
+[data-theme="dark"] {
+  --color-background: rgb(31, 31, 31);
+  --color-background-hover: rgb(22, 22, 22);
+  --color-foreground: rgb(232, 232, 232);
+
+  --color-primary: #26e539;
+  --color-primary-foreground: #000000;
+  --color-primary-hover: #ffffff;
+  --color-primary-active: #ffffff;
+
+  --color-text-strong: #ffffff;
+  --color-text: #e5e5e5;
+  --color-text-muted: #9ca3af;
+
+  --color-secondary: #1e1e1e;
+  --color-secondary-foreground: #f3f4f6;
+  --color-secondary-hover: #2a2a2a;
+  --color-secondary-active: #3a3a3a;
+
+  --color-accent: #10b981;
+  --color-accent-foreground: #ffffff;
+  --color-accent-hover: #0ea271;
+  --color-accent-active: #0b815a;
+
+  --color-destructive: #fd294e;
+  --color-destructive-foreground: #ffffff;
+  --color-destructive-hover: #e02041;
+  --color-destructive-active: #b91c1c;
+
+  --color-card-background: #191919;
+  --color-card-background-hover: #222222;
+  --color-card-border: #2c2c2c;
+  --color-card-shadow: rgba(0, 0, 0, 0.4);
+
+  --color-border: #222222;
+  --color-input: #3b3b3b;
+  --color-ring: #0a8270;
+}
+
+:root {
   /* Font Sizes */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
@@ -57,6 +98,7 @@
   --font-family-body: "Manrope", sans-serif;
 
   /* Element Sizes */
+  --element-xs: 1.6rem;
   --element-sm: 2rem;
   --element-md: 2.5rem;
   --element-lg: 4.3rem;

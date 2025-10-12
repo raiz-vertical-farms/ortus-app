@@ -3,7 +3,7 @@ import styles from "./Button.module.css";
 import { classNames } from "../../utils/classnames";
 
 type Variant = "primary" | "secondary" | "accent" | "destructive" | "ghost";
-type Size = "sm" | "md" | "lg";
+type Size = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;

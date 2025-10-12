@@ -5,7 +5,7 @@ import DeviceCard from "../components/DeviceCard/DeviceCard";
 import { client } from "../lib/apiClient";
 import Box from "../primitives/Box/Box";
 import { Text } from "../primitives/Text/Text";
-import { PlusCircleIcon } from "@phosphor-icons/react";
+import { PlusCircleIcon, PlusIcon } from "@phosphor-icons/react";
 import PageLayout from "../layout/PageLayout/PageLayout";
 
 export const Route = createFileRoute("/")({
@@ -25,8 +25,9 @@ function Index() {
         pageTitle: "My Garden",
         rightSection: () => (
           <Button
-            variant="ghost"
+            variant="primary"
             square
+            size="xs"
             onClick={() =>
               router.navigate({
                 to: "/device/connect",
@@ -34,11 +35,7 @@ function Index() {
               })
             }
           >
-            <PlusCircleIcon
-              fill="currentColor"
-              size={32}
-              style={{ marginLeft: 8 }}
-            />
+            <PlusIcon fill="currentColor" size={15} />
           </Button>
         ),
       }}
@@ -51,7 +48,6 @@ function Index() {
                 No Ortus connected yet.
               </Text>
               <Button
-                size="sm"
                 onClick={() => router.navigate({ to: "/device/connect" })}
               >
                 Add an Ortus

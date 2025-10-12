@@ -4,7 +4,7 @@
   font-family: var(--font-family-body);
   font-weight: 600;
   text-wrap: nowrap;
-  border-radius: var(--radius-md);
+  border-radius: 300px;
   padding: var(--spacing-xs) var(--spacing-4);
   transition:
     background-color 0.2s ease,
@@ -19,26 +19,37 @@
 }
 
 /* Sizes */
+.xs {
+  font-size: var(--font-size-xs);
+  height: var(--element-xs);
+  padding: 0 var(--spacing-xs);
+}
+
 .sm {
   font-size: var(--font-size-sm);
   height: var(--element-sm);
-  padding: 0 var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
 }
 
 .md {
   font-size: var(--font-size-base);
   height: var(--element-md);
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-xl);
 }
 
 .lg {
   font-size: var(--font-size-lg);
   height: var(--element-lg);
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-xl);
 }
 
 .square {
-  padding: 0;
+  padding: 0 !important;
+}
+
+.xs.square {
+  width: var(--element-xs);
+  height: var(--element-xs);
 }
 
 .sm.square {

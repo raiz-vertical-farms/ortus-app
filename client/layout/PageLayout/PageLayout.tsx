@@ -5,6 +5,7 @@ import Container from "../../primitives/Container/Container";
 import { Group } from "../../primitives/Group/Group";
 import { ArrowLeftIcon, XIcon } from "@phosphor-icons/react";
 import { Text } from "../../primitives/Text/Text";
+import Button from "../../primitives/Button/Button";
 
 const NAV_HEIGHT = 100;
 const HEADER_HEIGHT = 100;
@@ -47,7 +48,9 @@ export default function PageLayout({
       middleSection
     )
   ) : (
-    <Text size="lg">{pageTitle ? pageTitle : ""}</Text>
+    <Text size="lg" weight="bold">
+      {pageTitle ? pageTitle : ""}
+    </Text>
   );
 
   const right = rightSection ? (
@@ -57,15 +60,17 @@ export default function PageLayout({
       rightSection
     )
   ) : closeButton ? (
-    <XIcon
-      size={24}
-      onClick={() =>
-        router.navigate({
-          to: "/",
-          viewTransition: { types: ["pop-down"] },
-        })
-      }
-    />
+    <Button square variant="ghost">
+      <XIcon
+        size={24}
+        onClick={() =>
+          router.navigate({
+            to: "/",
+            viewTransition: { types: ["pop-down"] },
+          })
+        }
+      />
+    </Button>
   ) : null;
 
   const showHeader =

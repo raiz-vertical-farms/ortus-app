@@ -102,7 +102,6 @@ export default function ProvisionFlow({
           />
           <Button
             size="lg"
-            full
             disabled={isProvisioning}
             onClick={async () => {
               try {
@@ -134,9 +133,11 @@ export default function ProvisionFlow({
                 onClick={() => handleConnect(device.deviceId)}
               />
             ))}
-          <Button full disabled={isScanning} onClick={handleScan}>
-            {isScanning ? "Scanning..." : scanButtonLabel}
-          </Button>
+          <div>
+            <Button disabled={isScanning} onClick={handleScan}>
+              {isScanning ? "Scanning..." : scanButtonLabel}
+            </Button>
+          </div>
           {status ? <Text>{status}</Text> : null}
         </Group>
       </Box>

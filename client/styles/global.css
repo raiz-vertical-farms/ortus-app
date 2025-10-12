@@ -175,7 +175,7 @@ html:active-view-transition-type(pop-down) {
   }
   to {
     opacity: 0;
-    transform: translateY(20%);
+    transform: translateY(15%);
   }
 }
 
@@ -193,7 +193,7 @@ html:active-view-transition-type(pop-down) {
 /* Slide down and up Transition */
 html:active-view-transition-type(pop-up) {
   &::view-transition-old(main-content) {
-    animation: 50ms cubic-bezier(0.4, 0, 0.2, 1) both slide-out-down;
+    animation: 300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-out-down;
   }
   &::view-transition-new(main-content) {
     animation: 300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-in-down;
@@ -207,14 +207,14 @@ html:active-view-transition-type(pop-up) {
   }
   to {
     opacity: 0;
-    transform: translateY(50%);
+    transform: translateY(0%);
   }
 }
 
 @keyframes slide-in-down {
   from {
     opacity: 0;
-    transform: translateY(50%);
+    transform: translateY(15%);
   }
   to {
     opacity: 1;

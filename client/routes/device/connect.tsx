@@ -69,7 +69,6 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
           placeholder="Kitchen herb tower"
         />
         <Button
-          full
           size="lg"
           onClick={() => {
             createDevice({
