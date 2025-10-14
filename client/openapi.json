@@ -358,32 +358,22 @@
                             {
                               "type": "object",
                               "properties": {
-                                "from_hour": {
-                                  "type": "number",
+                                "on": {
+                                  "description": "UTC timestamp in milliseconds",
+                                  "type": "integer",
                                   "minimum": 0,
-                                  "maximum": 23
+                                  "maximum": 9007199254740991
                                 },
-                                "from_minute": {
-                                  "type": "number",
+                                "off": {
+                                  "description": "UTC timestamp in milliseconds",
+                                  "type": "integer",
                                   "minimum": 0,
-                                  "maximum": 59
-                                },
-                                "to_hour": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 23
-                                },
-                                "to_minute": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 59
+                                  "maximum": 9007199254740991
                                 }
                               },
                               "required": [
-                                "from_hour",
-                                "from_minute",
-                                "to_hour",
-                                "to_minute"
+                                "on",
+                                "off"
                               ]
                             },
                             {
@@ -603,32 +593,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "from_hour": {
-                    "type": "number",
+                  "on": {
+                    "description": "UTC timestamp in milliseconds",
+                    "type": "integer",
                     "minimum": 0,
-                    "maximum": 23
+                    "maximum": 9007199254740991
                   },
-                  "from_minute": {
-                    "type": "number",
+                  "off": {
+                    "description": "UTC timestamp in milliseconds",
+                    "type": "integer",
                     "minimum": 0,
-                    "maximum": 59
-                  },
-                  "to_hour": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 23
-                  },
-                  "to_minute": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 59
+                    "maximum": 9007199254740991
                   }
                 },
                 "required": [
-                  "from_hour",
-                  "from_minute",
-                  "to_hour",
-                  "to_minute"
+                  "on",
+                  "off"
                 ]
               }
             }

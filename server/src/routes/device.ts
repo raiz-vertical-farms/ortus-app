@@ -4,6 +4,7 @@ import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { infer, z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
+import { setLightSchedule } from "../cron";
 
 const deleteDeviceResponseSchema = z.object({
   message: z.string(),
@@ -14,10 +15,8 @@ const lightToggleSchema = z.object({
 });
 
 const lightScheduleSchema = z.object({
-  from_hour: z.number().min(0).max(23),
-  from_minute: z.number().min(0).max(59),
-  to_hour: z.number().min(0).max(23),
-  to_minute: z.number().min(0).max(59),
+  on: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
+  off: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
 });
 
 const createDeviceRequestSchema = z.object({
@@ -348,11 +347,10 @@ const app = new Hono()
 
       const schedule = c.req.valid("json");
 
-      // Publish JSON payload for schedule
-      mqttClient.publish(
-        `${mac}/sensor/light/schedule/command`,
-        JSON.stringify(schedule)
-      );
+      setLightSchedule(mac, {
+        onTimestamp: schedule.on,
+        offTimestamp: schedule.off,
+      });
 
       return c.json({ message: "Light schedule updated", schedule });
     }

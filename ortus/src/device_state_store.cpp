@@ -1,5 +1,4 @@
 #include "device_state_store.h"
-
 #include <Arduino.h>
 
 namespace
@@ -34,12 +33,6 @@ bool DeviceStateStore::load(DeviceState &outState)
 
   DeviceState loaded;
   loaded.brightness = preferences.getInt("brightness", outState.brightness);
-  loaded.hasSchedule = preferences.getBool("has_schedule", outState.hasSchedule);
-  loaded.schedule.fromHour = preferences.getInt("from_hour", outState.schedule.fromHour);
-  loaded.schedule.fromMinute = preferences.getInt("from_minute", outState.schedule.fromMinute);
-  loaded.schedule.toHour = preferences.getInt("to_hour", outState.schedule.toHour);
-  loaded.schedule.toMinute = preferences.getInt("to_minute", outState.schedule.toMinute);
-  loaded.schedule.enabled = preferences.getBool("sched_en", outState.schedule.enabled);
 
   outState = loaded;
   lastPersistedState = loaded;
@@ -62,13 +55,6 @@ bool DeviceStateStore::save(const DeviceState &state)
   }
 
   preferences.putInt("brightness", state.brightness);
-  preferences.putBool("has_schedule", state.hasSchedule);
-  preferences.putInt("from_hour", state.schedule.fromHour);
-  preferences.putInt("from_minute", state.schedule.fromMinute);
-  preferences.putInt("to_hour", state.schedule.toHour);
-  preferences.putInt("to_minute", state.schedule.toMinute);
-  preferences.putBool("sched_en", state.schedule.enabled);
-  preferences.putBool("initialized", true);
 
   lastPersistedState = state;
   hasPersistedState = true;

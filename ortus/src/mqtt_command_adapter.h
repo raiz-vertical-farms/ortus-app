@@ -17,7 +17,6 @@ public:
   void publishPresence(const String &payload);
   bool isConnected() const;
   void publishBrightnessState(int brightness);
-  void publishScheduleState(bool hasSchedule, const LightSchedule &schedule);
 
 private:
   static void handleMessageRouter(char *topic, uint8_t *payload, unsigned int length);
@@ -27,8 +26,6 @@ private:
   String getStatusTopic() const;
   String getCommandTopic() const;
   String getBrightnessStateTopic() const;
-  String getScheduleCommandTopic() const;
-  String getScheduleStateTopic() const;
 
   static MqttCommandAdapter *instance;
 
