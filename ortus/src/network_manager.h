@@ -55,6 +55,7 @@ private:
   bool waitingBeforeRetryLogged;
   bool waitingForTimeSyncLogged;
   bool adaptersInitialized;
+  bool hasBroadcastState;
   int appliedBrightness;
   String cachedPublicIp;
 

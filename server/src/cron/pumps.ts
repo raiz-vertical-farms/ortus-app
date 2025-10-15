@@ -28,11 +28,11 @@ export function setPumpSchedule(macAddress: string, schedule: PumpSchedule) {
   pumpSchedules.set(macAddress, job);
 }
 
-export function deactivatePumpSchedule(macAddress: string) {
+export function pausePumpSchedule(macAddress: string) {
   pumpSchedules.get(macAddress)?.pause();
 }
 
-export function reactivatePumpSchedule(macAddress: string) {
+export function resumePumpSchedule(macAddress: string) {
   pumpSchedules.get(macAddress)?.resume();
 }
 

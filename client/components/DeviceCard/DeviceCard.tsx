@@ -3,23 +3,17 @@ import styles from "./DeviceCard.module.css";
 import { Text } from "../../primitives/Text/Text";
 import { Group } from "../../primitives/Group/Group";
 import OrtusIcon from "../../icons/Ortus.tsx/Ortus";
+import { client } from "../../lib/apiClient";
 
-type Device = {
-  id: number;
-  name: string;
-  mac_address: string;
-  last_seen: number | null;
-  online: boolean;
-  number_of_plants?: number | null;
-};
+type Device = (typeof client.api.allDevices.types.data.devices)[number];
 
 export default function DeviceCard({
   id,
   name,
+  created_at,
   mac_address,
   last_seen,
   online,
-  number_of_plants,
 }: Device) {
   const statusDot = (
     <span
@@ -34,11 +28,16 @@ export default function DeviceCard({
     />
   );
 
-  const statusText = online
+  const onlineLabel = online
     ? "Online now"
     : last_seen
-    ? `Went offline ${formatLastSeen(last_seen)}`
-    : "Offline";
+      ? `Went offline ${formatLastSeen(last_seen)}`
+      : "Offline";
+
+  const statusText =
+    !online && created_at < Date.now() + 1000 * 60
+      ? "Connecting to your wifi..."
+      : onlineLabel;
 
   return (
     <Link
@@ -52,8 +51,7 @@ export default function DeviceCard({
         <OrtusIcon height={100} />
         <Group direction="column" spacing="md">
           <Text size="xs" color="muted">
-            {statusDot}{" "}
-            {statusText}
+            {statusDot} {statusText}
           </Text>
 
           <Group align="center">
@@ -62,12 +60,6 @@ export default function DeviceCard({
               ID: {mac_address}
             </Text>
           </Group>
-
-          <Text size="sm" color="muted">
-            {number_of_plants && number_of_plants > 0
-              ? `${number_of_plants} plant${number_of_plants === 1 ? "" : "s"}`
-              : "No plants tracked yet"}
-          </Text>
         </Group>
       </Group>
     </Link>

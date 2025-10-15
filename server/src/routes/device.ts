@@ -4,7 +4,7 @@ import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { infer, z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
-import { setLightSchedule } from "../cron";
+import { removeLightSchedule, setLightSchedule } from "../cron";
 
 const deleteDeviceResponseSchema = z.object({
   message: z.string(),
@@ -15,8 +15,18 @@ const lightToggleSchema = z.object({
 });
 
 const lightScheduleSchema = z.object({
+  active: z.boolean(),
   on: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
   off: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
+});
+
+const lightScheduleResponseSchema = z.object({
+  id: z.number().nullable(),
+  created_at: z.number().nullable(),
+  device_id: z.number(),
+  active: z.boolean(),
+  off_timestamp: z.number(),
+  on_timestamp: z.number(),
 });
 
 const createDeviceRequestSchema = z.object({
@@ -37,15 +47,14 @@ const createDeviceResponseSchema = z.object({
 
 const deviceStateSchema = z.object({
   id: z.number(),
+  created_at: z.number(),
   name: z.string(),
   mac_address: z.string(),
   organization_id: z.number(),
   last_seen: z.number().nullable(),
   online: z.boolean(),
-  light: z.number().nullable(),
+  brightness: z.number().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
-  water_level: z.string().nullable(),
-  number_of_plants: z.number(),
   lan_ip: z.string().nullable(),
   lan_ws_port: z.number().nullable(),
 });
@@ -55,15 +64,15 @@ const deviceStateResponseSchema = z.object({
 });
 
 const deviceListItemSchema = deviceStateSchema.omit({
-  number_of_plants: true,
-  light: true,
+  brightness: true,
   light_schedule: true,
-  water_level: true,
 });
 
 const deviceListResponseSchema = z.object({
   devices: z.array(deviceListItemSchema),
 });
+
+type DeviceStateResponse = z.infer<typeof deviceStateResponseSchema>;
 
 async function getDeviceMac(id: number) {
   const device = await db
@@ -186,6 +195,7 @@ const app = new Hono()
         .select([
           "id",
           "name",
+          "created_at",
           "mac_address",
           "organization_id",
           "last_seen",
@@ -193,43 +203,24 @@ const app = new Hono()
           "lan_ip",
           "lan_ws_port",
         ])
-        .select((eb) =>
-          eb
-            .selectFrom("plants")
-            .whereRef("plants.device_id", "=", "devices.id")
-            .select((eb2) => eb2.fn.countAll().as("number_of_plants"))
-            .as("number_of_plants")
-        )
         .where("id", "=", id)
         .executeTakeFirstOrThrow();
 
-      const results = await db
+      const brightness = await db
         .selectFrom("device_timeseries as dt1")
-        .select(["metric", "value_text"])
+        .select(["metric", "value_text", "value_type"])
         .where("mac_address", "=", device.mac_address)
-        .where("metric", "in", [
-          "light/brightness",
-          "light/schedule",
-          "water_level",
-        ])
-        .where((eb) =>
-          eb(
-            "recorded_at",
-            "=",
-            eb
-              .selectFrom("device_timeseries as dt2")
-              .select(eb.fn.max("recorded_at").as("max_time"))
-              .where("dt2.mac_address", "=", eb.ref("dt1.mac_address"))
-              .where("dt2.metric", "=", eb.ref("dt1.metric"))
-          )
-        )
-        .execute();
+        .where("metric", "in", ["light/brightness"])
+        .orderBy("dt1.created_at", "desc") // or dt1.created_at if that’s the field
+        .limit(1)
+        .executeTakeFirst();
 
-      const light = results.find((r) => r.metric === "light/brightness");
-      const lightSchedule = results.find((r) => r.metric === "light/schedule");
-      const waterLevel = results.find((r) => r.metric === "water_level");
-
-      console.log({ light });
+      const lightSchedule = await db
+        .selectFrom("light_schedules")
+        .selectAll()
+        .where("device_id", "=", id)
+        .limit(1)
+        .executeTakeFirst();
 
       if (!device) {
         throw new HTTPException(404, {
@@ -241,13 +232,14 @@ const app = new Hono()
         state: {
           ...device,
           online: Boolean(device.online),
-          light: light ? Number(light.value_text) : null,
-          light_schedule: lightSchedule
-            ? JSON.parse(lightSchedule.value_text)
-            : null,
-          water_level: waterLevel ? waterLevel.value_text : null,
+          brightness: Number(brightness?.value_text) || null,
+          light_schedule: {
+            on: lightSchedule?.on_timestamp || 0,
+            off: lightSchedule?.off_timestamp || 0,
+            active: Boolean(lightSchedule?.active),
+          },
         },
-      });
+      } satisfies DeviceStateResponse);
     }
   )
   .get(
@@ -273,6 +265,7 @@ const app = new Hono()
         .select([
           "id",
           "name",
+          "created_at",
           "mac_address",
           "organization_id",
           "last_seen",
@@ -291,9 +284,9 @@ const app = new Hono()
     }
   )
   .post(
-    ":id/light/set",
+    ":id/light/brightness",
     describeRoute({
-      operationId: "setLight",
+      operationId: "setBrightness",
       summary: "Adjust the the brightness of the light",
       tags: ["Devices"],
     }),
@@ -347,10 +340,24 @@ const app = new Hono()
 
       const schedule = c.req.valid("json");
 
-      setLightSchedule(mac, {
-        onTimestamp: schedule.on,
-        offTimestamp: schedule.off,
-      });
+      if (schedule.active) {
+        setLightSchedule(mac, {
+          onTimestamp: schedule.on,
+          offTimestamp: schedule.off,
+        });
+      } else {
+        removeLightSchedule(mac);
+      }
+
+      await db
+        .updateTable("light_schedules")
+        .where("device_id", "=", id)
+        .set({
+          active: schedule.active ? 1 : 0,
+          on_timestamp: schedule.on,
+          off_timestamp: schedule.off,
+        })
+        .execute();
 
       return c.json({ message: "Light schedule updated", schedule });
     }

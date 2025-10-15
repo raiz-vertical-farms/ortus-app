@@ -1197,11 +1197,11 @@ export interface ApiService {
         };
     };
     /** @summary Adjust the the brightness of the light */
-    setLight: {
+    setBrightness: {
         /** @summary Adjust the the brightness of the light */
-        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SetLightBody, SetLightParameters, TMeta, TSignal>, client?: (schema: SetLightSchema, options: ServiceOperationMutationFnOptions<SetLightBody, SetLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SetLightData, SetLightError>>): Promise<RequestFnResponse<SetLightData, SetLightError>>;
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SetBrightnessBody, SetBrightnessParameters, TMeta, TSignal>, client?: (schema: SetBrightnessSchema, options: ServiceOperationMutationFnOptions<SetBrightnessBody, SetBrightnessParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SetBrightnessData, SetBrightnessError>>): Promise<RequestFnResponse<SetBrightnessData, SetBrightnessError>>;
         /** @summary Adjust the the brightness of the light */
-        getMutationKey(parameters: DeepReadonly<SetLightParameters> | void): ServiceOperationMutationKey<SetLightSchema, SetLightParameters>;
+        getMutationKey(parameters: DeepReadonly<SetBrightnessParameters> | void): ServiceOperationMutationKey<SetBrightnessSchema, SetBrightnessParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
@@ -1210,7 +1210,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.setLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.setBrightness.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1219,7 +1219,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.setLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.setBrightness.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1228,7 +1228,7 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends SetLightBody, TContext = unknown>(parameters: DeepReadonly<SetLightParameters>, options?: ServiceOperationUseMutationOptions<SetLightSchema, SetLightData, SetLightParameters, TVariables, OperationError<SetLightError>, TContext>): UseMutationResult<SetLightData, OperationError<SetLightError>, TVariables | void, TContext>;
+        useMutation<TVariables extends SetBrightnessBody, TContext = unknown>(parameters: DeepReadonly<SetBrightnessParameters>, options?: ServiceOperationUseMutationOptions<SetBrightnessSchema, SetBrightnessData, SetBrightnessParameters, TVariables, OperationError<SetBrightnessError>, TContext>): UseMutationResult<SetBrightnessData, OperationError<SetBrightnessError>, TVariables | void, TContext>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
@@ -1237,7 +1237,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.setLight.useMutation({
+         * const { mutate, isPending } = qraft.apiService.setBrightness.useMutation({
          *     path: {
          *         id: id
          *     }
@@ -1246,7 +1246,7 @@ export interface ApiService {
          * ```
          * @example Mutation without predefined parameters, e.g., for creating
          * ```ts
-         * const { mutate, isPending } = qraft.apiService.setLight.useMutation()
+         * const { mutate, isPending } = qraft.apiService.setBrightness.useMutation()
          * mutate({
          *     body: bodyPayload,
          *     path: {
@@ -1255,7 +1255,7 @@ export interface ApiService {
          * });
          * ```
          */
-        useMutation<TVariables extends MutationVariables<SetLightBody, SetLightParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<SetLightSchema, SetLightData, SetLightParameters, TVariables, OperationError<SetLightError>, TContext>): UseMutationResult<SetLightData, OperationError<SetLightError>, TVariables, TContext>;
+        useMutation<TVariables extends MutationVariables<SetBrightnessBody, SetBrightnessParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<SetBrightnessSchema, SetBrightnessData, SetBrightnessParameters, TVariables, OperationError<SetBrightnessError>, TContext>): UseMutationResult<SetBrightnessData, OperationError<SetBrightnessError>, TVariables, TContext>;
         /**
          * Returns the count of currently in-progress mutations.
          *
@@ -1263,11 +1263,11 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
-         * const setLightTotal = qraft.apiService.setLight.useIsMutating()
+         * const setBrightnessTotal = qraft.apiService.setBrightness.useIsMutating()
          * ```
          * @example Check how many mutations are currently in progress with the specified parameters.
          * ```ts
-         * const setLightTotal = qraft.apiService.setLight.useIsMutating({
+         * const setBrightnessTotal = qraft.apiService.setBrightness.useIsMutating({
          *     parameters: {
          *         path: {
          *             id: id
@@ -1276,7 +1276,7 @@ export interface ApiService {
          * })
          * ```
          */
-        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): number;
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>): number;
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
@@ -1284,7 +1284,7 @@ export interface ApiService {
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
-         * const setLightPendingMutationVariables = qraft.apiService.setLight.useMutationState({
+         * const setBrightnessPendingMutationVariables = qraft.apiService.setBrightness.useMutationState({
          *     filters: {
          *         status: "pending"
          *     },
@@ -1293,7 +1293,7 @@ export interface ApiService {
          * ```
          * @example Get all data for specific mutations via the `parameters`.
          * ```ts
-         * const setLightMutationData = qraft.apiService.setLight.useMutationState({
+         * const setBrightnessMutationData = qraft.apiService.setBrightness.useMutationState({
          *     filters: {
          *         parameters: {
          *             path: {
@@ -1305,12 +1305,12 @@ export interface ApiService {
          * })
          * ```
          */
-        useMutationState<TContext = unknown, TResult = MutationState<SetLightData, OperationError<SetLightError>, MutationVariables<SetLightBody, SetLightParameters>, TContext>>(options?: {
-            filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>;
-            select?: (mutation: Mutation<SetLightData, OperationError<SetLightError>, MutationVariables<SetLightBody, SetLightParameters>, TContext>) => TResult;
+        useMutationState<TContext = unknown, TResult = MutationState<SetBrightnessData, OperationError<SetBrightnessError>, MutationVariables<SetBrightnessBody, SetBrightnessParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>;
+            select?: (mutation: Mutation<SetBrightnessData, OperationError<SetBrightnessError>, MutationVariables<SetBrightnessBody, SetBrightnessParameters>, TContext>) => TResult;
         }): Array<TResult>;
         /** @summary Adjust the the brightness of the light */
-        isMutating<TContext>(filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): number;
+        isMutating<TContext>(filters?: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
@@ -1320,7 +1320,7 @@ export interface ApiService {
          *
          * @example Find a mutation with specific parameters
          * ```ts
-         * const mutationCache = qraft.apiService.setLight.getMutationCache();
+         * const mutationCache = qraft.apiService.setBrightness.getMutationCache();
          * const mutation = mutationCache.find({
          *     parameters: {
          *         path: {
@@ -1332,20 +1332,20 @@ export interface ApiService {
          *
          * @example Find all mutations for the endpoint
          * ```ts
-         * const mutationCache = qraft.apiService.setLight.getMutationCache();
+         * const mutationCache = qraft.apiService.setBrightness.getMutationCache();
          * const mutations = mutationCache.findAll();
          * ```
          */
         getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
-            find<TContext = unknown>(filters: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): Mutation<SetLightData, SetLightError, MutationVariables<SetLightBody, SetLightParameters>, TContext> | undefined;
-            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext> | MutationFiltersByMutationKey<SetLightSchema, SetLightBody, SetLightData, SetLightParameters, OperationError<SetLightError>, TContext>): Array<Mutation<SetLightData, SetLightError, MutationVariables<SetLightBody, SetLightParameters>, TContext>>;
+            find<TContext = unknown>(filters: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>): Mutation<SetBrightnessData, SetBrightnessError, MutationVariables<SetBrightnessBody, SetBrightnessParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>): Array<Mutation<SetBrightnessData, SetBrightnessError, MutationVariables<SetBrightnessBody, SetBrightnessParameters>, TContext>>;
         };
-        schema: SetLightSchema;
+        schema: SetBrightnessSchema;
         types: {
-            parameters: SetLightParameters;
-            data: SetLightData;
-            error: SetLightError;
-            body: SetLightBody;
+            parameters: SetBrightnessParameters;
+            data: SetBrightnessData;
+            error: SetBrightnessError;
+            body: SetBrightnessBody;
         };
     };
     /** @summary Set a schedule for the light */
@@ -2121,15 +2121,15 @@ export const allDevices = {
     [QraftServiceOperationsToken]: ApiService["allDevices"];
 };
 /** @summary Adjust the the brightness of the light */
-export const setLight = {
+export const setBrightness = {
     schema: {
         method: "post",
-        url: "/api/device/{id}/light/set",
+        url: "/api/device/{id}/light/brightness",
         mediaType: ["application/json"]
     }
 } as {
-    schema: SetLightSchema;
-    [QraftServiceOperationsToken]: ApiService["setLight"];
+    schema: SetBrightnessSchema;
+    [QraftServiceOperationsToken]: ApiService["setBrightness"];
 };
 /** @summary Set a schedule for the light */
 export const scheduleLight = {
@@ -2170,7 +2170,7 @@ export const apiService = {
     deleteDevice,
     deviceState,
     allDevices,
-    setLight,
+    setBrightness,
     scheduleLight,
     myIp,
     localDevices
@@ -2257,17 +2257,17 @@ type AllDevicesSchema = {
 type AllDevicesParameters = undefined;
 type AllDevicesData = paths["/api/device/all"]["get"]["responses"]["200"]["content"]["application/json"];
 type AllDevicesError = unknown;
-type SetLightSchema = {
+type SetBrightnessSchema = {
     method: "post";
-    url: "/api/device/{id}/light/set";
+    url: "/api/device/{id}/light/brightness";
     mediaType: [
         "application/json"
     ];
 };
-type SetLightParameters = paths["/api/device/{id}/light/set"]["post"]["parameters"];
-type SetLightData = unknown;
-type SetLightError = unknown;
-type SetLightBody = NonNullable<paths["/api/device/{id}/light/set"]["post"]["requestBody"]>["content"]["application/json"];
+type SetBrightnessParameters = paths["/api/device/{id}/light/brightness"]["post"]["parameters"];
+type SetBrightnessData = unknown;
+type SetBrightnessError = unknown;
+type SetBrightnessBody = NonNullable<paths["/api/device/{id}/light/brightness"]["post"]["requestBody"]>["content"]["application/json"];
 type ScheduleLightSchema = {
     method: "post";
     url: "/api/device/{id}/light/schedule";

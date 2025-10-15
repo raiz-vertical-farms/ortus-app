@@ -54,7 +54,13 @@ async function runMigrations(
     const tx = await client.transaction();
     try {
       for (const stmt of statements) {
-        await tx.execute(stmt);
+        try {
+          await tx.execute(stmt);
+        } catch (err: any) {
+          console.error(`❌ Error executing statement in ${file}:\n${stmt}\n`);
+          console.error("SQLite error:", err.message);
+          throw err;
+        }
       }
       await tx.execute({
         sql: `INSERT INTO ${MIGRATIONS_TABLE} (name) VALUES (?)`,

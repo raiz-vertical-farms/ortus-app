@@ -56,7 +56,6 @@ void MqttCommandAdapter::loop()
 void MqttCommandAdapter::notifyState(const DeviceState &state)
 {
   publishBrightnessState(state.brightness);
-  publishScheduleState(state.hasSchedule, state.schedule);
 }
 
 void MqttCommandAdapter::publishPresence(const String &payload)
@@ -144,35 +143,6 @@ void MqttCommandAdapter::handleMessage(char *topic, uint8_t *payload, unsigned i
       Serial.println(message);
     }
   }
-  else if (topicStr == getScheduleCommandTopic())
-  {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, payload, length);
-    if (error)
-    {
-      Serial.print(F("[MQTT] Failed to parse schedule payload: "));
-      Serial.println(error.c_str());
-      return;
-    }
-
-    LightSchedule schedule;
-    schedule.fromHour = doc["from_hour"].as<int>();
-    schedule.fromMinute = doc["from_minute"].as<int>();
-    schedule.toHour = doc["to_hour"].as<int>();
-    schedule.toMinute = doc["to_minute"].as<int>();
-    schedule.enabled = true;
-
-    if (!schedule.isValid())
-    {
-      Serial.println(F("[MQTT] Received invalid schedule command"));
-      return;
-    }
-
-    DeviceCommand command;
-    command.type = CommandType::ScheduleLights;
-    command.schedule = schedule;
-    dispatchCommand(command);
-  }
 }
 
 void MqttCommandAdapter::ensureConnection()
@@ -192,7 +162,6 @@ void MqttCommandAdapter::ensureConnection()
     {
       Serial.println(F("connected"));
       client.subscribe(getCommandTopic().c_str());
-      client.subscribe(getScheduleCommandTopic().c_str());
       client.publish(statusTopic.c_str(), "online", true);
     }
     else

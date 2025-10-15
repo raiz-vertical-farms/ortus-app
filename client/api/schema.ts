@@ -123,7 +123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/light/set": {
+    "/api/device/{id}/light/brightness": {
         parameters: {
             query?: never;
             header?: never;
@@ -133,7 +133,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Adjust the the brightness of the light */
-        post: operations["setLight"];
+        post: operations["setBrightness"];
         delete?: never;
         options?: never;
         head?: never;
@@ -383,20 +383,20 @@ export interface operations {
                     "application/json": {
                         state: {
                             id: number;
+                            created_at: number;
                             name: string;
                             mac_address: string;
                             organization_id: number;
                             last_seen: number | null;
                             online: boolean;
-                            light: number | null;
+                            brightness: number | null;
                             light_schedule: {
-                                from_hour: number;
-                                from_minute: number;
-                                to_hour: number;
-                                to_minute: number;
+                                active: boolean;
+                                /** @description UTC timestamp in milliseconds */
+                                on: number;
+                                /** @description UTC timestamp in milliseconds */
+                                off: number;
                             } | null;
-                            water_level: string | null;
-                            number_of_plants: number;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         };
@@ -423,6 +423,7 @@ export interface operations {
                     "application/json": {
                         devices: {
                             id: number;
+                            created_at: number;
                             name: string;
                             mac_address: string;
                             organization_id: number;
@@ -436,7 +437,7 @@ export interface operations {
             };
         };
     };
-    setLight: {
+    setBrightness: {
         parameters: {
             query?: never;
             header?: never;
@@ -466,10 +467,11 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": {
-                    from_hour: number;
-                    from_minute: number;
-                    to_hour: number;
-                    to_minute: number;
+                    active: boolean;
+                    /** @description UTC timestamp in milliseconds */
+                    on: number;
+                    /** @description UTC timestamp in milliseconds */
+                    off: number;
                 };
             };
         };
