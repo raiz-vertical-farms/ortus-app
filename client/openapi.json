@@ -607,9 +607,7 @@
                   }
                 },
                 "required": [
-                  "active",
-                  "on",
-                  "off"
+                  "active"
                 ]
               }
             }

@@ -469,9 +469,9 @@ export interface operations {
                 "application/json": {
                     active: boolean;
                     /** @description UTC timestamp in milliseconds */
-                    on: number;
+                    on?: number;
                     /** @description UTC timestamp in milliseconds */
-                    off: number;
+                    off?: number;
                 };
             };
         };

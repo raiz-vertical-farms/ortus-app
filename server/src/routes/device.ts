@@ -20,6 +20,22 @@ const lightScheduleSchema = z.object({
   off: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
 });
 
+const scheduleLightRequestSchema = z.object({
+  active: z.boolean(),
+  on: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("UTC timestamp in milliseconds")
+    .optional(),
+  off: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("UTC timestamp in milliseconds")
+    .optional(),
+});
+
 const lightScheduleResponseSchema = z.object({
   id: z.number().nullable(),
   created_at: z.number().nullable(),
@@ -324,7 +340,7 @@ const app = new Hono()
       summary: "Set a schedule for the light",
       tags: ["Devices"],
     }),
-    zValidator("json", lightScheduleSchema),
+    zValidator("json", scheduleLightRequestSchema),
     async (c) => {
       const id = Number(c.req.param("id"));
       if (isNaN(id))
@@ -333,6 +349,7 @@ const app = new Hono()
         });
 
       const mac = await getDeviceMac(id);
+
       if (!mac)
         throw new HTTPException(404, {
           res: c.json({ message: "Device not found" }, 404),
@@ -341,6 +358,23 @@ const app = new Hono()
       const schedule = c.req.valid("json");
 
       if (schedule.active) {
+        if (schedule.on === undefined || schedule.off === undefined) {
+          const lightSchedule = await db
+            .selectFrom("light_schedules")
+            .selectAll()
+            .where("device_id", "=", id)
+            .limit(1)
+            .executeTakeFirst();
+
+          if (lightSchedule) {
+            schedule.on = lightSchedule.on_timestamp;
+            schedule.off = lightSchedule.off_timestamp;
+          } else {
+            schedule.on = 0;
+            schedule.off = 0;
+          }
+        }
+
         setLightSchedule(mac, {
           onTimestamp: schedule.on,
           offTimestamp: schedule.off,

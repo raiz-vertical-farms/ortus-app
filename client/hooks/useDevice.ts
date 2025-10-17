@@ -19,6 +19,7 @@ type UseDeviceResult = {
   error: unknown;
   isWebSocketConnected: boolean;
   setBrightness: (value: number) => Promise<void>;
+  toggleLightSchedule: (active: boolean) => Promise<void>;
   scheduleLights: (schedule: ScheduleInput) => Promise<void>;
   refresh: () => Promise<DeviceState | undefined>;
 };
@@ -200,9 +201,52 @@ export function useDevice(deviceId: string): UseDeviceResult {
         },
       });
 
+      setLiveState((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          light_schedule: {
+            active: true,
+            on: getTimestampByHoursAndMinutes(
+              schedule.fromHours,
+              schedule.fromMinutes
+            ),
+            off: getTimestampByHoursAndMinutes(
+              schedule.toHours,
+              schedule.toMinutes
+            ),
+          },
+        };
+      });
+
       await deviceQuery.refetch();
     },
     [deviceId, deviceQuery, scheduleLightMutation, sendOverWebSocket]
+  );
+
+  const toggleLightSchedule = useCallback(
+    async (active: boolean) => {
+      try {
+        await scheduleLightMutation.mutateAsync({
+          path: { id: deviceId },
+          body: { active },
+        });
+
+        setLiveState((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            light_schedule: prev.light_schedule
+              ? { ...prev.light_schedule, active }
+              : { active, on: 0, off: 0 },
+          };
+        });
+      } catch (error) {
+        console.error("Failed to toggle schedule:", error);
+      }
+    },
+    [deviceId, scheduleLightMutation]
   );
 
   const refresh = useCallback(async () => {
@@ -221,6 +265,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
     error: deviceQuery.error,
     isWebSocketConnected,
     setBrightness,
+    toggleLightSchedule,
     scheduleLights,
     refresh,
   };
