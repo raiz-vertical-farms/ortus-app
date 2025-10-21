@@ -1,6 +1,7 @@
 import { Cron } from "croner";
+import { mqttClient } from "../services/mqtt";
 
-const pumpSchedules = new Map<string, Cron>();
+const pumpSchedules = new Map<string, Cron[]>();
 
 type PumpSchedule = {
   startTime: number; // UTC timestamp in milliseconds
@@ -14,32 +15,47 @@ export function setPumpSchedule(macAddress: string, schedule: PumpSchedule) {
     throw new Error("timesPerDay must be greater than zero");
   }
 
-  // Calculate interval in minutes between activations
-  const intervalMinutes = Math.floor((24 * 60) / schedule.timesPerDay);
+  const jobs: Cron[] = [];
+  const intervalMs = Math.floor(
+    (24 * 60 * 60 * 1000) / schedule.timesPerDay
+  );
 
-  // Create cron expression that repeats every N minutes
-  const cronExpr = `*/${intervalMinutes} * * * *`;
+  for (let i = 0; i < schedule.timesPerDay; i += 1) {
+    const runTimestamp = schedule.startTime + i * intervalMs;
+    const runDate = new Date(runTimestamp);
+    const hour = runDate.getUTCHours();
+    const minute = runDate.getUTCMinutes();
 
-  const job = new Cron(cronExpr, {
-    startAt: new Date(schedule.startTime),
-    timezone: "UTC",
-  });
+    const job = new Cron(
+      `${minute} ${hour} * * *`,
+      { timezone: "UTC" },
+      () => {
+        console.log(
+          `[${macAddress}] Pump activation triggered at ${hour}:${minute} UTC`
+        );
+        mqttClient.publish(
+          `${macAddress}/sensor/pump/trigger/command`,
+          "5"
+        );
+      }
+    );
 
-  pumpSchedules.set(macAddress, job);
+    jobs.push(job);
+  }
+
+  pumpSchedules.set(macAddress, jobs);
 }
 
 export function pausePumpSchedule(macAddress: string) {
-  pumpSchedules.get(macAddress)?.pause();
+  pumpSchedules.get(macAddress)?.forEach((job) => job.pause());
 }
 
 export function resumePumpSchedule(macAddress: string) {
-  pumpSchedules.get(macAddress)?.resume();
+  pumpSchedules.get(macAddress)?.forEach((job) => job.resume());
 }
 
 export function removePumpSchedule(macAddress: string) {
-  const job = pumpSchedules.get(macAddress);
-  if (job) {
-    job.stop();
-    pumpSchedules.delete(macAddress);
-  }
+  const jobs = pumpSchedules.get(macAddress);
+  jobs?.forEach((job) => job.stop());
+  pumpSchedules.delete(macAddress);
 }

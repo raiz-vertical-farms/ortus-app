@@ -1500,6 +1500,158 @@ export interface ApiService {
             body: ScheduleLightBody;
         };
     };
+    /** @summary Set a schedule for the pump */
+    schedulePump: {
+        /** @summary Set a schedule for the pump */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SchedulePumpBody, SchedulePumpParameters, TMeta, TSignal>, client?: (schema: SchedulePumpSchema, options: ServiceOperationMutationFnOptions<SchedulePumpBody, SchedulePumpParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SchedulePumpData, SchedulePumpError>>): Promise<RequestFnResponse<SchedulePumpData, SchedulePumpError>>;
+        /** @summary Set a schedule for the pump */
+        getMutationKey(parameters: DeepReadonly<SchedulePumpParameters> | void): ServiceOperationMutationKey<SchedulePumpSchema, SchedulePumpParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Set a schedule for the pump
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.schedulePump.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.schedulePump.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends SchedulePumpBody, TContext = unknown>(parameters: DeepReadonly<SchedulePumpParameters>, options?: ServiceOperationUseMutationOptions<SchedulePumpSchema, SchedulePumpData, SchedulePumpParameters, TVariables, OperationError<SchedulePumpError>, TContext>): UseMutationResult<SchedulePumpData, OperationError<SchedulePumpError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Set a schedule for the pump
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.schedulePump.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.schedulePump.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<SchedulePumpBody, SchedulePumpParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<SchedulePumpSchema, SchedulePumpData, SchedulePumpParameters, TVariables, OperationError<SchedulePumpError>, TContext>): UseMutationResult<SchedulePumpData, OperationError<SchedulePumpError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Set a schedule for the pump
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const schedulePumpTotal = qraft.apiService.schedulePump.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const schedulePumpTotal = qraft.apiService.schedulePump.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext> | MutationFiltersByMutationKey<SchedulePumpSchema, SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Set a schedule for the pump
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const schedulePumpPendingMutationVariables = qraft.apiService.schedulePump.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const schedulePumpMutationData = qraft.apiService.schedulePump.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<SchedulePumpData, OperationError<SchedulePumpError>, MutationVariables<SchedulePumpBody, SchedulePumpParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext> | MutationFiltersByMutationKey<SchedulePumpSchema, SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext>;
+            select?: (mutation: Mutation<SchedulePumpData, OperationError<SchedulePumpError>, MutationVariables<SchedulePumpBody, SchedulePumpParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Set a schedule for the pump */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext> | MutationFiltersByMutationKey<SchedulePumpSchema, SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Set a schedule for the pump
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.schedulePump.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.schedulePump.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext> | MutationFiltersByMutationKey<SchedulePumpSchema, SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext>): Mutation<SchedulePumpData, SchedulePumpError, MutationVariables<SchedulePumpBody, SchedulePumpParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext> | MutationFiltersByMutationKey<SchedulePumpSchema, SchedulePumpBody, SchedulePumpData, SchedulePumpParameters, OperationError<SchedulePumpError>, TContext>): Array<Mutation<SchedulePumpData, SchedulePumpError, MutationVariables<SchedulePumpBody, SchedulePumpParameters>, TContext>>;
+        };
+        schema: SchedulePumpSchema;
+        types: {
+            parameters: SchedulePumpParameters;
+            data: SchedulePumpData;
+            error: SchedulePumpError;
+            body: SchedulePumpBody;
+        };
+    };
     /** @summary Get my IP address */
     myIp: {
         /** @summary Get my IP address */
@@ -2142,6 +2294,17 @@ export const scheduleLight = {
     schema: ScheduleLightSchema;
     [QraftServiceOperationsToken]: ApiService["scheduleLight"];
 };
+/** @summary Set a schedule for the pump */
+export const schedulePump = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/pump/schedule",
+        mediaType: ["application/json"]
+    }
+} as {
+    schema: SchedulePumpSchema;
+    [QraftServiceOperationsToken]: ApiService["schedulePump"];
+};
 /** @summary Get my IP address */
 export const myIp = {
     schema: {
@@ -2172,6 +2335,7 @@ export const apiService = {
     allDevices,
     setBrightness,
     scheduleLight,
+    schedulePump,
     myIp,
     localDevices
 } as const;
@@ -2279,6 +2443,17 @@ type ScheduleLightParameters = paths["/api/device/{id}/light/schedule"]["post"][
 type ScheduleLightData = unknown;
 type ScheduleLightError = unknown;
 type ScheduleLightBody = NonNullable<paths["/api/device/{id}/light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
+type SchedulePumpSchema = {
+    method: "post";
+    url: "/api/device/{id}/pump/schedule";
+    mediaType: [
+        "application/json"
+    ];
+};
+type SchedulePumpParameters = paths["/api/device/{id}/pump/schedule"]["post"]["parameters"];
+type SchedulePumpData = unknown;
+type SchedulePumpError = unknown;
+type SchedulePumpBody = NonNullable<paths["/api/device/{id}/pump/schedule"]["post"]["requestBody"]>["content"]["application/json"];
 type MyIpSchema = {
     method: "get";
     url: "/api/network/my-ip";

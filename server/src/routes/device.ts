@@ -4,7 +4,12 @@ import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { infer, z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
-import { removeLightSchedule, setLightSchedule } from "../cron";
+import {
+  removeLightSchedule,
+  removePumpSchedule,
+  setLightSchedule,
+  setPumpSchedule,
+} from "../cron";
 
 const deleteDeviceResponseSchema = z.object({
   message: z.string(),
@@ -20,6 +25,20 @@ const lightScheduleSchema = z.object({
   off: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
 });
 
+const pumpScheduleSchema = z.object({
+  active: z.boolean(),
+  start_time: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("UTC timestamp in milliseconds"),
+  times_per_day: z
+    .number()
+    .int()
+    .positive()
+    .describe("Number of activations per UTC day"),
+});
+
 const scheduleLightRequestSchema = z.object({
   active: z.boolean(),
   on: z
@@ -33,6 +52,22 @@ const scheduleLightRequestSchema = z.object({
     .int()
     .nonnegative()
     .describe("UTC timestamp in milliseconds")
+    .optional(),
+});
+
+const schedulePumpRequestSchema = z.object({
+  active: z.boolean(),
+  start_time: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("UTC timestamp in milliseconds")
+    .optional(),
+  times_per_day: z
+    .number()
+    .int()
+    .positive()
+    .describe("Number of activations per UTC day")
     .optional(),
 });
 
@@ -71,6 +106,7 @@ const deviceStateSchema = z.object({
   online: z.boolean(),
   brightness: z.number().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
+  pump_schedule: pumpScheduleSchema.nullable(),
   lan_ip: z.string().nullable(),
   lan_ws_port: z.number().nullable(),
 });
@@ -238,6 +274,13 @@ const app = new Hono()
         .limit(1)
         .executeTakeFirst();
 
+      const pumpSchedule = await db
+        .selectFrom("pump_schedules")
+        .selectAll()
+        .where("device_id", "=", id)
+        .limit(1)
+        .executeTakeFirst();
+
       if (!device) {
         throw new HTTPException(404, {
           res: c.json({ message: "Device not found" }, 404),
@@ -254,6 +297,17 @@ const app = new Hono()
             off: lightSchedule?.off_timestamp || 0,
             active: Boolean(lightSchedule?.active),
           },
+          pump_schedule: pumpSchedule
+            ? {
+                start_time: pumpSchedule.start_time,
+                times_per_day: pumpSchedule.times_per_day,
+                active: Boolean(pumpSchedule.active),
+              }
+            : {
+                start_time: 0,
+                times_per_day: 0,
+                active: false,
+              },
         },
       } satisfies DeviceStateResponse);
     }
@@ -412,6 +466,98 @@ const app = new Hono()
       }
 
       return c.json({ message: "Light schedule updated", schedule });
+    }
+  )
+  .post(
+    ":id/pump/schedule",
+    describeRoute({
+      operationId: "schedulePump",
+      summary: "Set a schedule for the pump",
+      tags: ["Devices"],
+    }),
+    zValidator("json", schedulePumpRequestSchema),
+    async (c) => {
+      const id = Number(c.req.param("id"));
+      if (isNaN(id))
+        throw new HTTPException(400, {
+          res: c.json({ message: "Invalid device id" }, 400),
+        });
+
+      const mac = await getDeviceMac(id);
+
+      if (!mac)
+        throw new HTTPException(404, {
+          res: c.json({ message: "Device not found" }, 404),
+        });
+
+      const schedule = c.req.valid("json");
+
+      const existingSchedule = await db
+        .selectFrom("pump_schedules")
+        .selectAll()
+        .where("device_id", "=", id)
+        .limit(1)
+        .executeTakeFirst();
+
+      if (schedule.active) {
+        if (
+          schedule.start_time === undefined ||
+          schedule.times_per_day === undefined
+        ) {
+          if (existingSchedule) {
+            schedule.start_time = existingSchedule.start_time;
+            schedule.times_per_day = existingSchedule.times_per_day;
+          } else {
+            throw new HTTPException(400, {
+              res: c.json(
+                {
+                  message:
+                    "Start time and times per day are required to activate the pump schedule",
+                },
+                400
+              ),
+            });
+          }
+        }
+      } else {
+        removePumpSchedule(mac);
+      }
+
+      const persistedStartTime =
+        schedule.start_time ?? existingSchedule?.start_time ?? Date.now();
+      const persistedTimesPerDay =
+        schedule.times_per_day ?? existingSchedule?.times_per_day ?? 1;
+
+      if (schedule.active) {
+        setPumpSchedule(mac, {
+          startTime: persistedStartTime,
+          timesPerDay: persistedTimesPerDay,
+        });
+      }
+
+      if (existingSchedule) {
+        await db
+          .updateTable("pump_schedules")
+          .where("device_id", "=", id)
+          .set({
+            active: schedule.active ? 1 : 0,
+            start_time: persistedStartTime,
+            times_per_day: persistedTimesPerDay,
+          })
+          .execute();
+      } else {
+        await db
+          .insertInto("pump_schedules")
+          .values({
+            device_id: id,
+            active: schedule.active ? 1 : 0,
+            start_time: persistedStartTime,
+            times_per_day: persistedTimesPerDay,
+          })
+          .execute();
+      }
+
+      return c.json({ message: "Pump schedule updated", schedule });
     }
   );
 

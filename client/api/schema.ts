@@ -157,6 +157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/device/{id}/pump/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set a schedule for the pump */
+        post: operations["schedulePump"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/network/my-ip": {
         parameters: {
             query?: never;
@@ -397,6 +414,13 @@ export interface operations {
                                 /** @description UTC timestamp in milliseconds */
                                 off: number;
                             } | null;
+                            pump_schedule: {
+                                active: boolean;
+                                /** @description UTC timestamp in milliseconds */
+                                start_time: number;
+                                /** @description Number of activations per UTC day */
+                                times_per_day: number;
+                            } | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         };
@@ -429,6 +453,13 @@ export interface operations {
                             organization_id: number;
                             last_seen: number | null;
                             online: boolean;
+                            pump_schedule: {
+                                active: boolean;
+                                /** @description UTC timestamp in milliseconds */
+                                start_time: number;
+                                /** @description Number of activations per UTC day */
+                                times_per_day: number;
+                            } | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         }[];
@@ -472,6 +503,28 @@ export interface operations {
                     on?: number;
                     /** @description UTC timestamp in milliseconds */
                     off?: number;
+                };
+            };
+        };
+        responses: never;
+    };
+    schedulePump: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    active: boolean;
+                    /** @description UTC timestamp in milliseconds */
+                    start_time?: number;
+                    /** @description Number of activations per UTC day */
+                    times_per_day?: number;
                 };
             };
         };

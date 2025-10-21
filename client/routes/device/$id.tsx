@@ -82,7 +82,7 @@ function RouteComponent() {
             <Text>Plant view is sprouting soon.</Text>
           ))
           .with({ view: "water" }, () => (
-            <Text>Water view is bubbling up soon.</Text>
+            <WaterView deviceId={id} device={device} />
           ))
           .with({ view: "settings" }, () => (
             <SettingsView macAddress={state.mac_address!} deviceId={id} />
@@ -90,6 +90,110 @@ function RouteComponent() {
           .exhaustive()}
       </Box>
     </PageLayout>
+  );
+}
+
+function WaterView({
+  device,
+}: {
+  deviceId: string;
+  device: ReturnType<typeof useDevice>;
+}) {
+  const scheduleActive = device.state?.pump_schedule?.active ?? false;
+
+  const { hours: startHours, minutes: startMinutes } =
+    getHoursAndMinutesByTimestamp(device.state?.pump_schedule?.start_time ?? 0);
+
+  const timesPerDay = Math.max(
+    1,
+    device.state?.pump_schedule?.times_per_day ?? 1
+  );
+
+  const scheduleState = { startHours, startMinutes, timesPerDay };
+
+  const minuteOptions = ["00", "15", "24", "30", "45"];
+  const timesPerDayOptions = [1, 2, 3, 4, 6, 8, 12];
+
+  return (
+    <Box pt="5xl">
+      <Group direction="column" align="center" justify="center" spacing="xl">
+        <Text align="center" size="lg">
+          Pump schedule
+        </Text>
+        <Toggle
+          onLabel="Schedule on"
+          offLabel="Manual control"
+          checked={scheduleActive}
+          onChange={(e) => {
+            const enabled = e.target.checked;
+            if (enabled) {
+              device.schedulePump(scheduleState);
+            } else {
+              device.togglePumpSchedule(false);
+            }
+          }}
+        />
+        {scheduleActive && (
+          <>
+            <Group direction="row" align="center" justify="center" spacing="xl">
+              <Text align="left" size="lg">
+                First watering
+              </Text>
+              <select
+                onChange={(e) =>
+                  device.schedulePump({
+                    ...scheduleState,
+                    startHours: parseInt(e.target.value, 10),
+                  })
+                }
+                value={scheduleState.startHours}
+              >
+                {new Array(24).fill(null).map((_, i) => (
+                  <option key={i} value={i}>
+                    {i}
+                  </option>
+                ))}
+              </select>
+              <select
+                onChange={(e) =>
+                  device.schedulePump({
+                    ...scheduleState,
+                    startMinutes: parseInt(e.target.value, 10),
+                  })
+                }
+                value={scheduleState.startMinutes}
+              >
+                {minuteOptions.map((label) => (
+                  <option key={label} value={parseInt(label, 10)}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </Group>
+            <Group direction="row" align="center" justify="center" spacing="xl">
+              <Text align="left" size="lg">
+                Times per day
+              </Text>
+              <select
+                onChange={(e) =>
+                  device.schedulePump({
+                    ...scheduleState,
+                    timesPerDay: parseInt(e.target.value, 10),
+                  })
+                }
+                value={scheduleState.timesPerDay}
+              >
+                {timesPerDayOptions.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </Group>
+          </>
+        )}
+      </Group>
+    </Box>
   );
 }
 

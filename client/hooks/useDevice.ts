@@ -13,6 +13,12 @@ type ScheduleInput = {
   enabled?: boolean;
 };
 
+type PumpScheduleInput = {
+  startHours: number;
+  startMinutes: number;
+  timesPerDay: number;
+};
+
 type UseDeviceResult = {
   state: DeviceState | null;
   isLoading: boolean;
@@ -21,6 +27,11 @@ type UseDeviceResult = {
   setBrightness: (value: number) => Promise<void>;
   toggleLightSchedule: (active: boolean) => Promise<void>;
   scheduleLights: (schedule: ScheduleInput) => Promise<void>;
+  togglePumpSchedule: (
+    active: boolean,
+    scheduleOverride?: PumpScheduleInput
+  ) => Promise<void>;
+  schedulePump: (schedule: PumpScheduleInput) => Promise<void>;
   refresh: () => Promise<DeviceState | undefined>;
 };
 
@@ -37,6 +48,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
   const setBrightnessMutation = client.api.setBrightness.useMutation();
   const scheduleLightMutation = client.api.scheduleLight.useMutation();
+  const schedulePumpMutation = client.api.schedulePump.useMutation();
 
   const [liveState, setLiveState] = useState<DeviceState | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
@@ -55,6 +67,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
           light: current?.brightness ?? latest.brightness ?? null,
           light_schedule:
             current?.light_schedule ?? latest.light_schedule ?? null,
+          pump_schedule:
+            current?.pump_schedule ?? latest.pump_schedule ?? null,
         };
       });
     }
@@ -249,6 +263,100 @@ export function useDevice(deviceId: string): UseDeviceResult {
     [deviceId, scheduleLightMutation]
   );
 
+  const schedulePump = useCallback(
+    async (schedule: PumpScheduleInput) => {
+      const startTime = getTimestampByHoursAndMinutes(
+        schedule.startHours,
+        schedule.startMinutes
+      );
+
+      await schedulePumpMutation.mutateAsync({
+        path: { id: deviceId },
+        body: {
+          active: true,
+          start_time: startTime,
+          times_per_day: schedule.timesPerDay,
+        },
+      });
+
+      setLiveState((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          pump_schedule: {
+            active: true,
+            start_time: startTime,
+            times_per_day: schedule.timesPerDay,
+          },
+        };
+      });
+
+      await deviceQuery.refetch();
+    },
+    [deviceId, deviceQuery, schedulePumpMutation]
+  );
+
+  const togglePumpSchedule = useCallback(
+    async (active: boolean, scheduleOverride?: PumpScheduleInput) => {
+      if (active) {
+        const fallbackSchedule = (() => {
+          if (scheduleOverride) {
+            return scheduleOverride;
+          }
+          const base =
+            liveState?.pump_schedule ??
+            deviceQuery.data?.state?.pump_schedule ??
+            null;
+          if (base) {
+            const startDate = new Date(base.start_time || 0);
+            return {
+              startHours: startDate.getHours(),
+              startMinutes: startDate.getMinutes(),
+              timesPerDay: Math.max(1, base.times_per_day || 1),
+            };
+          }
+          const now = new Date();
+          return {
+            startHours: now.getHours(),
+            startMinutes: now.getMinutes(),
+            timesPerDay: 1,
+          };
+        })();
+
+        await schedulePump(fallbackSchedule);
+        return;
+      }
+
+      try {
+        await schedulePumpMutation.mutateAsync({
+          path: { id: deviceId },
+          body: { active: false },
+        });
+
+        setLiveState((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            pump_schedule: prev.pump_schedule
+              ? { ...prev.pump_schedule, active: false }
+              : { active: false, start_time: 0, times_per_day: 1 },
+          };
+        });
+      } catch (error) {
+        console.error("Failed to toggle pump schedule:", error);
+      }
+    },
+    [
+      deviceId,
+      schedulePumpMutation,
+      schedulePump,
+      liveState?.pump_schedule?.start_time,
+      liveState?.pump_schedule?.times_per_day,
+      deviceQuery.data?.state?.pump_schedule?.start_time,
+      deviceQuery.data?.state?.pump_schedule?.times_per_day,
+    ]
+  );
+
   const refresh = useCallback(async () => {
     const result = await deviceQuery.refetch();
     if (result.data?.state) {
@@ -267,6 +375,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
     setBrightness,
     toggleLightSchedule,
     scheduleLights,
+    togglePumpSchedule,
+    schedulePump,
     refresh,
   };
 }
