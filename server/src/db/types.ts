@@ -16,10 +16,8 @@ export interface _Migrations {
 }
 
 export interface Devices {
-  bluetooth_device_id: string | null;
-  bluetooth_implementation: string | null;
-  created_at: Generated<number | null>;
-  id: Generated<number | null>;
+  created_at: Generated<number>;
+  id: Generated<number>;
   lan_ip: string | null;
   lan_ws_port: number | null;
   last_seen: number | null;
@@ -30,47 +28,65 @@ export interface Devices {
 }
 
 export interface DeviceTimeseries {
-  id: Generated<number | null>;
+  created_at: Generated<number>;
+  id: Generated<number>;
   mac_address: string;
   metric: string;
-  recorded_at: Generated<number | null>;
   value_text: string;
   value_type: string;
 }
 
+export interface LightSchedules {
+  active: Generated<number>;
+  created_at: Generated<number>;
+  device_id: number;
+  id: Generated<number>;
+  off_timestamp: number;
+  on_timestamp: number;
+}
+
 export interface Organizations {
-  created_at: Generated<number | null>;
-  id: Generated<number | null>;
+  created_at: Generated<number>;
+  id: Generated<number>;
   name: string;
 }
 
 export interface Plants {
-  created_at: Generated<number | null>;
+  created_at: Generated<number>;
   device_id: number;
-  id: Generated<number | null>;
+  id: Generated<number>;
   location: string;
   plant_type_id: number;
 }
 
 export interface PlantTypes {
-  created_at: Generated<number | null>;
+  created_at: Generated<number>;
   description: string | null;
-  id: Generated<number | null>;
+  id: Generated<number>;
   name: string;
 }
 
+export interface PumpSchedules {
+  active: Generated<number>;
+  created_at: Generated<number>;
+  device_id: number;
+  id: Generated<number>;
+  start_time: number;
+  times_per_day: number;
+}
+
 export interface UserOrganizationMemberships {
-  created_at: Generated<number | null>;
-  id: Generated<number | null>;
+  created_at: Generated<number>;
+  id: Generated<number>;
   organization_id: number;
   role: string;
   user_id: number;
 }
 
 export interface Users {
-  created_at: Generated<number | null>;
+  created_at: Generated<number>;
   email: string;
-  id: Generated<number | null>;
+  id: Generated<number>;
   name: string;
   password_hash: string;
   password_salt: string;
@@ -80,9 +96,11 @@ export interface DB {
   _migrations: _Migrations;
   device_timeseries: DeviceTimeseries;
   devices: Devices;
+  light_schedules: LightSchedules;
   organizations: Organizations;
   plant_types: PlantTypes;
   plants: Plants;
+  pump_schedules: PumpSchedules;
   user_organization_memberships: UserOrganizationMemberships;
   users: Users;
 }

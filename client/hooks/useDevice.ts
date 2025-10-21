@@ -3,6 +3,8 @@ import { client } from "../lib/apiClient";
 
 const DEFAULT_WS_PORT = 8765;
 
+type DeviceState = typeof client.api.deviceState.types.data.state;
+
 type ScheduleInput = {
   fromHours: number;
   fromMinutes: number;
@@ -11,35 +13,13 @@ type ScheduleInput = {
   enabled?: boolean;
 };
 
-type DeviceLightSchedule = {
-  from_hour: number;
-  from_minute: number;
-  to_hour: number;
-  to_minute: number;
-  enabled?: boolean;
-};
-
-type DeviceState = {
-  id: number;
-  name: string;
-  mac_address: string;
-  organization_id: number;
-  last_seen: number | null;
-  online: boolean;
-  light: number | null;
-  light_schedule: DeviceLightSchedule | null;
-  water_level: string | null;
-  number_of_plants: number;
-  lan_ip: string | null;
-  lan_ws_port: number | null;
-};
-
 type UseDeviceResult = {
   state: DeviceState | null;
   isLoading: boolean;
   error: unknown;
   isWebSocketConnected: boolean;
   setBrightness: (value: number) => Promise<void>;
+  toggleLightSchedule: (active: boolean) => Promise<void>;
   scheduleLights: (schedule: ScheduleInput) => Promise<void>;
   refresh: () => Promise<DeviceState | undefined>;
 };
@@ -47,50 +27,7 @@ type UseDeviceResult = {
 type WsStateMessage = {
   type: string;
   brightness?: number;
-  schedule?: {
-    enabled?: boolean;
-    from_hour?: number;
-    from_minute?: number;
-    to_hour?: number;
-    to_minute?: number;
-  };
 };
-
-function mergeSchedule(
-  current: DeviceLightSchedule | null,
-  update?: WsStateMessage["schedule"] | null
-): DeviceLightSchedule | null {
-  if (!update) {
-    return current;
-  }
-
-  const base: DeviceLightSchedule = current
-    ? { ...current }
-    : {
-        from_hour: update.from_hour ?? 0,
-        from_minute: update.from_minute ?? 0,
-        to_hour: update.to_hour ?? 0,
-        to_minute: update.to_minute ?? 0,
-      };
-
-  if (typeof update.from_hour === "number") {
-    base.from_hour = update.from_hour;
-  }
-  if (typeof update.from_minute === "number") {
-    base.from_minute = update.from_minute;
-  }
-  if (typeof update.to_hour === "number") {
-    base.to_hour = update.to_hour;
-  }
-  if (typeof update.to_minute === "number") {
-    base.to_minute = update.to_minute;
-  }
-  if (typeof update.enabled === "boolean") {
-    base.enabled = update.enabled;
-  }
-
-  return base;
-}
 
 export function useDevice(deviceId: string): UseDeviceResult {
   const deviceQuery = client.api.deviceState.useQuery(
@@ -98,7 +35,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
     { refetchInterval: 60000 }
   );
 
-  const setLightMutation = client.api.setLight.useMutation();
+  const setBrightnessMutation = client.api.setBrightness.useMutation();
   const scheduleLightMutation = client.api.scheduleLight.useMutation();
 
   const [liveState, setLiveState] = useState<DeviceState | null>(null);
@@ -109,18 +46,15 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
   useEffect(() => {
     if (deviceQuery.data?.state) {
-      const latest = deviceQuery.data.state as DeviceState;
+      const latest = deviceQuery.data.state;
       setLiveState((current) => {
-        if (!current) {
-          return latest;
-        }
-
+        if (!current) return latest;
         return {
           ...latest,
           ...current,
-          light: current.light ?? latest.light ?? null,
+          light: current?.brightness ?? latest.brightness ?? null,
           light_schedule:
-            current.light_schedule ?? latest.light_schedule ?? null,
+            current?.light_schedule ?? latest.light_schedule ?? null,
         };
       });
     }
@@ -180,27 +114,17 @@ export function useDevice(deviceId: string): UseDeviceResult {
         const parsed = JSON.parse(event.data) as WsStateMessage;
         if (parsed.type === "state") {
           setLiveState((prev) => {
-            const base =
-              prev ??
-              (deviceQuery.data?.state as DeviceState | undefined) ??
-              null;
-            if (!base) {
-              return null;
-            }
-            const light =
+            const base = prev ?? deviceQuery.data?.state ?? null;
+            if (!base) return prev;
+
+            const brightness =
               typeof parsed.brightness === "number"
                 ? parsed.brightness
-                : base.light;
-
-            const schedule = mergeSchedule(
-              base.light_schedule,
-              parsed.schedule
-            );
+                : base?.brightness;
 
             return {
               ...base,
-              light,
-              light_schedule: schedule,
+              brightness,
             };
           });
         }
@@ -250,54 +174,79 @@ export function useDevice(deviceId: string): UseDeviceResult {
         return;
       }
 
-      await setLightMutation.mutateAsync({
+      await setBrightnessMutation.mutateAsync({
         path: { id: deviceId },
         body: { brightness: value },
       });
 
       await deviceQuery.refetch();
     },
-    [deviceId, deviceQuery, sendOverWebSocket, setLightMutation]
+    [deviceId, deviceQuery, sendOverWebSocket, setBrightnessMutation]
   );
 
   const scheduleLights = useCallback(
     async (schedule: ScheduleInput) => {
-      const payload = {
-        type: "scheduleLights",
-        schedule: {
-          from_hour: schedule.fromHours,
-          from_minute: schedule.fromMinutes,
-          to_hour: schedule.toHours,
-          to_minute: schedule.toMinutes,
-          enabled: schedule.enabled ?? true,
-        },
-      };
-
-      if (sendOverWebSocket(payload)) {
-        setLiveState((prev) =>
-          prev
-            ? {
-                ...prev,
-                light_schedule: payload.schedule,
-              }
-            : prev
-        );
-        return;
-      }
-
       await scheduleLightMutation.mutateAsync({
         path: { id: deviceId },
         body: {
-          from_hour: schedule.fromHours,
-          from_minute: schedule.fromMinutes,
-          to_hour: schedule.toHours,
-          to_minute: schedule.toMinutes,
+          on: getTimestampByHoursAndMinutes(
+            schedule.fromHours,
+            schedule.fromMinutes
+          ),
+          off: getTimestampByHoursAndMinutes(
+            schedule.toHours,
+            schedule.toMinutes
+          ),
+          active: true,
         },
+      });
+
+      setLiveState((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          light_schedule: {
+            active: true,
+            on: getTimestampByHoursAndMinutes(
+              schedule.fromHours,
+              schedule.fromMinutes
+            ),
+            off: getTimestampByHoursAndMinutes(
+              schedule.toHours,
+              schedule.toMinutes
+            ),
+          },
+        };
       });
 
       await deviceQuery.refetch();
     },
     [deviceId, deviceQuery, scheduleLightMutation, sendOverWebSocket]
+  );
+
+  const toggleLightSchedule = useCallback(
+    async (active: boolean) => {
+      try {
+        await scheduleLightMutation.mutateAsync({
+          path: { id: deviceId },
+          body: { active },
+        });
+
+        setLiveState((prev) => {
+          if (!prev) return prev;
+
+          return {
+            ...prev,
+            light_schedule: prev.light_schedule
+              ? { ...prev.light_schedule, active }
+              : { active, on: 0, off: 0 },
+          };
+        });
+      } catch (error) {
+        console.error("Failed to toggle schedule:", error);
+      }
+    },
+    [deviceId, scheduleLightMutation]
   );
 
   const refresh = useCallback(async () => {
@@ -316,7 +265,17 @@ export function useDevice(deviceId: string): UseDeviceResult {
     error: deviceQuery.error,
     isWebSocketConnected,
     setBrightness,
+    toggleLightSchedule,
     scheduleLights,
     refresh,
   };
+}
+
+function getTimestampByHoursAndMinutes(hours: number, minutes: number) {
+  const now = new Date();
+  now.setHours(hours);
+  now.setMinutes(minutes);
+  now.setSeconds(0);
+  now.setMilliseconds(0);
+  return now.getTime();
 }

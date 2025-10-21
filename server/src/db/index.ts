@@ -1,5 +1,5 @@
 // db.ts
-import { Kysely, SqliteDialect } from "kysely";
+import { Kysely, SqliteDialect, KyselyPlugin } from "kysely";
 import SQLite from "better-sqlite3";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
 import { DB } from "./types";

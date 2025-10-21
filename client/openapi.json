@@ -321,6 +321,9 @@
                         "id": {
                           "type": "number"
                         },
+                        "created_at": {
+                          "type": "number"
+                        },
                         "name": {
                           "type": "string"
                         },
@@ -343,7 +346,7 @@
                         "online": {
                           "type": "boolean"
                         },
-                        "light": {
+                        "brightness": {
                           "anyOf": [
                             {
                               "type": "number"
@@ -358,51 +361,32 @@
                             {
                               "type": "object",
                               "properties": {
-                                "from_hour": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 23
+                                "active": {
+                                  "type": "boolean"
                                 },
-                                "from_minute": {
-                                  "type": "number",
+                                "on": {
+                                  "description": "UTC timestamp in milliseconds",
+                                  "type": "integer",
                                   "minimum": 0,
-                                  "maximum": 59
+                                  "maximum": 9007199254740991
                                 },
-                                "to_hour": {
-                                  "type": "number",
+                                "off": {
+                                  "description": "UTC timestamp in milliseconds",
+                                  "type": "integer",
                                   "minimum": 0,
-                                  "maximum": 23
-                                },
-                                "to_minute": {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 59
+                                  "maximum": 9007199254740991
                                 }
                               },
                               "required": [
-                                "from_hour",
-                                "from_minute",
-                                "to_hour",
-                                "to_minute"
+                                "active",
+                                "on",
+                                "off"
                               ]
                             },
                             {
                               "type": "null"
                             }
                           ]
-                        },
-                        "water_level": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "number_of_plants": {
-                          "type": "number"
                         },
                         "lan_ip": {
                           "anyOf": [
@@ -427,15 +411,14 @@
                       },
                       "required": [
                         "id",
+                        "created_at",
                         "name",
                         "mac_address",
                         "organization_id",
                         "last_seen",
                         "online",
-                        "light",
+                        "brightness",
                         "light_schedule",
-                        "water_level",
-                        "number_of_plants",
                         "lan_ip",
                         "lan_ws_port"
                       ]
@@ -484,6 +467,9 @@
                           "id": {
                             "type": "number"
                           },
+                          "created_at": {
+                            "type": "number"
+                          },
                           "name": {
                             "type": "string"
                           },
@@ -529,6 +515,7 @@
                         },
                         "required": [
                           "id",
+                          "created_at",
                           "name",
                           "mac_address",
                           "organization_id",
@@ -550,9 +537,9 @@
         }
       }
     },
-    "/api/device/{id}/light/set": {
+    "/api/device/{id}/light/brightness": {
       "post": {
-        "operationId": "setLight",
+        "operationId": "setBrightness",
         "summary": "Adjust the the brightness of the light",
         "tags": [
           "Devices"
@@ -603,32 +590,24 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "from_hour": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 23
+                  "active": {
+                    "type": "boolean"
                   },
-                  "from_minute": {
-                    "type": "number",
+                  "on": {
+                    "description": "UTC timestamp in milliseconds",
+                    "type": "integer",
                     "minimum": 0,
-                    "maximum": 59
+                    "maximum": 9007199254740991
                   },
-                  "to_hour": {
-                    "type": "number",
+                  "off": {
+                    "description": "UTC timestamp in milliseconds",
+                    "type": "integer",
                     "minimum": 0,
-                    "maximum": 23
-                  },
-                  "to_minute": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 59
+                    "maximum": 9007199254740991
                   }
                 },
                 "required": [
-                  "from_hour",
-                  "from_minute",
-                  "to_hour",
-                  "to_minute"
+                  "active"
                 ]
               }
             }

@@ -56,11 +56,11 @@ const app = new Hono()
 
       const recent = await db
         .selectFrom("device_timeseries")
-        .select(["mac_address", "recorded_at"])
+        .select(["mac_address", "created_at"])
         .distinct()
         .where("metric", "=", "presence")
         .where("value_text", "=", ip)
-        .where("recorded_at", ">=", Math.floor(Date.now() / 1000) - 60)
+        .where("created_at", ">=", Date.now() - 60)
         .execute();
 
       return c.json(recent);

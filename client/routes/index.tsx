@@ -60,16 +60,7 @@ function Index() {
             </Text>
           ) : null}
           {connectedDevices?.devices.map((device) => {
-            return (
-              <DeviceCard
-                key={device.id}
-                id={device.id}
-                name={device.name}
-                mac_address={device.mac_address}
-                last_seen={device.last_seen}
-                online={device.online}
-              />
-            );
+            return <DeviceCard key={device.id} {...device} />;
           })}
         </Group>
       </Box>

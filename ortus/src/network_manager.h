@@ -28,17 +28,12 @@ private:
   void onWiFiConnected();
   void handleDeviceCommand(const DeviceCommand &command);
   void setBrightness(int value);
-  void updateSchedule(const LightSchedule &schedule);
   void broadcastState(bool force = false);
   void publishPresence();
   String buildPresencePayload() const;
   void ensureAdapterIdentity();
   String getPublicIP();
   void applyBrightnessToRelays(int value);
-  void configureTime();
-  void evaluateSchedule(bool force = false);
-  void applyScheduledOutput();
-  bool shouldScheduleBeOn(int currentMinutes) const;
 
   WiFiCredentialsStore &credentials;
   WiFiClientSecure espClient;
@@ -52,7 +47,6 @@ private:
   unsigned long lastPresenceAt;
   unsigned long lastWiFiAttempt;
   unsigned long lastPublicIpFetch;
-  unsigned long lastScheduleEvaluation;
   DeviceState deviceState;
   DeviceState lastBroadcastState;
   bool wifiWasConnected;
@@ -62,7 +56,6 @@ private:
   bool waitingForTimeSyncLogged;
   bool adaptersInitialized;
   bool hasBroadcastState;
-  bool scheduleActive;
   int appliedBrightness;
   String cachedPublicIp;
 

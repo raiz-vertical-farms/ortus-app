@@ -27,7 +27,6 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       lastPresenceAt(0),
       lastWiFiAttempt(0),
       lastPublicIpFetch(0),
-      lastScheduleEvaluation(0),
       deviceState(),
       lastBroadcastState(),
       wifiWasConnected(false),
@@ -37,7 +36,6 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       waitingForTimeSyncLogged(false),
       adaptersInitialized(false),
       hasBroadcastState(false),
-      scheduleActive(false),
       appliedBrightness(-1)
 {
   instance_ = this;
@@ -58,7 +56,7 @@ void NetworkManager::begin()
   if (restored)
   {
     deviceState = restoredState;
-    Serial.printf("[Network] Restored brightness %d (schedule %s)\n", deviceState.brightness, deviceState.hasSchedule ? "enabled" : "disabled");
+    Serial.printf("[Network] Restored brightness state: %d\n", deviceState.brightness);
   }
   else
   {
@@ -86,7 +84,6 @@ void NetworkManager::begin()
   digitalWrite(RELAY_LEFT_PIN, HIGH); // assuming active LOW relays
   digitalWrite(RELAY_RIGHT_PIN, HIGH);
 
-  applyScheduledOutput();
   broadcastState(true);
 }
 
@@ -132,8 +129,6 @@ void NetworkManager::loop()
       publishPresence();
     }
   }
-
-  evaluateSchedule();
 }
 
 void NetworkManager::onWiFiConnected()
@@ -146,13 +141,9 @@ void NetworkManager::onWiFiConnected()
   Serial.println(WiFi.localIP());
   Serial.printf("[Network] Signal strength: %d dBm\n", WiFi.RSSI());
 
-  configureTime();
-
   adaptersInitialized = false;
   lastPresenceAt = 0;
   publishPresence();
-
-  evaluateSchedule(true);
 }
 
 void NetworkManager::handleDeviceCommand(const DeviceCommand &command)
@@ -161,9 +152,6 @@ void NetworkManager::handleDeviceCommand(const DeviceCommand &command)
   {
   case CommandType::SetBrightness:
     setBrightness(command.brightness);
-    break;
-  case CommandType::ScheduleLights:
-    updateSchedule(command.schedule);
     break;
   }
 }
@@ -185,36 +173,9 @@ void NetworkManager::setBrightness(int value)
     stateStore.save(deviceState);
   }
 
+  applyBrightnessToRelays(deviceState.brightness);
   mqttAdapter.publishBrightnessState(deviceState.brightness);
   broadcastState();
-
-  evaluateSchedule(true);
-}
-
-void NetworkManager::updateSchedule(const LightSchedule &schedule)
-{
-  const bool changed = deviceState.hasSchedule != schedule.enabled || deviceState.schedule != schedule;
-
-  deviceState.hasSchedule = schedule.enabled;
-  deviceState.schedule = schedule;
-
-  if (changed)
-  {
-    stateStore.save(deviceState);
-    lastScheduleEvaluation = 0;
-  }
-
-  mqttAdapter.publishScheduleState(deviceState.hasSchedule, deviceState.schedule);
-  broadcastState();
-
-  if (!deviceState.hasSchedule || !deviceState.schedule.enabled)
-  {
-    scheduleActive = false;
-    applyScheduledOutput();
-    return;
-  }
-
-  evaluateSchedule(true);
 }
 
 void NetworkManager::broadcastState(bool force)
@@ -274,107 +235,6 @@ void NetworkManager::ensureAdapterIdentity()
   mqttAdapter.setIdentity(macAddress);
   adaptersInitialized = true;
   broadcastState(true);
-}
-
-void NetworkManager::configureTime()
-{
-  Serial.print(F("[Time] Configuring SNTP ("));
-  Serial.print(TIMEZONE);
-  Serial.println(F(")"));
-
-  configTzTime(TIMEZONE, NTP_SERVER_PRIMARY, NTP_SERVER_SECONDARY);
-  waitingForTimeSyncLogged = false;
-  lastScheduleEvaluation = 0;
-}
-
-void NetworkManager::evaluateSchedule(bool force)
-{
-  if (!deviceState.hasSchedule || !deviceState.schedule.enabled)
-  {
-    if (scheduleActive || force)
-    {
-      scheduleActive = false;
-      applyScheduledOutput();
-    }
-    return;
-  }
-
-  if (!deviceState.schedule.isValid())
-  {
-    Serial.println(F("[Schedule] Ignoring invalid schedule"));
-    scheduleActive = false;
-    applyScheduledOutput();
-    return;
-  }
-
-  const unsigned long now = millis();
-  if (!force && now - lastScheduleEvaluation < SCHEDULE_EVALUATION_INTERVAL_MS)
-  {
-    if (scheduleActive)
-    {
-      applyScheduledOutput();
-    }
-    return;
-  }
-
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo, 0))
-  {
-    if (!waitingForTimeSyncLogged)
-    {
-      Serial.println(F("[Schedule] Waiting for current time..."));
-      waitingForTimeSyncLogged = true;
-    }
-    return;
-  }
-
-  waitingForTimeSyncLogged = false;
-
-  lastScheduleEvaluation = now;
-
-  const int currentMinutes = timeinfo.tm_hour * 60 + timeinfo.tm_min;
-  const bool shouldBeOn = shouldScheduleBeOn(currentMinutes);
-
-  if (shouldBeOn != scheduleActive)
-  {
-    scheduleActive = shouldBeOn;
-    Serial.printf("[Schedule] %s (brightness %d)\n", scheduleActive ? "Active" : "Inactive", deviceState.brightness);
-  }
-  applyScheduledOutput();
-}
-
-bool NetworkManager::shouldScheduleBeOn(int currentMinutes) const
-{
-  const LightSchedule &schedule = deviceState.schedule;
-  const int start = schedule.fromHour * 60 + schedule.fromMinute;
-  const int end = schedule.toHour * 60 + schedule.toMinute;
-
-  if (start == end)
-  {
-    return false;
-  }
-
-  if (start < end)
-  {
-    return currentMinutes >= start && currentMinutes < end;
-  }
-
-  // Window crosses midnight
-  return currentMinutes >= start || currentMinutes < end;
-}
-
-void NetworkManager::applyScheduledOutput()
-{
-  const bool shouldApplyBrightness = scheduleActive && deviceState.hasSchedule && deviceState.schedule.enabled;
-  const int target = shouldApplyBrightness ? deviceState.brightness : 0;
-
-  if (appliedBrightness == target)
-  {
-    return;
-  }
-
-  appliedBrightness = target;
-  applyBrightnessToRelays(target);
 }
 
 String NetworkManager::getPublicIP()
@@ -498,14 +358,11 @@ void NetworkManager::forceReconnect()
   waitingForCredentialsLogged = false;
   waitingBeforeRetryLogged = false;
   waitingForTimeSyncLogged = false;
-  scheduleActive = false;
-  lastScheduleEvaluation = 0;
   appliedBrightness = -1;
   lastWiFiAttempt = 0;
   macAddress = "";
   adaptersInitialized = false;
   mqttAdapter.setIdentity("");
   WiFi.disconnect(true, true);
-  applyScheduledOutput();
   connectWiFi();
 }

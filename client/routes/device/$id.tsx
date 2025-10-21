@@ -15,6 +15,7 @@ import PageLayout from "../../layout/PageLayout/PageLayout";
 import Modal from "../../primitives/Modal/Modal";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
 import { useDevice } from "../../hooks/useDevice";
+import { getHoursAndMinutesByTimestamp } from "../../utils/time";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -134,6 +135,13 @@ function SettingsView({
   );
 }
 
+type ScheduleState = {
+  fromHours: number;
+  fromMinutes: number;
+  toHours: number;
+  toMinutes: number;
+};
+
 function LightView({
   deviceId,
   device,
@@ -141,40 +149,20 @@ function LightView({
   deviceId: string;
   device: ReturnType<typeof useDevice>;
 }) {
-  const [scheduleState, setScheduleState] = useState<{
-    fromHours: number;
-    fromMinutes: number;
-    toHours: number;
-    toMinutes: number;
-  }>({ fromHours: 0, fromMinutes: 0, toHours: 0, toMinutes: 0 });
-
-  const [showSchedule, setShowSchedule] = useState(false);
   const [pendingBrightness, setPendingBrightness] = useState<number | null>(
     null
   );
-
-  useEffect(() => {
-    const schedule = device.state?.light_schedule;
-    if (schedule) {
-      setScheduleState({
-        fromHours: schedule.from_hour ?? 0,
-        fromMinutes: schedule.from_minute ?? 0,
-        toHours: schedule.to_hour ?? 0,
-        toMinutes: schedule.to_minute ?? 0,
-      });
-    }
-  }, [device.state?.light_schedule]);
 
   useEffect(() => {
     if (pendingBrightness === null) {
       return;
     }
 
-    if (device.state && device.state.light === pendingBrightness) {
+    if (device.state && device.state.brightness === pendingBrightness) {
       const timeout = setTimeout(() => setPendingBrightness(null), 150);
       return () => clearTimeout(timeout);
     }
-  }, [pendingBrightness, device.state?.light]);
+  }, [pendingBrightness, device.state?.brightness]);
 
   const debouncedSetLight = useDebouncedCallback(
     (brightness: number) => {
@@ -190,18 +178,17 @@ function LightView({
     debouncedSetLight(value);
   };
 
-  const currentBrightness = pendingBrightness ?? device.state?.light ?? 0;
+  const currentBrightness = pendingBrightness ?? device.state?.brightness ?? 0;
+  const scheduleActive = device.state?.light_schedule?.active ?? false;
 
-  const handleScheduleSave = () => {
-    device
-      .scheduleLights({
-        fromHours: scheduleState.fromHours,
-        fromMinutes: scheduleState.fromMinutes,
-        toHours: scheduleState.toHours,
-        toMinutes: scheduleState.toMinutes,
-      })
-      .catch((error) => console.error("Failed to schedule lights", error));
-  };
+  const { hours: fromHours, minutes: fromMinutes } =
+    getHoursAndMinutesByTimestamp(device.state?.light_schedule?.on ?? 0);
+
+  const { hours: toHours, minutes: toMinutes } = getHoursAndMinutesByTimestamp(
+    device.state?.light_schedule?.off ?? 0
+  );
+
+  const scheduleState = { fromHours, fromMinutes, toHours, toMinutes };
 
   return (
     <Box pt="5xl">
@@ -224,10 +211,10 @@ function LightView({
           <Toggle
             onLabel="Schedule on"
             offLabel="Manual control"
-            checked={showSchedule}
-            onChange={(e) => setShowSchedule(e.target.checked)}
+            checked={scheduleActive}
+            onChange={(e) => device.toggleLightSchedule(e.target.checked)}
           />
-          {showSchedule && (
+          {scheduleActive && (
             <>
               <Group
                 direction="row"
@@ -240,7 +227,7 @@ function LightView({
                 </Text>
                 <select
                   onChange={(e) =>
-                    setScheduleState({
+                    device.scheduleLights({
                       ...scheduleState,
                       fromHours: parseInt(e.target.value),
                     })
@@ -253,7 +240,7 @@ function LightView({
                 </select>
                 <select
                   onChange={(e) =>
-                    setScheduleState({
+                    device.scheduleLights({
                       ...scheduleState,
                       fromMinutes: parseInt(e.target.value),
                     })
@@ -278,7 +265,7 @@ function LightView({
                 </Text>
                 <select
                   onChange={(e) =>
-                    setScheduleState({
+                    device.scheduleLights({
                       ...scheduleState,
                       toHours: parseInt(e.target.value),
                     })
@@ -291,7 +278,7 @@ function LightView({
                 </select>
                 <select
                   onChange={(e) =>
-                    setScheduleState({
+                    device.scheduleLights({
                       ...scheduleState,
                       toMinutes: parseInt(e.target.value),
                     })
@@ -304,7 +291,6 @@ function LightView({
                     </option>
                   ))}
                 </select>
-                <Button onClick={handleScheduleSave}>Save schedule</Button>
               </Group>
             </>
           )}

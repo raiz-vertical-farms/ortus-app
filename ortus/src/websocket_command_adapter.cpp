@@ -98,53 +98,6 @@ void WebSocketCommandAdapter::handleEvent(uint8_t clientNum, WStype_t type, uint
       command.brightness = brightness;
       dispatchCommand(command);
     }
-    else if (typeValue == "schedulelights")
-    {
-      LightSchedule schedule;
-      JsonVariant scheduleVariant = doc["schedule"];
-      if (scheduleVariant.is<JsonObject>())
-      {
-        JsonObject scheduleObj = scheduleVariant.as<JsonObject>();
-        schedule.fromHour = scheduleObj["from_hour"].as<int>();
-        schedule.fromMinute = scheduleObj["from_minute"].as<int>();
-        schedule.toHour = scheduleObj["to_hour"].as<int>();
-        schedule.toMinute = scheduleObj["to_minute"].as<int>();
-        if (scheduleObj["enabled"].is<bool>())
-        {
-          schedule.enabled = scheduleObj["enabled"].as<bool>();
-        }
-        else
-        {
-          schedule.enabled = true;
-        }
-      }
-      else
-      {
-        schedule.fromHour = doc["from_hour"].as<int>();
-        schedule.fromMinute = doc["from_minute"].as<int>();
-        schedule.toHour = doc["to_hour"].as<int>();
-        schedule.toMinute = doc["to_minute"].as<int>();
-        if (doc["enabled"].is<bool>())
-        {
-          schedule.enabled = doc["enabled"].as<bool>();
-        }
-        else
-        {
-          schedule.enabled = true;
-        }
-      }
-
-      if (!schedule.isValid())
-      {
-        Serial.println(F("[WS] Ignored invalid schedule command"));
-        return;
-      }
-
-      DeviceCommand command;
-      command.type = CommandType::ScheduleLights;
-      command.schedule = schedule;
-      dispatchCommand(command);
-    }
     else
     {
       Serial.print(F("[WS] Unknown command type: "));
@@ -164,13 +117,6 @@ void WebSocketCommandAdapter::broadcastState(const DeviceState &state)
   JsonObject root = doc.to<JsonObject>();
   root["type"] = "state";
   root["brightness"] = state.brightness;
-
-  JsonObject scheduleObj = root["schedule"].to<JsonObject>();
-  scheduleObj["enabled"] = state.hasSchedule && state.schedule.enabled;
-  scheduleObj["from_hour"] = state.schedule.fromHour;
-  scheduleObj["from_minute"] = state.schedule.fromMinute;
-  scheduleObj["to_hour"] = state.schedule.toHour;
-  scheduleObj["to_minute"] = state.schedule.toMinute;
 
   String payload;
   serializeJson(doc, payload);
