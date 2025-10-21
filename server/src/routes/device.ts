@@ -383,15 +383,33 @@ const app = new Hono()
         removeLightSchedule(mac);
       }
 
-      await db
-        .updateTable("light_schedules")
+      const existing = await db
+        .selectFrom("light_schedules")
+        .select("device_id")
         .where("device_id", "=", id)
-        .set({
-          active: schedule.active ? 1 : 0,
-          on_timestamp: schedule.on,
-          off_timestamp: schedule.off,
-        })
-        .execute();
+        .executeTakeFirst();
+
+      if (existing) {
+        await db
+          .updateTable("light_schedules")
+          .where("device_id", "=", id)
+          .set({
+            active: schedule.active ? 1 : 0,
+            on_timestamp: schedule.on,
+            off_timestamp: schedule.off,
+          })
+          .execute();
+      } else {
+        await db
+          .insertInto("light_schedules")
+          .values({
+            device_id: id,
+            active: schedule.active ? 1 : 0,
+            on_timestamp: schedule.on!,
+            off_timestamp: schedule.off!,
+          })
+          .execute();
+      }
 
       return c.json({ message: "Light schedule updated", schedule });
     }
