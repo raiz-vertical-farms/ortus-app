@@ -354,7 +354,15 @@ const webAdapter: BluetoothAdapter = {
     });
 
     if (!device) {
-      return [];
+      device = await requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [BLE_SERVICE_UUID],
+      });
+
+      if (!device) {
+        console.warn("No Ortus device found.");
+        return [];
+      }
     }
 
     webDevices.set(device.id, device);
