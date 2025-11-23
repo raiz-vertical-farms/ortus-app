@@ -59,7 +59,7 @@ void MqttCommandAdapter::notifyState(const DeviceState &state)
   publishPumpState(state.pumpActive);
   publishFanState(state.fanActive);
   publishTemperatureState(state.temperatureC);
-  publishWaterEmptyState(state.waterEmpty);
+  publishWaterLevelState(state.waterEmpty);
 }
 
 void MqttCommandAdapter::publishPresence(const String &payload)
@@ -177,7 +177,7 @@ void MqttCommandAdapter::publishTemperatureState(float temperatureC)
   }
 }
 
-void MqttCommandAdapter::publishWaterEmptyState(bool empty)
+void MqttCommandAdapter::publishWaterLevelState(bool empty)
 {
   if (!client.connected() || macAddress.isEmpty())
   {
@@ -337,5 +337,5 @@ String MqttCommandAdapter::getTemperatureStateTopic() const
 
 String MqttCommandAdapter::getWaterLevelStateTopic() const
 {
-  return macAddress + String("/sensor/water/empty/state");
+  return macAddress + String("/sensor/water/level/state");
 }

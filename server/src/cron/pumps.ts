@@ -16,9 +16,7 @@ export function setPumpSchedule(macAddress: string, schedule: PumpSchedule) {
   }
 
   const jobs: Cron[] = [];
-  const intervalMs = Math.floor(
-    (24 * 60 * 60 * 1000) / schedule.timesPerDay
-  );
+  const intervalMs = Math.floor((24 * 60 * 60 * 1000) / schedule.timesPerDay);
 
   for (let i = 0; i < schedule.timesPerDay; i += 1) {
     const runTimestamp = schedule.startTime + i * intervalMs;
@@ -26,19 +24,12 @@ export function setPumpSchedule(macAddress: string, schedule: PumpSchedule) {
     const hour = runDate.getUTCHours();
     const minute = runDate.getUTCMinutes();
 
-    const job = new Cron(
-      `${minute} ${hour} * * *`,
-      { timezone: "UTC" },
-      () => {
-        console.log(
-          `[${macAddress}] Pump activation triggered at ${hour}:${minute} UTC`
-        );
-        mqttClient.publish(
-          `${macAddress}/sensor/pump/trigger/command`,
-          "5"
-        );
-      }
-    );
+    const job = new Cron(`${minute} ${hour} * * *`, { timezone: "UTC" }, () => {
+      console.log(
+        `[${macAddress}] Pump activation triggered at ${hour}:${minute} UTC`
+      );
+      mqttClient.publish(`${macAddress}/sensor/pump/trigger/command`, "15");
+    });
 
     jobs.push(job);
   }

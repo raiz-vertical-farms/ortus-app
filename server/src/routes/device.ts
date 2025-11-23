@@ -136,6 +136,12 @@ async function getDeviceMac(id: number, user_id: string) {
   return device?.mac_address || null;
 }
 
+function toNumberOrNull(value?: string | null) {
+  if (value === undefined || value === null) return null;
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+}
+
 const app = new Hono();
 
 app
@@ -317,9 +323,9 @@ app
         state: {
           ...device,
           online: Boolean(device.online),
-          water_level: Number(waterLevel?.value_text) || null,
-          temperature: Number(temperature?.value_text) || null,
-          brightness: Number(brightness?.value_text) || null,
+          water_level: toNumberOrNull(waterLevel?.value_text),
+          temperature: toNumberOrNull(temperature?.value_text),
+          brightness: toNumberOrNull(brightness?.value_text),
           light_schedule: {
             on: lightSchedule?.on_timestamp || 0,
             off: lightSchedule?.off_timestamp || 0,

@@ -111,7 +111,8 @@ function WaterView({
 
   const scheduleState = { startHours, startMinutes, timesPerDay };
 
-  const minuteOptions = ["00", "15", "24", "30", "45"];
+  const minuteOptions = Array.from(Array(60)).map((_, i) => i);
+  //const minuteOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
   const timesPerDayOptions = [1, 2, 3, 4, 6, 8, 12];
 
   return (

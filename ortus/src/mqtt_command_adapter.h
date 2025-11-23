@@ -20,7 +20,7 @@ public:
   void publishPumpState(bool active);
   void publishFanState(bool active);
   void publishTemperatureState(float temperatureC);
-  void publishWaterEmptyState(bool empty);
+  void publishWaterLevelState(bool empty);
 
 private:
   static void handleMessageRouter(char *topic, uint8_t *payload, unsigned int length);

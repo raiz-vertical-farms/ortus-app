@@ -351,7 +351,7 @@ void NetworkManager::updateSensors()
     if (empty != deviceState.waterEmpty)
     {
       deviceState.waterEmpty = empty;
-      mqttAdapter.publishWaterEmptyState(empty);
+      mqttAdapter.publishWaterLevelState(empty);
       broadcastState();
       Serial.printf("[Water] %s (raw=%d)\n", empty ? "EMPTY" : "OK", raw);
     }
