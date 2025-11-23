@@ -14,20 +14,12 @@ async function customRequestFn(
   requestInfo: RequestFnInfo
 ): Promise<RequestFnResponse<any, any>> {
   try {
-    // get jwt from localStorage
-    const token = localStorage.getItem("token");
-
-    // inject into headers if available
-    const headers = {
-      ...(requestInfo.headers || {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-
     const response = await defaultRequestFn(schema, {
       ...requestInfo,
-      headers,
+      headers: {
+        ...requestInfo.headers,
+      },
       credentials: "include",
-      mode: "cors",
     });
 
     if (response && typeof response === "object" && "success" in response) {

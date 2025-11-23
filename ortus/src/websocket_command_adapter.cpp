@@ -98,6 +98,20 @@ void WebSocketCommandAdapter::handleEvent(uint8_t clientNum, WStype_t type, uint
       command.brightness = brightness;
       dispatchCommand(command);
     }
+    else if (typeValue == "triggerpump")
+    {
+      const int duration = doc["duration"].as<int>();
+      if (duration <= 0)
+      {
+        Serial.println(F("[WS] Ignored invalid pump command"));
+        return;
+      }
+
+      DeviceCommand command;
+      command.type = CommandType::TriggerPump;
+      command.pumpDurationSeconds = static_cast<unsigned long>(duration);
+      dispatchCommand(command);
+    }
     else
     {
       Serial.print(F("[WS] Unknown command type: "));
@@ -117,6 +131,12 @@ void WebSocketCommandAdapter::broadcastState(const DeviceState &state)
   JsonObject root = doc.to<JsonObject>();
   root["type"] = "state";
   root["brightness"] = state.brightness;
+  root["pumpActive"] = state.pumpActive;
+  if (!isnan(state.temperatureC))
+  {
+    root["temperatureC"] = state.temperatureC;
+  }
+  root["waterLevel"] = state.waterLevel;
 
   String payload;
   serializeJson(doc, payload);

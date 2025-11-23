@@ -72,7 +72,7 @@ function SaveDevice({ deviceId }: { deviceId: string }) {
           size="lg"
           onClick={() => {
             createDevice({
-              body: { name, mac_address: deviceId, organization_id: 1 },
+              body: { name, mac_address: deviceId },
             });
           }}
         >

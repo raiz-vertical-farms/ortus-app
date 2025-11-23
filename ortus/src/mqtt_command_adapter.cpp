@@ -56,6 +56,9 @@ void MqttCommandAdapter::loop()
 void MqttCommandAdapter::notifyState(const DeviceState &state)
 {
   publishBrightnessState(state.brightness);
+  publishPumpState(state.pumpActive);
+  publishTemperatureState(state.temperatureC);
+  publishWaterLevelState(state.waterLevel);
 }
 
 void MqttCommandAdapter::publishPresence(const String &payload)
@@ -107,6 +110,72 @@ void MqttCommandAdapter::publishBrightnessState(int brightness)
   }
 }
 
+void MqttCommandAdapter::publishPumpState(bool active)
+{
+  if (!client.connected() || macAddress.isEmpty())
+  {
+    return;
+  }
+
+  const String topic = getPumpStateTopic();
+  const String payload = active ? String("1") : String("0");
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
+  {
+    Serial.println(F("[MQTT] Failed to publish pump state"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Pump state → "));
+    Serial.print(topic);
+    Serial.print(F(" = "));
+    Serial.println(payload);
+  }
+}
+
+void MqttCommandAdapter::publishTemperatureState(float temperatureC)
+{
+  if (!client.connected() || macAddress.isEmpty() || isnan(temperatureC))
+  {
+    return;
+  }
+
+  const String topic = getTemperatureStateTopic();
+  const String payload = String(temperatureC, 2);
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
+  {
+    Serial.println(F("[MQTT] Failed to publish temperature"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Temperature → "));
+    Serial.print(topic);
+    Serial.print(F(" = "));
+    Serial.println(payload);
+  }
+}
+
+void MqttCommandAdapter::publishWaterLevelState(int level)
+{
+  if (!client.connected() || macAddress.isEmpty() || level < 0)
+  {
+    return;
+  }
+
+  const String topic = getWaterLevelStateTopic();
+  const String payload = String(level);
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
+  {
+    Serial.println(F("[MQTT] Failed to publish water level"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Water level → "));
+    Serial.print(topic);
+    Serial.print(F(" = "));
+    Serial.println(payload);
+  }
+}
+
 void MqttCommandAdapter::handleMessageRouter(char *topic, uint8_t *payload, unsigned int length)
 {
   if (instance != nullptr)
@@ -143,6 +212,30 @@ void MqttCommandAdapter::handleMessage(char *topic, uint8_t *payload, unsigned i
       Serial.println(message);
     }
   }
+  else if (topicStr == getPumpCommandTopic())
+  {
+    String message;
+    message.reserve(length);
+    for (unsigned int i = 0; i < length; i++)
+    {
+      message += static_cast<char>(payload[i]);
+    }
+    message.trim();
+
+    const int durationSeconds = message.toInt();
+    if (durationSeconds > 0)
+    {
+      DeviceCommand command;
+      command.type = CommandType::TriggerPump;
+      command.pumpDurationSeconds = durationSeconds;
+      dispatchCommand(command);
+    }
+    else
+    {
+      Serial.print(F("[MQTT] Invalid pump command: "));
+      Serial.println(message);
+    }
+  }
 }
 
 void MqttCommandAdapter::ensureConnection()
@@ -162,6 +255,7 @@ void MqttCommandAdapter::ensureConnection()
     {
       Serial.println(F("connected"));
       client.subscribe(getCommandTopic().c_str());
+      client.subscribe(getPumpCommandTopic().c_str());
       client.publish(statusTopic.c_str(), "online", true);
     }
     else
@@ -196,4 +290,24 @@ String MqttCommandAdapter::getCommandTopic() const
 String MqttCommandAdapter::getBrightnessStateTopic() const
 {
   return macAddress + String("/sensor/light/brightness/state");
+}
+
+String MqttCommandAdapter::getPumpCommandTopic() const
+{
+  return macAddress + String("/sensor/pump/trigger/command");
+}
+
+String MqttCommandAdapter::getPumpStateTopic() const
+{
+  return macAddress + String("/sensor/pump/trigger/state");
+}
+
+String MqttCommandAdapter::getTemperatureStateTopic() const
+{
+  return macAddress + String("/sensor/temperature/state");
+}
+
+String MqttCommandAdapter::getWaterLevelStateTopic() const
+{
+  return macAddress + String("/sensor/water/level/state");
 }

@@ -28,6 +28,10 @@ private:
   void onWiFiConnected();
   void handleDeviceCommand(const DeviceCommand &command);
   void setBrightness(int value);
+  void triggerPump(unsigned long durationSeconds);
+  void stopPump();
+  void updatePump();
+  void updateSensors();
   void broadcastState(bool force = false);
   void publishPresence();
   String buildPresencePayload() const;
@@ -58,6 +62,9 @@ private:
   bool hasBroadcastState;
   int appliedBrightness;
   String cachedPublicIp;
+  unsigned long pumpStopAt;
+  unsigned long lastTempReadAt;
+  unsigned long lastWaterReadAt;
 
   static NetworkManager *instance_;
 };

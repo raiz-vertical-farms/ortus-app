@@ -1,17 +1,35 @@
 #include <WiFi.h>
 #include <esp_sntp.h>
 #include <time.h>
+#include <math.h>
 #include "network_manager.h"
 #include "config.h"
-#include <Adafruit_NeoPixel.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-#define RELAY_LEFT_PIN 16
-#define RELAY_RIGHT_PIN 17
+namespace
+{
+  constexpr int RELAY_LIGHT_PIN = 13;
+  constexpr int RELAY_PUMP_PIN = 14;
 
-#define LED_PIN 38
-#define NUM_LEDS 1
+  constexpr int WATER_LEVEL_PIN = 10; // Analog water level sensor
+  constexpr int TEMP_SENSOR_PIN = 7;  // DS18B20 data line
 
-Adafruit_NeoPixel pixels(NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
+  constexpr int PWM_PIN = 11;
+  constexpr int PWM_CHANNEL = 0;
+  constexpr int PWM_FREQ = 20000;
+  constexpr int PWM_RES = 8; // 0-255
+
+  constexpr unsigned long TEMPERATURE_POLL_INTERVAL_MS = 5000;
+  constexpr unsigned long WATER_LEVEL_POLL_INTERVAL_MS = 2000;
+  constexpr unsigned long MAX_PUMP_DURATION_SECONDS = 900; // 15 minutes max
+
+  constexpr int WATER_LEVEL_DELTA_THRESHOLD = 5;      // ignore tiny ADC noise
+  constexpr float TEMPERATURE_DELTA_THRESHOLD = 0.25; // °C change before publish
+}
+
+OneWire oneWire(TEMP_SENSOR_PIN);
+DallasTemperature temperatureSensors(&oneWire);
 
 NetworkManager *NetworkManager::instance_ = nullptr;
 
@@ -36,7 +54,10 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       waitingForTimeSyncLogged(false),
       adaptersInitialized(false),
       hasBroadcastState(false),
-      appliedBrightness(-1)
+      appliedBrightness(-1),
+      pumpStopAt(0),
+      lastTempReadAt(0),
+      lastWaterReadAt(0)
 {
   instance_ = this;
   cachedPublicIp.reserve(32);
@@ -78,11 +99,19 @@ void NetworkManager::begin()
                                      { handleDeviceCommand(command); });
   }
 
-  pixels.begin();
-  pinMode(RELAY_LEFT_PIN, OUTPUT);
-  pinMode(RELAY_RIGHT_PIN, OUTPUT);
-  digitalWrite(RELAY_LEFT_PIN, HIGH); // assuming active LOW relays
-  digitalWrite(RELAY_RIGHT_PIN, HIGH);
+  temperatureSensors.begin();
+  temperatureSensors.setResolution(12);
+
+  pinMode(WATER_LEVEL_PIN, INPUT);
+  pinMode(RELAY_LIGHT_PIN, OUTPUT);
+  pinMode(RELAY_PUMP_PIN, OUTPUT);
+  digitalWrite(RELAY_LIGHT_PIN, HIGH); // assuming active LOW relays
+  digitalWrite(RELAY_PUMP_PIN, HIGH);
+
+  ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RES);
+  ledcAttachPin(PWM_PIN, PWM_CHANNEL);
+
+  applyBrightnessToRelays(deviceState.brightness);
 
   broadcastState(true);
 }
@@ -129,6 +158,9 @@ void NetworkManager::loop()
       publishPresence();
     }
   }
+
+  updatePump();
+  updateSensors();
 }
 
 void NetworkManager::onWiFiConnected()
@@ -153,6 +185,9 @@ void NetworkManager::handleDeviceCommand(const DeviceCommand &command)
   case CommandType::SetBrightness:
     setBrightness(command.brightness);
     break;
+  case CommandType::TriggerPump:
+    triggerPump(command.pumpDurationSeconds);
+    break;
   }
 }
 
@@ -176,6 +211,103 @@ void NetworkManager::setBrightness(int value)
   applyBrightnessToRelays(deviceState.brightness);
   mqttAdapter.publishBrightnessState(deviceState.brightness);
   broadcastState();
+}
+
+void NetworkManager::triggerPump(unsigned long durationSeconds)
+{
+  if (durationSeconds == 0)
+  {
+    Serial.println(F("[Pump] Ignoring zero duration command"));
+    return;
+  }
+
+  if (durationSeconds > MAX_PUMP_DURATION_SECONDS)
+  {
+    durationSeconds = MAX_PUMP_DURATION_SECONDS;
+  }
+
+  const unsigned long now = millis();
+  pumpStopAt = now + durationSeconds * 1000UL;
+
+  const bool wasActive = deviceState.pumpActive;
+  deviceState.pumpActive = true;
+
+  digitalWrite(RELAY_PUMP_PIN, LOW); // active LOW
+  mqttAdapter.publishPumpState(true);
+  broadcastState();
+
+  Serial.printf("[Pump] %s for %lu seconds\n", wasActive ? "Extending run" : "Started", durationSeconds);
+}
+
+void NetworkManager::stopPump()
+{
+  if (!deviceState.pumpActive)
+  {
+    return;
+  }
+
+  deviceState.pumpActive = false;
+  pumpStopAt = 0;
+  digitalWrite(RELAY_PUMP_PIN, HIGH);
+  mqttAdapter.publishPumpState(false);
+  broadcastState();
+
+  Serial.println(F("[Pump] Stopped"));
+}
+
+void NetworkManager::updatePump()
+{
+  if (!deviceState.pumpActive)
+  {
+    return;
+  }
+
+  const unsigned long now = millis();
+  if (static_cast<long>(now - pumpStopAt) >= 0)
+  {
+    stopPump();
+  }
+}
+
+void NetworkManager::updateSensors()
+{
+  const unsigned long now = millis();
+
+  if (now - lastTempReadAt >= TEMPERATURE_POLL_INTERVAL_MS)
+  {
+    lastTempReadAt = now;
+    temperatureSensors.requestTemperatures();
+    const float tempC = temperatureSensors.getTempCByIndex(0);
+
+    const bool valid = tempC > -100.0f && tempC < 125.0f;
+    if (valid)
+    {
+      const bool tempChanged = isnan(deviceState.temperatureC) || fabs(tempC - deviceState.temperatureC) >= TEMPERATURE_DELTA_THRESHOLD;
+      if (tempChanged)
+      {
+        deviceState.temperatureC = tempC;
+        mqttAdapter.publishTemperatureState(tempC);
+        broadcastState();
+      }
+    }
+    else
+    {
+      Serial.println(F("[Sensor] Invalid temperature reading"));
+    }
+  }
+
+  if (now - lastWaterReadAt >= WATER_LEVEL_POLL_INTERVAL_MS)
+  {
+    lastWaterReadAt = now;
+    const int raw = analogRead(WATER_LEVEL_PIN);
+    const int delta = abs(raw - deviceState.waterLevel);
+    if (deviceState.waterLevel < 0 || delta >= WATER_LEVEL_DELTA_THRESHOLD)
+    {
+      deviceState.waterLevel = raw;
+      mqttAdapter.publishWaterLevelState(raw);
+      broadcastState();
+    }
+  }
 }
 
 void NetworkManager::broadcastState(bool force)
@@ -285,27 +417,20 @@ void NetworkManager::applyBrightnessToRelays(int value)
 {
   int clamped = constrain(value, 0, 100);
 
-  // Active when brightness > 0
-  bool on = clamped > 0;
-
-  const int level = map(clamped, 0, 100, 0, 255);
-
-  if (level == 0)
+  if (appliedBrightness == clamped)
   {
-    pixels.clear();
-  }
-  else
-  {
-    pixels.setPixelColor(0, pixels.Color(level, level, level));
+    return;
   }
 
-  pixels.show();
+  appliedBrightness = clamped;
+
+  const int level = map(clamped, 0, 100, 0, (1 << PWM_RES) - 1);
 
   // Assuming relay module is active LOW:
-  digitalWrite(RELAY_LEFT_PIN, on ? LOW : HIGH);
-  digitalWrite(RELAY_RIGHT_PIN, on ? LOW : HIGH);
+  digitalWrite(RELAY_LIGHT_PIN, clamped > 0 ? LOW : HIGH);
+  ledcWrite(PWM_CHANNEL, level);
 
-  Serial.printf("[Relays] %s (brightness %d)\n", on ? "ON" : "OFF", clamped);
+  Serial.printf("[Light] Relay %s, PWM level %d (brightness %d)\n", clamped > 0 ? "ON" : "OFF", level, clamped);
 }
 
 void NetworkManager::connectWiFi()

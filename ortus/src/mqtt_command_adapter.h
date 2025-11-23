@@ -17,6 +17,9 @@ public:
   void publishPresence(const String &payload);
   bool isConnected() const;
   void publishBrightnessState(int brightness);
+  void publishPumpState(bool active);
+  void publishTemperatureState(float temperatureC);
+  void publishWaterLevelState(int level);
 
 private:
   static void handleMessageRouter(char *topic, uint8_t *payload, unsigned int length);
@@ -26,6 +29,10 @@ private:
   String getStatusTopic() const;
   String getCommandTopic() const;
   String getBrightnessStateTopic() const;
+  String getPumpCommandTopic() const;
+  String getPumpStateTopic() const;
+  String getTemperatureStateTopic() const;
+  String getWaterLevelStateTopic() const;
 
   static MqttCommandAdapter *instance;
 

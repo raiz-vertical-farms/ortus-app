@@ -157,6 +157,8 @@ app
     }),
     zValidator("json", createDeviceRequestSchema),
     async (c) => {
+      console.log("CREATE REQUEST CAME THOURGH");
+
       const user = c.get("user");
       const { name, mac_address } = c.req.valid("json");
 
