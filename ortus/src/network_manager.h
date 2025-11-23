@@ -30,6 +30,7 @@ private:
   void setBrightness(int value);
   void triggerPump(unsigned long durationSeconds);
   void stopPump();
+  void setFan(bool on, const char *reason = nullptr);
   void updatePump();
   void updateSensors();
   void broadcastState(bool force = false);
@@ -65,6 +66,7 @@ private:
   unsigned long pumpStopAt;
   unsigned long lastTempReadAt;
   unsigned long lastWaterReadAt;
+  int lastWaterRaw;
 
   static NetworkManager *instance_;
 };

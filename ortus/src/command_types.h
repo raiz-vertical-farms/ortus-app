@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <math.h>
 
 enum class CommandType
 {
@@ -12,8 +13,9 @@ struct DeviceState
 {
   int brightness = 0;
   bool pumpActive = false;
+  bool fanActive = false;
   float temperatureC = NAN;
-  int waterLevel = -1;
+  bool waterEmpty = false;
 };
 
 struct DeviceCommand
@@ -29,7 +31,8 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
 
   return lhs.brightness == rhs.brightness &&
          lhs.pumpActive == rhs.pumpActive &&
-         lhs.waterLevel == rhs.waterLevel &&
+         lhs.fanActive == rhs.fanActive &&
+         lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;
 }
 

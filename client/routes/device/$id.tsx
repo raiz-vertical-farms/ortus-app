@@ -24,9 +24,9 @@ export const Route = createFileRoute("/device/$id")({
 function RouteComponent() {
   const { id } = Route.useParams();
 
-  const [view, setView] = useState<"lights" | "plants" | "water" | "settings">(
-    "lights"
-  );
+  const [view, setView] = useState<
+    "lights" | "temperature" | "water" | "settings"
+  >("lights");
 
   const device = useDevice(id);
 
@@ -63,8 +63,8 @@ function RouteComponent() {
                 disabled: !state.online,
               },
               {
-                value: "plants",
-                label: "Plants",
+                value: "temperature",
+                label: "Temperature",
                 disabled: !state.online,
               },
               { value: "settings", label: "Settings" },
@@ -78,8 +78,8 @@ function RouteComponent() {
           .with({ view: "lights" }, () => (
             <LightView deviceId={id} device={device} />
           ))
-          .with({ view: "plants" }, () => (
-            <Text>Plant view is sprouting soon.</Text>
+          .with({ view: "temperature" }, () => (
+            <Text>Temperature level {device.state?.temperature} .</Text>
           ))
           .with({ view: "water" }, () => (
             <WaterView deviceId={id} device={device} />
@@ -117,6 +117,10 @@ function WaterView({
   return (
     <Box pt="5xl">
       <Group direction="column" align="center" justify="center" spacing="xl">
+        <Text variant="heading" size="xl">
+          Water level: {device.state?.water_level}
+        </Text>
+
         <Text align="center" size="lg">
           Pump schedule
         </Text>

@@ -18,8 +18,9 @@ public:
   bool isConnected() const;
   void publishBrightnessState(int brightness);
   void publishPumpState(bool active);
+  void publishFanState(bool active);
   void publishTemperatureState(float temperatureC);
-  void publishWaterLevelState(int level);
+  void publishWaterEmptyState(bool empty);
 
 private:
   static void handleMessageRouter(char *topic, uint8_t *payload, unsigned int length);
@@ -31,6 +32,7 @@ private:
   String getBrightnessStateTopic() const;
   String getPumpCommandTopic() const;
   String getPumpStateTopic() const;
+  String getFanStateTopic() const;
   String getTemperatureStateTopic() const;
   String getWaterLevelStateTopic() const;
 

@@ -164,6 +164,26 @@
                             }
                           ]
                         },
+                        "temperature": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "water_level": {
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "light_schedule": {
                           "anyOf": [
                             {
@@ -257,6 +277,8 @@
                         "last_seen",
                         "online",
                         "brightness",
+                        "temperature",
+                        "water_level",
                         "light_schedule",
                         "pump_schedule",
                         "lan_ip",
@@ -329,6 +351,26 @@
                           "online": {
                             "type": "boolean"
                           },
+                          "temperature": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "water_level": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "pump_schedule": {
                             "anyOf": [
                               {
@@ -389,6 +431,8 @@
                           "mac_address",
                           "last_seen",
                           "online",
+                          "temperature",
+                          "water_level",
                           "pump_schedule",
                           "lan_ip",
                           "lan_ws_port"

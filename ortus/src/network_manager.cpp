@@ -9,8 +9,8 @@
 
 namespace
 {
-  constexpr int RELAY_LIGHT_PIN = 13;
-  constexpr int RELAY_PUMP_PIN = 14;
+  constexpr int RELAY_PUMP_PIN = 13;
+  constexpr int RELAY_FAN_PIN = 14;
 
   constexpr int WATER_LEVEL_PIN = 10; // Analog water level sensor
   constexpr int TEMP_SENSOR_PIN = 7;  // DS18B20 data line
@@ -24,8 +24,11 @@ namespace
   constexpr unsigned long WATER_LEVEL_POLL_INTERVAL_MS = 2000;
   constexpr unsigned long MAX_PUMP_DURATION_SECONDS = 900; // 15 minutes max
 
-  constexpr int WATER_LEVEL_DELTA_THRESHOLD = 5;      // ignore tiny ADC noise
+  constexpr int WATER_EMPTY_THRESHOLD = 1500;         // ADC threshold for "empty" – adjust as needed
+  constexpr int WATER_HYSTERESIS = 100;
   constexpr float TEMPERATURE_DELTA_THRESHOLD = 0.25; // °C change before publish
+  constexpr float FAN_ON_TEMP_C = 32.0f;
+  constexpr float FAN_OFF_TEMP_C = 30.0f;
 }
 
 OneWire oneWire(TEMP_SENSOR_PIN);
@@ -57,7 +60,8 @@ NetworkManager::NetworkManager(WiFiCredentialsStore &credentialsStore)
       appliedBrightness(-1),
       pumpStopAt(0),
       lastTempReadAt(0),
-      lastWaterReadAt(0)
+      lastWaterReadAt(0),
+      lastWaterRaw(-1)
 {
   instance_ = this;
   cachedPublicIp.reserve(32);
@@ -103,10 +107,10 @@ void NetworkManager::begin()
   temperatureSensors.setResolution(12);
 
   pinMode(WATER_LEVEL_PIN, INPUT);
-  pinMode(RELAY_LIGHT_PIN, OUTPUT);
   pinMode(RELAY_PUMP_PIN, OUTPUT);
-  digitalWrite(RELAY_LIGHT_PIN, HIGH); // assuming active LOW relays
-  digitalWrite(RELAY_PUMP_PIN, HIGH);
+  pinMode(RELAY_FAN_PIN, OUTPUT);
+  digitalWrite(RELAY_PUMP_PIN, HIGH); // assuming active LOW relays
+  digitalWrite(RELAY_FAN_PIN, HIGH);
 
   ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RES);
   ledcAttachPin(PWM_PIN, PWM_CHANNEL);
@@ -235,6 +239,7 @@ void NetworkManager::triggerPump(unsigned long durationSeconds)
   digitalWrite(RELAY_PUMP_PIN, LOW); // active LOW
   mqttAdapter.publishPumpState(true);
   broadcastState();
+  setFan(true, " (pump active)");
 
   Serial.printf("[Pump] %s for %lu seconds\n", wasActive ? "Extending run" : "Started", durationSeconds);
 }
@@ -251,8 +256,25 @@ void NetworkManager::stopPump()
   digitalWrite(RELAY_PUMP_PIN, HIGH);
   mqttAdapter.publishPumpState(false);
   broadcastState();
+  const bool keepFanOn = !isnan(deviceState.temperatureC) && deviceState.temperatureC >= FAN_OFF_TEMP_C;
+  setFan(keepFanOn);
 
   Serial.println(F("[Pump] Stopped"));
+}
+
+void NetworkManager::setFan(bool on, const char *reason)
+{
+  if (deviceState.fanActive == on)
+  {
+    return;
+  }
+
+  deviceState.fanActive = on;
+  digitalWrite(RELAY_FAN_PIN, on ? LOW : HIGH); // active LOW
+  mqttAdapter.publishFanState(on);
+  broadcastState();
+
+  Serial.printf("[Fan] %s%s\n", on ? "ON" : "OFF", reason ? reason : "");
 }
 
 void NetworkManager::updatePump()
@@ -289,6 +311,10 @@ void NetworkManager::updateSensors()
         mqttAdapter.publishTemperatureState(tempC);
         broadcastState();
       }
+
+      const bool wantsFanFromTemp = deviceState.fanActive ? tempC >= FAN_OFF_TEMP_C : tempC >= FAN_ON_TEMP_C;
+      const bool shouldFanBeOn = deviceState.pumpActive || wantsFanFromTemp;
+      setFan(shouldFanBeOn, deviceState.pumpActive ? " (pump active)" : "");
     }
     else
     {
@@ -300,12 +326,34 @@ void NetworkManager::updateSensors()
   {
     lastWaterReadAt = now;
     const int raw = analogRead(WATER_LEVEL_PIN);
-    const int delta = abs(raw - deviceState.waterLevel);
-    if (deviceState.waterLevel < 0 || delta >= WATER_LEVEL_DELTA_THRESHOLD)
+    bool empty = deviceState.waterEmpty;
+
+    if (lastWaterRaw < 0)
     {
-      deviceState.waterLevel = raw;
-      mqttAdapter.publishWaterLevelState(raw);
+      empty = raw < WATER_EMPTY_THRESHOLD;
+    }
+    else
+    {
+      const int upper = WATER_EMPTY_THRESHOLD + WATER_HYSTERESIS;
+      const int lower = WATER_EMPTY_THRESHOLD - WATER_HYSTERESIS;
+      if (empty && raw > upper)
+      {
+        empty = false;
+      }
+      else if (!empty && raw < lower)
+      {
+        empty = true;
+      }
+    }
+
+    lastWaterRaw = raw;
+
+    if (empty != deviceState.waterEmpty)
+    {
+      deviceState.waterEmpty = empty;
+      mqttAdapter.publishWaterEmptyState(empty);
       broadcastState();
+      Serial.printf("[Water] %s (raw=%d)\n", empty ? "EMPTY" : "OK", raw);
     }
   }
 }
@@ -426,11 +474,9 @@ void NetworkManager::applyBrightnessToRelays(int value)
 
   const int level = map(clamped, 0, 100, 0, (1 << PWM_RES) - 1);
 
-  // Assuming relay module is active LOW:
-  digitalWrite(RELAY_LIGHT_PIN, clamped > 0 ? LOW : HIGH);
   ledcWrite(PWM_CHANNEL, level);
 
-  Serial.printf("[Light] Relay %s, PWM level %d (brightness %d)\n", clamped > 0 ? "ON" : "OFF", level, clamped);
+  Serial.printf("[LED] PWM level %d (brightness %d)\n", level, clamped);
 }
 
 void NetworkManager::connectWiFi()
@@ -485,6 +531,7 @@ void NetworkManager::forceReconnect()
   waitingForTimeSyncLogged = false;
   appliedBrightness = -1;
   lastWiFiAttempt = 0;
+  lastWaterRaw = -1;
   macAddress = "";
   adaptersInitialized = false;
   mqttAdapter.setIdentity("");

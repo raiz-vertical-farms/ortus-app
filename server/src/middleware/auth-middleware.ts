@@ -17,8 +17,6 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   const auth = getAuth(c);
   const client = c.get("clerk");
 
-  console.log({ auth: auth });
-
   if (!auth?.userId) {
     throw new HTTPException(401, {
       res: c.json({ message: "Unauthorized" }, 401),

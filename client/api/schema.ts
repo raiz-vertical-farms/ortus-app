@@ -258,6 +258,8 @@ export interface operations {
                             last_seen: number | null;
                             online: boolean;
                             brightness: number | null;
+                            temperature: number | null;
+                            water_level: number | null;
                             light_schedule: {
                                 active: boolean;
                                 /** @description UTC timestamp in milliseconds */
@@ -303,6 +305,8 @@ export interface operations {
                             mac_address: string;
                             last_seen: number | null;
                             online: boolean;
+                            temperature: number | null;
+                            water_level: number | null;
                             pump_schedule: {
                                 active: boolean;
                                 /** @description UTC timestamp in milliseconds */

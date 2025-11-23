@@ -57,8 +57,9 @@ void MqttCommandAdapter::notifyState(const DeviceState &state)
 {
   publishBrightnessState(state.brightness);
   publishPumpState(state.pumpActive);
+  publishFanState(state.fanActive);
   publishTemperatureState(state.temperatureC);
-  publishWaterLevelState(state.waterLevel);
+  publishWaterEmptyState(state.waterEmpty);
 }
 
 void MqttCommandAdapter::publishPresence(const String &payload)
@@ -132,6 +133,28 @@ void MqttCommandAdapter::publishPumpState(bool active)
   }
 }
 
+void MqttCommandAdapter::publishFanState(bool active)
+{
+  if (!client.connected() || macAddress.isEmpty())
+  {
+    return;
+  }
+
+  const String topic = getFanStateTopic();
+  const String payload = active ? String("1") : String("0");
+  if (!client.publish(topic.c_str(), payload.c_str(), true))
+  {
+    Serial.println(F("[MQTT] Failed to publish fan state"));
+  }
+  else
+  {
+    Serial.print(F("[MQTT] Fan state → "));
+    Serial.print(topic);
+    Serial.print(F(" = "));
+    Serial.println(payload);
+  }
+}
+
 void MqttCommandAdapter::publishTemperatureState(float temperatureC)
 {
   if (!client.connected() || macAddress.isEmpty() || isnan(temperatureC))
@@ -154,15 +177,15 @@ void MqttCommandAdapter::publishTemperatureState(float temperatureC)
   }
 }
 
-void MqttCommandAdapter::publishWaterLevelState(int level)
+void MqttCommandAdapter::publishWaterEmptyState(bool empty)
 {
-  if (!client.connected() || macAddress.isEmpty() || level < 0)
+  if (!client.connected() || macAddress.isEmpty())
   {
     return;
   }
 
   const String topic = getWaterLevelStateTopic();
-  const String payload = String(level);
+  const String payload = empty ? String("1") : String("0");
   if (!client.publish(topic.c_str(), payload.c_str(), true))
   {
     Serial.println(F("[MQTT] Failed to publish water level"));
@@ -302,6 +325,11 @@ String MqttCommandAdapter::getPumpStateTopic() const
   return macAddress + String("/sensor/pump/trigger/state");
 }
 
+String MqttCommandAdapter::getFanStateTopic() const
+{
+  return macAddress + String("/sensor/fan/state");
+}
+
 String MqttCommandAdapter::getTemperatureStateTopic() const
 {
   return macAddress + String("/sensor/temperature/state");
@@ -309,5 +337,5 @@ String MqttCommandAdapter::getTemperatureStateTopic() const
 
 String MqttCommandAdapter::getWaterLevelStateTopic() const
 {
-  return macAddress + String("/sensor/water/level/state");
+  return macAddress + String("/sensor/water/empty/state");
 }

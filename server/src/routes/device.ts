@@ -103,6 +103,8 @@ const deviceStateSchema = z.object({
   last_seen: z.number().nullable(),
   online: z.boolean(),
   brightness: z.number().nullable(),
+  temperature: z.number().nullable(),
+  water_level: z.number().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
   pump_schedule: pumpScheduleSchema.nullable(),
   lan_ip: z.string().nullable(),
@@ -157,8 +159,6 @@ app
     }),
     zValidator("json", createDeviceRequestSchema),
     async (c) => {
-      console.log("CREATE REQUEST CAME THOURGH");
-
       const user = c.get("user");
       const { name, mac_address } = c.req.valid("json");
 
@@ -281,6 +281,24 @@ app
         .limit(1)
         .executeTakeFirst();
 
+      const waterLevel = await db
+        .selectFrom("device_timeseries as dt1")
+        .select(["metric", "value_text", "value_type"])
+        .where("mac_address", "=", device.mac_address)
+        .where("metric", "in", ["water/level"])
+        .orderBy("dt1.created_at", "desc") // or dt1.created_at if that’s the field
+        .limit(1)
+        .executeTakeFirst();
+
+      const temperature = await db
+        .selectFrom("device_timeseries as dt1")
+        .select(["metric", "value_text", "value_type"])
+        .where("mac_address", "=", device.mac_address)
+        .where("metric", "in", ["temperature"])
+        .orderBy("dt1.created_at", "desc") // or dt1.created_at if that’s the field
+        .limit(1)
+        .executeTakeFirst();
+
       const lightSchedule = await db
         .selectFrom("light_schedules")
         .selectAll()
@@ -299,6 +317,8 @@ app
         state: {
           ...device,
           online: Boolean(device.online),
+          water_level: Number(waterLevel?.value_text) || null,
+          temperature: Number(temperature?.value_text) || null,
           brightness: Number(brightness?.value_text) || null,
           light_schedule: {
             on: lightSchedule?.on_timestamp || 0,
@@ -338,8 +358,6 @@ app
       },
     }),
     async (c) => {
-      console.log("IS THIS RUN??");
-
       const user = c.get("user");
       const devices = await db
         .selectFrom("devices")
@@ -355,8 +373,6 @@ app
         ])
         .where("user_id", "=", user.id)
         .execute();
-
-      console.log({ devices });
 
       return c.json({
         devices: devices.map((device) => ({
@@ -386,8 +402,6 @@ app
         });
 
       const { brightness } = c.req.valid("json");
-
-      console.log({ brightness });
 
       mqttClient.publish(
         `${mac}/sensor/light/brightness/command`,

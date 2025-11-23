@@ -132,11 +132,12 @@ void WebSocketCommandAdapter::broadcastState(const DeviceState &state)
   root["type"] = "state";
   root["brightness"] = state.brightness;
   root["pumpActive"] = state.pumpActive;
+  root["fanActive"] = state.fanActive;
   if (!isnan(state.temperatureC))
   {
     root["temperatureC"] = state.temperatureC;
   }
-  root["waterLevel"] = state.waterLevel;
+  root["waterEmpty"] = state.waterEmpty;
 
   String payload;
   serializeJson(doc, payload);
