@@ -1,2 +1,0 @@
-ALTER TABLE devices ADD COLUMN lan_ip TEXT;
-ALTER TABLE devices ADD COLUMN lan_ws_port INTEGER;

@@ -24,7 +24,7 @@ export interface Devices {
   mac_address: string;
   name: string;
   online: Generated<number>;
-  organization_id: number;
+  user_id: string;
 }
 
 export interface DeviceTimeseries {
@@ -45,27 +45,6 @@ export interface LightSchedules {
   on_timestamp: number;
 }
 
-export interface Organizations {
-  created_at: Generated<number>;
-  id: Generated<number>;
-  name: string;
-}
-
-export interface Plants {
-  created_at: Generated<number>;
-  device_id: number;
-  id: Generated<number>;
-  location: string;
-  plant_type_id: number;
-}
-
-export interface PlantTypes {
-  created_at: Generated<number>;
-  description: string | null;
-  id: Generated<number>;
-  name: string;
-}
-
 export interface PumpSchedules {
   active: Generated<number>;
   created_at: Generated<number>;
@@ -75,32 +54,10 @@ export interface PumpSchedules {
   times_per_day: number;
 }
 
-export interface UserOrganizationMemberships {
-  created_at: Generated<number>;
-  id: Generated<number>;
-  organization_id: number;
-  role: string;
-  user_id: number;
-}
-
-export interface Users {
-  created_at: Generated<number>;
-  email: string;
-  id: Generated<number>;
-  name: string;
-  password_hash: string;
-  password_salt: string;
-}
-
 export interface DB {
   _migrations: _Migrations;
   device_timeseries: DeviceTimeseries;
   devices: Devices;
   light_schedules: LightSchedules;
-  organizations: Organizations;
-  plant_types: PlantTypes;
-  plants: Plants;
   pump_schedules: PumpSchedules;
-  user_organization_memberships: UserOrganizationMemberships;
-  users: Users;
 }

@@ -4,6 +4,10 @@
   margin-right: auto;
 }
 
+.xs {
+  max-width: var(--breakpoint-xs); /* breakpoint-xs */
+}
+
 .sm {
   max-width: var(--breakpoint-sm); /* breakpoint-sm */
 }

@@ -26,13 +26,9 @@ async function customRequestFn(
     const response = await defaultRequestFn(schema, {
       ...requestInfo,
       headers,
+      credentials: "include",
+      mode: "cors",
     });
-
-    if (response.response?.status === 401) {
-      if (window.location.pathname !== "/signup") {
-        window.location.href = "/signup";
-      }
-    }
 
     if (response && typeof response === "object" && "success" in response) {
       if (!(response as any).success) {

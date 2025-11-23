@@ -3,7 +3,7 @@ import styles from "./Container.module.css";
 import { classNames } from "../../utils/classnames";
 
 type ContainerProps = {
-  size?: "sm" | "md" | "lg" | "full";
+  size?: "xs" | "sm" | "md" | "lg" | "full";
   gutter?: boolean;
   className?: string;
   children: React.ReactNode;

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
-import { infer, z } from "zod";
+import { z } from "zod";
 import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
 import {
@@ -10,6 +10,7 @@ import {
   setLightSchedule,
   setPumpSchedule,
 } from "../cron";
+import { authMiddleware } from "../middleware/auth-middleware";
 
 const deleteDeviceResponseSchema = z.object({
   message: z.string(),
@@ -83,13 +84,11 @@ const lightScheduleResponseSchema = z.object({
 const createDeviceRequestSchema = z.object({
   mac_address: z.string(),
   name: z.string().min(1),
-  organization_id: z.number(),
 });
 
 const deviceSummarySchema = z.object({
   id: z.number(),
   name: z.string(),
-  organization_id: z.number(),
 });
 
 const createDeviceResponseSchema = z.object({
@@ -101,7 +100,6 @@ const deviceStateSchema = z.object({
   created_at: z.number(),
   name: z.string(),
   mac_address: z.string(),
-  organization_id: z.number(),
   last_seen: z.number().nullable(),
   online: z.boolean(),
   brightness: z.number().nullable(),
@@ -126,16 +124,20 @@ const deviceListResponseSchema = z.object({
 
 type DeviceStateResponse = z.infer<typeof deviceStateResponseSchema>;
 
-async function getDeviceMac(id: number) {
+async function getDeviceMac(id: number, user_id: string) {
   const device = await db
     .selectFrom("devices")
     .select(["mac_address"])
     .where("id", "=", id)
+    .where("user_id", "=", user_id)
     .executeTakeFirst();
   return device?.mac_address || null;
 }
 
-const app = new Hono()
+const app = new Hono();
+
+app
+  .use("*", authMiddleware)
   .post(
     "/create",
     describeRoute({
@@ -155,12 +157,13 @@ const app = new Hono()
     }),
     zValidator("json", createDeviceRequestSchema),
     async (c) => {
-      const { name, organization_id, mac_address } = c.req.valid("json");
+      const user = c.get("user");
+      const { name, mac_address } = c.req.valid("json");
 
       const device = await db
         .insertInto("devices")
-        .values({ name, mac_address, organization_id })
-        .returning(["id", "name", "organization_id"])
+        .values({ name, mac_address, user_id: user.id })
+        .returning(["id", "name"])
         .executeTakeFirstOrThrow();
 
       return c.json({ device });
@@ -187,6 +190,7 @@ const app = new Hono()
       },
     }),
     async (c) => {
+      const user = c.get("user");
       const id = Number(c.req.param("id"));
       if (isNaN(id)) {
         throw new HTTPException(400, {
@@ -199,6 +203,7 @@ const app = new Hono()
         .selectFrom("devices")
         .select(["id", "mac_address"])
         .where("id", "=", id)
+        .where("user_id", "=", user.id)
         .executeTakeFirst();
 
       if (!device) {
@@ -234,6 +239,7 @@ const app = new Hono()
       },
     }),
     async (c) => {
+      const user = c.get("user");
       const id = Number(c.req.param("id"));
 
       if (isNaN(id)) {
@@ -249,14 +255,20 @@ const app = new Hono()
           "name",
           "created_at",
           "mac_address",
-          "organization_id",
           "last_seen",
           "online",
           "lan_ip",
           "lan_ws_port",
         ])
+        .where("user_id", "=", user.id)
         .where("id", "=", id)
         .executeTakeFirstOrThrow();
+
+      if (!device) {
+        throw new HTTPException(404, {
+          res: c.json({ message: "Device not found" }, 404),
+        });
+      }
 
       const brightness = await db
         .selectFrom("device_timeseries as dt1")
@@ -280,12 +292,6 @@ const app = new Hono()
         .where("device_id", "=", id)
         .limit(1)
         .executeTakeFirst();
-
-      if (!device) {
-        throw new HTTPException(404, {
-          res: c.json({ message: "Device not found" }, 404),
-        });
-      }
 
       return c.json({
         state: {
@@ -330,6 +336,9 @@ const app = new Hono()
       },
     }),
     async (c) => {
+      console.log("IS THIS RUN??");
+
+      const user = c.get("user");
       const devices = await db
         .selectFrom("devices")
         .select([
@@ -337,13 +346,15 @@ const app = new Hono()
           "name",
           "created_at",
           "mac_address",
-          "organization_id",
           "last_seen",
           "online",
           "lan_ip",
           "lan_ws_port",
         ])
+        .where("user_id", "=", user.id)
         .execute();
+
+      console.log({ devices });
 
       return c.json({
         devices: devices.map((device) => ({
@@ -362,13 +373,10 @@ const app = new Hono()
     }),
     zValidator("json", lightToggleSchema),
     async (c) => {
+      const user = c.get("user");
       const id = Number(c.req.param("id"));
-      if (isNaN(id))
-        throw new HTTPException(400, {
-          res: c.json({ message: "Invalid device id" }, 400),
-        });
 
-      const mac = await getDeviceMac(id);
+      const mac = await getDeviceMac(id, user.id);
 
       if (!mac)
         throw new HTTPException(404, {
@@ -396,13 +404,14 @@ const app = new Hono()
     }),
     zValidator("json", scheduleLightRequestSchema),
     async (c) => {
+      const user = c.get("user");
       const id = Number(c.req.param("id"));
       if (isNaN(id))
         throw new HTTPException(400, {
           res: c.json({ message: "Invalid device id" }, 400),
         });
 
-      const mac = await getDeviceMac(id);
+      const mac = await getDeviceMac(id, user.id);
 
       if (!mac)
         throw new HTTPException(404, {
@@ -477,13 +486,14 @@ const app = new Hono()
     }),
     zValidator("json", schedulePumpRequestSchema),
     async (c) => {
+      const user = c.get("user");
       const id = Number(c.req.param("id"));
       if (isNaN(id))
         throw new HTTPException(400, {
           res: c.json({ message: "Invalid device id" }, 400),
         });
 
-      const mac = await getDeviceMac(id);
+      const mac = await getDeviceMac(id, user.id);
 
       if (!mac)
         throw new HTTPException(404, {

@@ -14,6 +14,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@clerk/clerk-react": "^5.53.2",
+    "@clerk/themes": "^2.4.28",
     "@capacitor-community/bluetooth-le": "^7.2.0",
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",

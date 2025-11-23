@@ -1,47 +1,46 @@
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import { verifyToken } from "../utils/jwt";
-import { db } from "../db";
+import { getAuth } from "@hono/clerk-auth";
 
-export const authMiddleware = createMiddleware<{
+export type User = {
+  id: string;
+  email: string;
+};
+
+export type AuthEnv = {
   Variables: {
-    user: {
-      id: number;
-      email: string;
-      organizationIds: number[];
-    };
+    user: User;
   };
-}>(async (c, next) => {
-  const authHeader = c.req.header("Authorization");
+};
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
+  const auth = getAuth(c);
+  const client = c.get("clerk");
+
+  console.log({ auth: auth });
+
+  if (!auth?.userId) {
     throw new HTTPException(401, {
-      res: c.json({ message: "Missing token" }, 401),
+      res: c.json({ message: "Unauthorized" }, 401),
     });
   }
 
-  const token = authHeader.split(" ")[1];
-
-  let payload: { email: string };
+  // Fetch the user directly from Clerk
+  let clerkUser;
   try {
-    payload = verifyToken(token) as { email: string };
+    clerkUser = await client.users.getUser(auth.userId);
   } catch {
     throw new HTTPException(401, {
-      res: c.json({ message: "Invalid token" }, 401),
+      res: c.json({ message: "Invalid Clerk user" }, 401),
     });
   }
 
-  const user = await db
-    .selectFrom("users")
-    .selectAll()
-    .where("email", "=", payload.email)
-    .executeTakeFirst();
+  const email = clerkUser.emailAddresses?.[0]?.emailAddress || "";
 
-  if (!user) {
-    throw new HTTPException(401, {
-      res: c.json({ message: "User not found" }, 401),
-    });
-  }
+  c.set("user", {
+    id: clerkUser.id,
+    email,
+  });
 
   await next();
 });

@@ -6,187 +6,6 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/auth/login": {
-      "post": {
-        "operationId": "login",
-        "summary": "Authenticate an existing user",
-        "tags": [
-          "Auth"
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful login",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "jwt": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "jwt"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 6
-                  }
-                },
-                "required": [
-                  "email",
-                  "password"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/signup": {
-      "post": {
-        "operationId": "signup",
-        "summary": "Register a new user",
-        "tags": [
-          "Auth"
-        ],
-        "responses": {
-          "200": {
-            "description": "User created or already existed with matching password",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "jwt": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "jwt"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 6
-                  }
-                },
-                "required": [
-                  "email",
-                  "password"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/plant/plant/create": {
-      "post": {
-        "operationId": "createPlant",
-        "summary": "Create a new plant",
-        "tags": [
-          "Plants"
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "plant": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "number"
-                        },
-                        "device_id": {
-                          "type": "number"
-                        },
-                        "plant_type_id": {
-                          "type": "number"
-                        },
-                        "location": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "device_id",
-                        "plant_type_id",
-                        "location"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "plant"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "device_id": {
-                    "type": "number"
-                  },
-                  "plant_type_id": {
-                    "type": "number"
-                  },
-                  "location": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": [
-                  "device_id",
-                  "plant_type_id",
-                  "location"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/device/create": {
       "post": {
         "operationId": "createDevice",
@@ -210,15 +29,11 @@
                         },
                         "name": {
                           "type": "string"
-                        },
-                        "organization_id": {
-                          "type": "number"
                         }
                       },
                       "required": [
                         "id",
-                        "name",
-                        "organization_id"
+                        "name"
                       ]
                     }
                   },
@@ -242,15 +57,11 @@
                   "name": {
                     "type": "string",
                     "minLength": 1
-                  },
-                  "organization_id": {
-                    "type": "number"
                   }
                 },
                 "required": [
                   "mac_address",
-                  "name",
-                  "organization_id"
+                  "name"
                 ]
               }
             }
@@ -329,9 +140,6 @@
                         },
                         "mac_address": {
                           "type": "string"
-                        },
-                        "organization_id": {
-                          "type": "number"
                         },
                         "last_seen": {
                           "anyOf": [
@@ -446,7 +254,6 @@
                         "created_at",
                         "name",
                         "mac_address",
-                        "organization_id",
                         "last_seen",
                         "online",
                         "brightness",
@@ -508,9 +315,6 @@
                           },
                           "mac_address": {
                             "type": "string"
-                          },
-                          "organization_id": {
-                            "type": "number"
                           },
                           "last_seen": {
                             "anyOf": [
@@ -583,7 +387,6 @@
                           "created_at",
                           "name",
                           "mac_address",
-                          "organization_id",
                           "last_seen",
                           "online",
                           "pump_schedule",

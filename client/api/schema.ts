@@ -4,57 +4,6 @@
  */
 
 export interface paths {
-    "/api/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Authenticate an existing user */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/signup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register a new user */
-        post: operations["signup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/plant/plant/create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create a new plant */
-        post: operations["createPlant"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/device/create": {
         parameters: {
             query?: never;
@@ -220,101 +169,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Successful login */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        jwt: string;
-                    };
-                };
-            };
-        };
-    };
-    signup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
-                };
-            };
-        };
-        responses: {
-            /** @description User created or already existed with matching password */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        jwt: string;
-                    };
-                };
-            };
-        };
-    };
-    createPlant: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    device_id: number;
-                    plant_type_id: number;
-                    location: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Plant created */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        plant: {
-                            id: number;
-                            device_id: number;
-                            plant_type_id: number;
-                            location: string;
-                        };
-                    };
-                };
-            };
-        };
-    };
     createDevice: {
         parameters: {
             query?: never;
@@ -327,7 +181,6 @@ export interface operations {
                 "application/json": {
                     mac_address: string;
                     name: string;
-                    organization_id: number;
                 };
             };
         };
@@ -342,7 +195,6 @@ export interface operations {
                         device: {
                             id: number;
                             name: string;
-                            organization_id: number;
                         };
                     };
                 };
@@ -403,7 +255,6 @@ export interface operations {
                             created_at: number;
                             name: string;
                             mac_address: string;
-                            organization_id: number;
                             last_seen: number | null;
                             online: boolean;
                             brightness: number | null;
@@ -450,7 +301,6 @@ export interface operations {
                             created_at: number;
                             name: string;
                             mac_address: string;
-                            organization_id: number;
                             last_seen: number | null;
                             online: boolean;
                             pump_schedule: {

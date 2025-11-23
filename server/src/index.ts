@@ -7,7 +7,7 @@ import routes from "./routes";
 import fs from "fs";
 import { mqttClient } from "./services/mqtt";
 import { Scalar } from "@scalar/hono-api-reference";
-import { authMiddleware } from "./middleware/auth-middleware";
+import { clerkMiddleware } from "@hono/clerk-auth";
 
 console.log("🚀 Starting Hono server...");
 
@@ -21,15 +21,12 @@ const app = new Hono();
 app.use(
   "*",
   cors({
-    origin: "*",
+    origin: (origin) => origin || "*",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["*"],
+    credentials: true,
   })
 );
-
-app.use("/api/device/*", authMiddleware);
-app.use("/api/plant/*", authMiddleware);
-app.use("/api/network/*", authMiddleware);
 
 app.get(
   "/openapi.json",
@@ -44,14 +41,17 @@ app.get(
   })
 );
 
+// This is not auth middleware, but just injects the Clerk user into the request
+app.use("*", clerkMiddleware());
+
+app.route("/", routes);
+
 app.get(
   "/scalar",
   Scalar({
     url: "/openapi.json",
   })
 );
-
-app.route("/", routes);
 
 if (process.env.NODE_ENV !== "production") {
   serve({ fetch: app.fetch, port: 3000 });

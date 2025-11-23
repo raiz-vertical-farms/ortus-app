@@ -6,16 +6,16 @@ import {
 } from "@tanstack/react-router";
 import { StaticDataRouteOption } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { useCheckJWT } from "../hooks/useCheckJwt";
+import { useRequireAuth } from "../hooks/useRequireAuth";
 import Container from "../primitives/Container/Container";
 import { Group } from "../primitives/Group/Group";
-import { PlantIcon, UserCircleIcon } from "@phosphor-icons/react";
+import { PlantIcon } from "@phosphor-icons/react";
 import { Text } from "../primitives/Text/Text";
 import React from "react";
 import Box from "../primitives/Box/Box";
+import { UserButton } from "@clerk/clerk-react";
 
 const NAV_HEIGHT = 100;
-const HEADER_HEIGHT = 100;
 
 function NavBar() {
   return (
@@ -42,14 +42,9 @@ function NavBar() {
               />
             )}
           </Link>
-          <Link to="/account" viewTransition={{ types: ["slide-left"] }}>
-            {({ isActive }) => (
-              <UserCircleIcon
-                color={isActive ? "var(--color-primary)" : "currentColor"}
-                size={32}
-              />
-            )}
-          </Link>
+          <div>
+            <UserButton />
+          </div>
         </Group>
       </Container>
     </div>
@@ -57,7 +52,7 @@ function NavBar() {
 }
 
 function RootLayout() {
-  useCheckJWT();
+  useRequireAuth();
 
   const match = useMatches({});
 
