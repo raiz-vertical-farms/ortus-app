@@ -9,7 +9,7 @@ export function useRequireAuth(redirectTo = "/signup") {
   useEffect(() => {
     console.log({ isLoaded, isSignedIn, redirectTo });
     if (isLoaded && !isSignedIn) {
-      //router.navigate({ to: redirectTo });
+      router.navigate({ to: redirectTo });
     }
   }, [router.latestLocation, redirectTo, isLoaded, isSignedIn]);
 }
