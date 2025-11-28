@@ -349,7 +349,7 @@ const webAdapter: BluetoothAdapter = {
     };
 
     let device = await requestDevice({
-      acceptAllDevices: true,
+      filters: [{ namePrefix: "Ortus" }],
       optionalServices: [BLE_SERVICE_UUID],
     });
 
