@@ -25,3 +25,16 @@ export function verifyPassword(
 
   return hash === hashVerify;
 }
+
+export function verifySignature(
+  body: string,
+  signature: string,
+  appSecret: string
+) {
+  const hash = crypto
+    .createHmac("sha256", appSecret)
+    .update(body, "utf-8")
+    .digest("hex");
+
+  return `sha256=${hash}` === signature;
+}

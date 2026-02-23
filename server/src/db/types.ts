@@ -15,6 +15,15 @@ export interface _Migrations {
   run_at: Generated<string | null>;
 }
 
+export interface AlertNotifications {
+  alert_type: string;
+  created_at: Generated<number>;
+  device_id: number;
+  id: Generated<number>;
+  last_notified: number | null;
+  message: string;
+}
+
 export interface Devices {
   created_at: Generated<number>;
   id: Generated<number>;
@@ -56,6 +65,7 @@ export interface PumpSchedules {
 
 export interface DB {
   _migrations: _Migrations;
+  alert_notifications: AlertNotifications;
   device_timeseries: DeviceTimeseries;
   devices: Devices;
   light_schedules: LightSchedules;

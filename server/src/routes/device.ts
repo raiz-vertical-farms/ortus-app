@@ -408,10 +408,15 @@ app
         });
 
       const { brightness } = c.req.valid("json");
+      
+      const payload = JSON.stringify({
+        type: "setBrightness",
+        value: brightness
+      });
 
       mqttClient.publish(
-        `${mac}/sensor/light/brightness/command`,
-        brightness.toString()
+        `ortus/${mac}/command`,
+        payload
       );
 
       return c.json({ message: `Lights set to ${brightness}` });

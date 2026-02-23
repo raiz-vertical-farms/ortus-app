@@ -150,7 +150,7 @@ void OrtusSystem::connectMQTT()
     {
         Serial.println("Connected");
         
-        // Subscribe
+        // Subscribe to unified command topic
         String cmdTopic = "ortus/" + macAddress + "/command";
         mqttClient.subscribe(cmdTopic.c_str());
         
@@ -170,28 +170,8 @@ void OrtusSystem::mqttCallback(char *topic, uint8_t *payload, unsigned int lengt
 
 void OrtusSystem::onMqttMessage(char *topic, uint8_t *payload, unsigned int length)
 {
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, payload, length);
-    
-    if (error)
-    {
-        Serial.println("[MQTT] JSON Error");
-        return;
-    }
-
-    DeviceCommand cmd;
-    if (doc["type"] == "brightness")
-    {
-        cmd.type = CommandType::SetBrightness;
-        cmd.brightness = doc["value"] | 0;
-    }
-    else if (doc["type"] == "pump")
-    {
-        cmd.type = CommandType::TriggerPump;
-        cmd.pumpDurationSeconds = doc["duration"] | 60;
-    }
-    
-    handleCommand(cmd);
+    // MQTT now uses the exact same JSON format as WebSockets
+    processRawCommand(payload, length);
 }
 
 // --- WebSocket ---
@@ -205,27 +185,7 @@ void OrtusSystem::onWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payloa
 {
     if (type == WStype_TEXT)
     {
-        JsonDocument doc;
-        DeserializationError error = deserializeJson(doc, payload, length);
-        if (!error)
-        {
-             // Simplified command handling reuse
-            DeviceCommand cmd;
-            String typeStr = doc["type"].as<String>();
-            
-            if (typeStr == "setBrightness")
-            {
-                cmd.type = CommandType::SetBrightness;
-                cmd.brightness = doc["payload"]["brightness"];
-                handleCommand(cmd);
-            }
-            else if (typeStr == "triggerPump")
-            {
-                cmd.type = CommandType::TriggerPump;
-                cmd.pumpDurationSeconds = doc["payload"]["duration"];
-                handleCommand(cmd);
-            }
-        }
+        processRawCommand(payload, length);
     }
     else if (type == WStype_CONNECTED)
     {
@@ -235,6 +195,43 @@ void OrtusSystem::onWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payloa
 }
 
 // --- Logic ---
+
+void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
+{
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, payload, length);
+    
+    if (error)
+    {
+        Serial.println("[Command] JSON Error");
+        return;
+    }
+
+    DeviceCommand cmd;
+    String type = doc["type"] | "";
+    
+    // Unified command parsing (supports both MQTT flat & WS nested styles)
+    if (type == "brightness" || type == "setBrightness")
+    {
+        cmd.type = CommandType::SetBrightness;
+        if (doc.containsKey("value")) cmd.brightness = doc["value"];
+        else if (doc["payload"].containsKey("brightness")) cmd.brightness = doc["payload"]["brightness"];
+        else return; 
+    }
+    else if (type == "pump" || type == "triggerPump")
+    {
+        cmd.type = CommandType::TriggerPump;
+        if (doc.containsKey("duration")) cmd.pumpDurationSeconds = doc["duration"];
+        else if (doc["payload"].containsKey("duration")) cmd.pumpDurationSeconds = doc["payload"]["duration"];
+        else cmd.pumpDurationSeconds = 60; // Default
+    }
+    else 
+    {
+        return; // Unknown command
+    }
+
+    handleCommand(cmd);
+}
 
 void OrtusSystem::handleCommand(const DeviceCommand &cmd)
 {
@@ -351,14 +348,14 @@ void OrtusSystem::broadcastState(bool force)
     String json;
     serializeJson(doc, json);
     
-    // MQTT
+    // MQTT: Publish full state as JSON
     if (mqttClient.connected())
     {
         String topic = "ortus/" + macAddress + "/state";
         mqttClient.publish(topic.c_str(), json.c_str(), true);
     }
     
-    // WebSocket
+    // WebSocket: Same JSON
     wsServer.broadcastTXT(json);
 }
 

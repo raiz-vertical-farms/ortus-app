@@ -42,6 +42,7 @@ private:
     void saveState();
     void loadCredentials();
     void saveCredentials(String ssid, String pass);
+    void processRawCommand(const uint8_t *payload, size_t length);
 
     // --- Callbacks ---
     static void mqttCallback(char *topic, uint8_t *payload, unsigned int length);

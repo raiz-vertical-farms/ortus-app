@@ -28,7 +28,12 @@ export function setPumpSchedule(macAddress: string, schedule: PumpSchedule) {
       console.log(
         `[${macAddress}] Pump activation triggered at ${hour}:${minute} UTC`
       );
-      mqttClient.publish(`${macAddress}/sensor/pump/trigger/command`, "15");
+      
+      const payload = JSON.stringify({
+        type: "triggerPump",
+        duration: 15
+      });
+      mqttClient.publish(`ortus/${macAddress}/command`, payload);
     });
 
     jobs.push(job);
