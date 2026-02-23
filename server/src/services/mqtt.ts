@@ -86,7 +86,6 @@ mqttClient.on("message", async (topic, payload) => {
       if (!data) return;
 
       // Update Timeseries & Notifications
-      const timestamp = Math.floor(Date.now() / 1000);
       const inserts = [];
 
       if (data.brightness !== undefined) {
