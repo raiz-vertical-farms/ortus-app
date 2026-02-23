@@ -8,6 +8,7 @@ enum class CommandType
   SetBrightness,
   TriggerIrrigation,
   IrrigationCycle,
+  LightCycle,
   OtaUpdate
 };
 
@@ -18,6 +19,9 @@ struct DeviceState
   bool irrigationCycleActive = false;
   unsigned long irrigationCycleOnSeconds = 0;
   unsigned long irrigationCycleOffSeconds = 0;
+  bool lightCycleActive = false;
+  unsigned long lightCycleOnSeconds = 0;
+  unsigned long lightCycleOffSeconds = 0;
   float temperatureC = NAN;
   bool waterEmpty = false;
 };
@@ -29,6 +33,8 @@ struct DeviceCommand
   unsigned long irrigationDurationSeconds = 0;
   unsigned long irrigationCycleOnSeconds = 0;
   unsigned long irrigationCycleOffSeconds = 0;
+  unsigned long lightCycleOnSeconds = 0;
+  unsigned long lightCycleOffSeconds = 0;
   String otaUrl;
 };
 
@@ -41,6 +47,9 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
          lhs.irrigationCycleActive == rhs.irrigationCycleActive &&
          lhs.irrigationCycleOnSeconds == rhs.irrigationCycleOnSeconds &&
          lhs.irrigationCycleOffSeconds == rhs.irrigationCycleOffSeconds &&
+         lhs.lightCycleActive == rhs.lightCycleActive &&
+         lhs.lightCycleOnSeconds == rhs.lightCycleOnSeconds &&
+         lhs.lightCycleOffSeconds == rhs.lightCycleOffSeconds &&
          lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;
 }

@@ -278,6 +278,23 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
         if (cmd.irrigationCycleOnSeconds == 0 || cmd.irrigationCycleOffSeconds == 0)
             return;
     }
+    else if (type == "lightCycle")
+    {
+        cmd.type = CommandType::LightCycle;
+        String value = doc["value"] | "";
+        // Parse format: "on:120,off:600"
+        int onIdx = value.indexOf("on:");
+        int offIdx = value.indexOf("off:");
+        if (onIdx < 0 || offIdx < 0)
+            return;
+        int commaIdx = value.indexOf(',');
+        if (commaIdx < 0)
+            return;
+        cmd.lightCycleOnSeconds = value.substring(onIdx + 3, commaIdx).toInt();
+        cmd.lightCycleOffSeconds = value.substring(offIdx + 4).toInt();
+        if (cmd.lightCycleOnSeconds == 0 || cmd.lightCycleOffSeconds == 0)
+            return;
+    }
     else if (type == "otaUpdate")
     {
         cmd.type = CommandType::OtaUpdate;
@@ -328,6 +345,19 @@ void OrtusSystem::handleCommand(const DeviceCommand &cmd)
         updateActuators();
         broadcastState();
     }
+    else if (cmd.type == CommandType::LightCycle)
+    {
+        currentState.lightCycleActive = true;
+        currentState.lightCycleOnSeconds = cmd.lightCycleOnSeconds;
+        currentState.lightCycleOffSeconds = cmd.lightCycleOffSeconds;
+        lightCycleIsOnPhase = true;
+        lightCycleNextToggle = millis() + (cmd.lightCycleOnSeconds * 1000);
+        currentState.brightness = 100;
+        appliedBrightness = -1; // Force PWM update
+        saveState();
+        updateActuators();
+        broadcastState();
+    }
     else if (cmd.type == CommandType::OtaUpdate)
     {
         performOtaUpdate(cmd.otaUrl);
@@ -336,6 +366,19 @@ void OrtusSystem::handleCommand(const DeviceCommand &cmd)
 
 void OrtusSystem::updateActuators()
 {
+    // Light Cycle
+    if (currentState.lightCycleActive && millis() >= lightCycleNextToggle)
+    {
+        lightCycleIsOnPhase = !lightCycleIsOnPhase;
+        currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
+        appliedBrightness = -1; // Force PWM update
+        unsigned long duration = lightCycleIsOnPhase
+            ? currentState.lightCycleOnSeconds
+            : currentState.lightCycleOffSeconds;
+        lightCycleNextToggle = millis() + (duration * 1000);
+        broadcastState();
+    }
+
     // Light (PWM dimming via LEDC)
     if (appliedBrightness != currentState.brightness)
     {
@@ -423,6 +466,12 @@ void OrtusSystem::broadcastState(bool force)
         doc["irrigationCycleOnSeconds"] = currentState.irrigationCycleOnSeconds;
         doc["irrigationCycleOffSeconds"] = currentState.irrigationCycleOffSeconds;
     }
+    doc["lightCycleActive"] = currentState.lightCycleActive;
+    if (currentState.lightCycleActive)
+    {
+        doc["lightCycleOnSeconds"] = currentState.lightCycleOnSeconds;
+        doc["lightCycleOffSeconds"] = currentState.lightCycleOffSeconds;
+    }
     doc["temperature"] = currentState.temperatureC;
     doc["waterEmpty"] = currentState.waterEmpty;
 
@@ -471,6 +520,16 @@ void OrtusSystem::loadState()
         currentState.irrigationActive = true;
         irrigationCycleNextToggle = millis() + (currentState.irrigationCycleOnSeconds * 1000);
     }
+    currentState.lightCycleActive = preferences.getBool("lCycleActive", false);
+    currentState.lightCycleOnSeconds = preferences.getULong("lCycleOn", 0);
+    currentState.lightCycleOffSeconds = preferences.getULong("lCycleOff", 0);
+    if (currentState.lightCycleActive)
+    {
+        lightCycleIsOnPhase = true;
+        currentState.brightness = 100;
+        appliedBrightness = -1;
+        lightCycleNextToggle = millis() + (currentState.lightCycleOnSeconds * 1000);
+    }
 }
 
 void OrtusSystem::saveState()
@@ -479,6 +538,9 @@ void OrtusSystem::saveState()
     preferences.putBool("cycleActive", currentState.irrigationCycleActive);
     preferences.putULong("cycleOn", currentState.irrigationCycleOnSeconds);
     preferences.putULong("cycleOff", currentState.irrigationCycleOffSeconds);
+    preferences.putBool("lCycleActive", currentState.lightCycleActive);
+    preferences.putULong("lCycleOn", currentState.lightCycleOnSeconds);
+    preferences.putULong("lCycleOff", currentState.lightCycleOffSeconds);
 }
 
 void OrtusSystem::loadCredentials()
