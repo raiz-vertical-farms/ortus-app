@@ -216,7 +216,7 @@
                             }
                           ]
                         },
-                        "pump_schedule": {
+                        "irrigation_schedule": {
                           "anyOf": [
                             {
                               "type": "object",
@@ -280,7 +280,7 @@
                         "temperature",
                         "water_level",
                         "light_schedule",
-                        "pump_schedule",
+                        "irrigation_schedule",
                         "lan_ip",
                         "lan_ws_port"
                       ]
@@ -371,7 +371,7 @@
                               }
                             ]
                           },
-                          "pump_schedule": {
+                          "irrigation_schedule": {
                             "anyOf": [
                               {
                                 "type": "object",
@@ -433,7 +433,7 @@
                           "online",
                           "temperature",
                           "water_level",
-                          "pump_schedule",
+                          "irrigation_schedule",
                           "lan_ip",
                           "lan_ws_port"
                         ]
@@ -538,10 +538,10 @@
         ]
       }
     },
-    "/api/device/{id}/pump/schedule": {
+    "/api/device/{id}/irrigation/schedule": {
       "post": {
-        "operationId": "schedulePump",
-        "summary": "Set a schedule for the pump",
+        "operationId": "scheduleIrrigation",
+        "summary": "Set a schedule for the irrigation",
         "tags": [
           "Devices"
         ],

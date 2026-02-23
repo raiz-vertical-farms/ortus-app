@@ -47,7 +47,7 @@ const presenceSchema = z.object({
 
 const stateSchema = z.object({
   brightness: z.number().optional(),
-  pumpActive: z.boolean().optional(),
+  irrigationActive: z.boolean().optional(),
   fanActive: z.boolean().optional(),
   temperature: z.number().nullable().optional(),
   waterEmpty: z.boolean().optional(),
@@ -97,13 +97,12 @@ mqttClient.on("message", async (topic, payload) => {
       if (data.waterEmpty !== undefined) {
         inserts.push({ mac_address: mac, metric: "water/empty", value_text: String(data.waterEmpty), value_type: "boolean" });
       }
-      if (data.pumpActive !== undefined) {
-        inserts.push({ mac_address: mac, metric: "pump/active", value_text: String(data.pumpActive), value_type: "boolean" });
+      if (data.irrigationActive !== undefined) {
+        inserts.push({ mac_address: mac, metric: "irrigation/active", value_text: String(data.irrigationActive), value_type: "boolean" });
       }
-      if (data.fanActive !== undefined) {
-        inserts.push({ mac_address: mac, metric: "fan/active", value_text: String(data.fanActive), value_type: "boolean" });
-      }
-
+      // Fan is now part of irrigation, but if we still receive it (or for legacy), we can log it or ignore it.
+      // Since we are removing fan logic from firmware, we probably won't receive it.
+      
       if (inserts.length > 0) {
         // @ts-ignore - complex insert type matching
         await db.insertInto("device_timeseries").values(inserts).execute();

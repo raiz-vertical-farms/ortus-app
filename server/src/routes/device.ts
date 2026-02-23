@@ -6,9 +6,9 @@ import { db } from "../db";
 import { mqttClient } from "../services/mqtt";
 import {
   removeLightSchedule,
-  removePumpSchedule,
+  removeIrrigationSchedule,
   setLightSchedule,
-  setPumpSchedule,
+  setIrrigationSchedule,
 } from "../cron";
 import { authMiddleware } from "../middleware/auth-middleware";
 
@@ -26,7 +26,7 @@ const lightScheduleSchema = z.object({
   off: z.number().int().nonnegative().describe("UTC timestamp in milliseconds"),
 });
 
-const pumpScheduleSchema = z.object({
+const irrigationScheduleSchema = z.object({
   active: z.boolean(),
   start_time: z
     .number()
@@ -56,7 +56,7 @@ const scheduleLightRequestSchema = z.object({
     .optional(),
 });
 
-const schedulePumpRequestSchema = z.object({
+const scheduleIrrigationRequestSchema = z.object({
   active: z.boolean(),
   start_time: z
     .number()
@@ -106,7 +106,7 @@ const deviceStateSchema = z.object({
   temperature: z.number().nullable(),
   water_level: z.number().nullable(),
   light_schedule: lightScheduleSchema.nullable(),
-  pump_schedule: pumpScheduleSchema.nullable(),
+  irrigation_schedule: irrigationScheduleSchema.nullable(),
   lan_ip: z.string().nullable(),
   lan_ws_port: z.number().nullable(),
 });
@@ -312,8 +312,8 @@ app
         .limit(1)
         .executeTakeFirst();
 
-      const pumpSchedule = await db
-        .selectFrom("pump_schedules")
+      const irrigationSchedule = await db
+        .selectFrom("irrigation_schedules")
         .selectAll()
         .where("device_id", "=", id)
         .limit(1)
@@ -331,11 +331,11 @@ app
             off: lightSchedule?.off_timestamp || 0,
             active: Boolean(lightSchedule?.active),
           },
-          pump_schedule: pumpSchedule
+          irrigation_schedule: irrigationSchedule
             ? {
-                start_time: pumpSchedule.start_time,
-                times_per_day: pumpSchedule.times_per_day,
-                active: Boolean(pumpSchedule.active),
+                start_time: irrigationSchedule.start_time,
+                times_per_day: irrigationSchedule.times_per_day,
+                active: Boolean(irrigationSchedule.active),
               }
             : {
                 start_time: 0,
@@ -505,13 +505,13 @@ app
     }
   )
   .post(
-    ":id/pump/schedule",
+    ":id/irrigation/schedule",
     describeRoute({
-      operationId: "schedulePump",
-      summary: "Set a schedule for the pump",
+      operationId: "scheduleIrrigation",
+      summary: "Set a schedule for the irrigation",
       tags: ["Devices"],
     }),
-    zValidator("json", schedulePumpRequestSchema),
+    zValidator("json", scheduleIrrigationRequestSchema),
     async (c) => {
       const user = c.get("user");
       const id = Number(c.req.param("id"));
@@ -530,7 +530,7 @@ app
       const schedule = c.req.valid("json");
 
       const existingSchedule = await db
-        .selectFrom("pump_schedules")
+        .selectFrom("irrigation_schedules")
         .selectAll()
         .where("device_id", "=", id)
         .limit(1)
@@ -549,7 +549,7 @@ app
               res: c.json(
                 {
                   message:
-                    "Start time and times per day are required to activate the pump schedule",
+                    "Start time and times per day are required to activate the irrigation schedule",
                 },
                 400
               ),
@@ -557,7 +557,7 @@ app
           }
         }
       } else {
-        removePumpSchedule(mac);
+        removeIrrigationSchedule(mac);
       }
 
       const persistedStartTime =
@@ -566,7 +566,7 @@ app
         schedule.times_per_day ?? existingSchedule?.times_per_day ?? 1;
 
       if (schedule.active) {
-        setPumpSchedule(mac, {
+        setIrrigationSchedule(mac, {
           startTime: persistedStartTime,
           timesPerDay: persistedTimesPerDay,
         });
@@ -574,7 +574,7 @@ app
 
       if (existingSchedule) {
         await db
-          .updateTable("pump_schedules")
+          .updateTable("irrigation_schedules")
           .where("device_id", "=", id)
           .set({
             active: schedule.active ? 1 : 0,
@@ -584,7 +584,7 @@ app
           .execute();
       } else {
         await db
-          .insertInto("pump_schedules")
+          .insertInto("irrigation_schedules")
           .values({
             device_id: id,
             active: schedule.active ? 1 : 0,
@@ -594,7 +594,7 @@ app
           .execute();
       }
 
-      return c.json({ message: "Pump schedule updated", schedule });
+      return c.json({ message: "Irrigation schedule updated", schedule });
     }
   );
 

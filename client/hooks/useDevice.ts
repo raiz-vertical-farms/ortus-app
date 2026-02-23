@@ -13,7 +13,7 @@ type ScheduleInput = {
   enabled?: boolean;
 };
 
-type PumpScheduleInput = {
+type IrrigationScheduleInput = {
   startHours: number;
   startMinutes: number;
   timesPerDay: number;
@@ -27,11 +27,11 @@ type UseDeviceResult = {
   setBrightness: (value: number) => Promise<void>;
   toggleLightSchedule: (active: boolean) => Promise<void>;
   scheduleLights: (schedule: ScheduleInput) => Promise<void>;
-  togglePumpSchedule: (
+  toggleIrrigationSchedule: (
     active: boolean,
-    scheduleOverride?: PumpScheduleInput
+    scheduleOverride?: IrrigationScheduleInput
   ) => Promise<void>;
-  schedulePump: (schedule: PumpScheduleInput) => Promise<void>;
+  scheduleIrrigation: (schedule: IrrigationScheduleInput) => Promise<void>;
   refresh: () => Promise<DeviceState | undefined>;
 };
 
@@ -48,7 +48,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
   const setBrightnessMutation = client.api.setBrightness.useMutation();
   const scheduleLightMutation = client.api.scheduleLight.useMutation();
-  const schedulePumpMutation = client.api.schedulePump.useMutation();
+  const scheduleIrrigationMutation = client.api.scheduleIrrigation.useMutation();
 
   const [liveState, setLiveState] = useState<DeviceState | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
@@ -67,8 +67,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
           light: current?.brightness ?? latest.brightness ?? null,
           light_schedule:
             current?.light_schedule ?? latest.light_schedule ?? null,
-          pump_schedule:
-            current?.pump_schedule ?? latest.pump_schedule ?? null,
+          irrigation_schedule:
+            current?.irrigation_schedule ?? latest.irrigation_schedule ?? null,
         };
       });
     }
@@ -263,14 +263,14 @@ export function useDevice(deviceId: string): UseDeviceResult {
     [deviceId, scheduleLightMutation]
   );
 
-  const schedulePump = useCallback(
-    async (schedule: PumpScheduleInput) => {
+  const scheduleIrrigation = useCallback(
+    async (schedule: IrrigationScheduleInput) => {
       const startTime = getTimestampByHoursAndMinutes(
         schedule.startHours,
         schedule.startMinutes
       );
 
-      await schedulePumpMutation.mutateAsync({
+      await scheduleIrrigationMutation.mutateAsync({
         path: { id: deviceId },
         body: {
           active: true,
@@ -283,7 +283,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
         if (!prev) return prev;
         return {
           ...prev,
-          pump_schedule: {
+          irrigation_schedule: {
             active: true,
             start_time: startTime,
             times_per_day: schedule.timesPerDay,
@@ -293,19 +293,19 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
       await deviceQuery.refetch();
     },
-    [deviceId, deviceQuery, schedulePumpMutation]
+    [deviceId, deviceQuery, scheduleIrrigationMutation]
   );
 
-  const togglePumpSchedule = useCallback(
-    async (active: boolean, scheduleOverride?: PumpScheduleInput) => {
+  const toggleIrrigationSchedule = useCallback(
+    async (active: boolean, scheduleOverride?: IrrigationScheduleInput) => {
       if (active) {
         const fallbackSchedule = (() => {
           if (scheduleOverride) {
             return scheduleOverride;
           }
           const base =
-            liveState?.pump_schedule ??
-            deviceQuery.data?.state?.pump_schedule ??
+            liveState?.irrigation_schedule ??
+            deviceQuery.data?.state?.irrigation_schedule ??
             null;
           if (base) {
             const startDate = new Date(base.start_time || 0);
@@ -323,12 +323,12 @@ export function useDevice(deviceId: string): UseDeviceResult {
           };
         })();
 
-        await schedulePump(fallbackSchedule);
+        await scheduleIrrigation(fallbackSchedule);
         return;
       }
 
       try {
-        await schedulePumpMutation.mutateAsync({
+        await scheduleIrrigationMutation.mutateAsync({
           path: { id: deviceId },
           body: { active: false },
         });
@@ -337,23 +337,23 @@ export function useDevice(deviceId: string): UseDeviceResult {
           if (!prev) return prev;
           return {
             ...prev,
-            pump_schedule: prev.pump_schedule
-              ? { ...prev.pump_schedule, active: false }
+            irrigation_schedule: prev.irrigation_schedule
+              ? { ...prev.irrigation_schedule, active: false }
               : { active: false, start_time: 0, times_per_day: 1 },
           };
         });
       } catch (error) {
-        console.error("Failed to toggle pump schedule:", error);
+        console.error("Failed to toggle irrigation schedule:", error);
       }
     },
     [
       deviceId,
-      schedulePumpMutation,
-      schedulePump,
-      liveState?.pump_schedule?.start_time,
-      liveState?.pump_schedule?.times_per_day,
-      deviceQuery.data?.state?.pump_schedule?.start_time,
-      deviceQuery.data?.state?.pump_schedule?.times_per_day,
+      scheduleIrrigationMutation,
+      scheduleIrrigation,
+      liveState?.irrigation_schedule?.start_time,
+      liveState?.irrigation_schedule?.times_per_day,
+      deviceQuery.data?.state?.irrigation_schedule?.start_time,
+      deviceQuery.data?.state?.irrigation_schedule?.times_per_day,
     ]
   );
 
@@ -375,8 +375,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
     setBrightness,
     toggleLightSchedule,
     scheduleLights,
-    togglePumpSchedule,
-    schedulePump,
+    toggleIrrigationSchedule,
+    scheduleIrrigation,
     refresh,
   };
 }

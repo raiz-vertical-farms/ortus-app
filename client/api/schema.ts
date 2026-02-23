@@ -106,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/pump/schedule": {
+    "/api/device/{id}/irrigation/schedule": {
         parameters: {
             query?: never;
             header?: never;
@@ -115,8 +115,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set a schedule for the pump */
-        post: operations["schedulePump"];
+        /** Set a schedule for the irrigation */
+        post: operations["scheduleIrrigation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -267,7 +267,7 @@ export interface operations {
                                 /** @description UTC timestamp in milliseconds */
                                 off: number;
                             } | null;
-                            pump_schedule: {
+                            irrigation_schedule: {
                                 active: boolean;
                                 /** @description UTC timestamp in milliseconds */
                                 start_time: number;
@@ -307,7 +307,7 @@ export interface operations {
                             online: boolean;
                             temperature: number | null;
                             water_level: number | null;
-                            pump_schedule: {
+                            irrigation_schedule: {
                                 active: boolean;
                                 /** @description UTC timestamp in milliseconds */
                                 start_time: number;
@@ -362,7 +362,7 @@ export interface operations {
         };
         responses: never;
     };
-    schedulePump: {
+    scheduleIrrigation: {
         parameters: {
             query?: never;
             header?: never;

@@ -115,6 +115,9 @@ void BluetoothProvisioning::onWrite(BLECharacteristic *pCharacteristic)
 void BluetoothProvisioning::updateStatus(const String &status)
 {
     if (!pCharStatus) return;
+
+    if (pCharStatus->getValue() == status.c_str()) return;
+
     pCharStatus->setValue(status.c_str());
     if (canNotify(pStatusDescriptor)) pCharStatus->notify();
     else statusNotifyPending = true;
@@ -123,6 +126,10 @@ void BluetoothProvisioning::updateStatus(const String &status)
 void BluetoothProvisioning::updateWiFiState(bool connected)
 {
     updateStatus(connected ? "WiFi Connected" : "WiFi Disconnected");
+    if (connected)
+    {
+        updateMACAddress();
+    }
 }
 
 void BluetoothProvisioning::updateMACAddress()

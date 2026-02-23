@@ -70,7 +70,7 @@ private:
     unsigned long lastPresence = 0;
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
-    unsigned long pumpStopAt = 0;
+    unsigned long irrigationStopAt = 0;
     
     int appliedBrightness = -1;
     bool wifiConnected = false;
