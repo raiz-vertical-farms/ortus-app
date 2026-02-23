@@ -9,7 +9,7 @@ const MQTT_CONFIG = {
     password: process.env.MQTT_PASSWORD!,
   },
   // Unified Subscription
-  subscriptions: ["ortus/+/presence", "ortus/+/state"],
+  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status"],
 };
 
 export const mqttClient: MqttClient = mqtt.connect(
@@ -66,7 +66,19 @@ mqttClient.on("message", async (topic, payload) => {
     const mac = parts[1];
     const type = parts[2];
 
-    if (type === "presence") {
+    if (type === "status") {
+      const isOnline = raw === "online";
+      await db.updateTable("devices")
+        .set({
+          online: isOnline ? 1 : 0,
+          ...(isOnline ? {} : { last_seen: Math.floor(Date.now() / 1000) }),
+        })
+        .where("mac_address", "=", mac)
+        .execute();
+
+      console.log(`[Status] ${mac} is ${raw}`);
+    }
+    else if (type === "presence") {
       const data = safeJSON<PresencePayload>(raw);
       if (!data) return;
       

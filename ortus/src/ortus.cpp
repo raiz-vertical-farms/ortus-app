@@ -174,10 +174,14 @@ void OrtusSystem::connectMQTT()
 
     Serial.print("[MQTT] Connecting...");
     String clientId = "Ortus-" + macAddress;
+    String lwtTopic = "ortus/" + macAddress + "/status";
 
-    if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD))
+    if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, lwtTopic.c_str(), 1, true, "offline"))
     {
         Serial.println("Connected");
+
+        // Publish online status (retained)
+        mqttClient.publish(lwtTopic.c_str(), "online", true);
 
         // Subscribe to unified command topic
         String cmdTopic = "ortus/" + macAddress + "/command";
