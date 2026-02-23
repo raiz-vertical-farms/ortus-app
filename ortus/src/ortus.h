@@ -74,7 +74,9 @@ private:
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
     unsigned long irrigationStopAt = 0;
-    
+    unsigned long irrigationCycleNextToggle = 0;
+    bool irrigationCycleIsOnPhase = false;
+
     int appliedBrightness = -1;
     bool wifiConnected = false;
     

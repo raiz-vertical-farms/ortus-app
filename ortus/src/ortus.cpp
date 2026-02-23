@@ -27,7 +27,7 @@ void OrtusSystem::begin()
     pinMode(PIN_RELAY_IRRIGATION, OUTPUT);
     pinMode(PIN_SENSOR_WATER, INPUT_PULLUP);
 
-    // Initial relay state (Active LOW assumed from original code)
+    // Initial relay state (Active HIGH assumed from original code)
     digitalWrite(PIN_RELAY_IRRIGATION, HIGH);
 
     // Setup LEDC PWM for light dimming
@@ -261,6 +261,23 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
         else
             cmd.irrigationDurationSeconds = 60; // Default
     }
+    else if (type == "irrigationCycle")
+    {
+        cmd.type = CommandType::IrrigationCycle;
+        String value = doc["value"] | "";
+        // Parse format: "on:120,off:600"
+        int onIdx = value.indexOf("on:");
+        int offIdx = value.indexOf("off:");
+        if (onIdx < 0 || offIdx < 0)
+            return;
+        int commaIdx = value.indexOf(',');
+        if (commaIdx < 0)
+            return;
+        cmd.irrigationCycleOnSeconds = value.substring(onIdx + 3, commaIdx).toInt();
+        cmd.irrigationCycleOffSeconds = value.substring(offIdx + 4).toInt();
+        if (cmd.irrigationCycleOnSeconds == 0 || cmd.irrigationCycleOffSeconds == 0)
+            return;
+    }
     else if (type == "otaUpdate")
     {
         cmd.type = CommandType::OtaUpdate;
@@ -299,6 +316,18 @@ void OrtusSystem::handleCommand(const DeviceCommand &cmd)
             broadcastState();
         }
     }
+    else if (cmd.type == CommandType::IrrigationCycle)
+    {
+        currentState.irrigationCycleActive = true;
+        currentState.irrigationCycleOnSeconds = cmd.irrigationCycleOnSeconds;
+        currentState.irrigationCycleOffSeconds = cmd.irrigationCycleOffSeconds;
+        irrigationCycleIsOnPhase = true;
+        irrigationCycleNextToggle = millis() + (cmd.irrigationCycleOnSeconds * 1000);
+        currentState.irrigationActive = true;
+        saveState();
+        updateActuators();
+        broadcastState();
+    }
     else if (cmd.type == CommandType::OtaUpdate)
     {
         performOtaUpdate(cmd.otaUrl);
@@ -316,8 +345,20 @@ void OrtusSystem::updateActuators()
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
     }
 
-    // Irrigation
-    if (currentState.irrigationActive)
+    // Irrigation Cycle
+    if (currentState.irrigationCycleActive && millis() >= irrigationCycleNextToggle)
+    {
+        irrigationCycleIsOnPhase = !irrigationCycleIsOnPhase;
+        currentState.irrigationActive = irrigationCycleIsOnPhase;
+        unsigned long duration = irrigationCycleIsOnPhase
+            ? currentState.irrigationCycleOnSeconds
+            : currentState.irrigationCycleOffSeconds;
+        irrigationCycleNextToggle = millis() + (duration * 1000);
+        broadcastState();
+    }
+
+    // Irrigation (one-shot timer)
+    if (!currentState.irrigationCycleActive && currentState.irrigationActive)
     {
         if (millis() >= irrigationStopAt)
         {
@@ -376,6 +417,12 @@ void OrtusSystem::broadcastState(bool force)
     JsonDocument doc;
     doc["brightness"] = currentState.brightness;
     doc["irrigationActive"] = currentState.irrigationActive;
+    doc["irrigationCycleActive"] = currentState.irrigationCycleActive;
+    if (currentState.irrigationCycleActive)
+    {
+        doc["irrigationCycleOnSeconds"] = currentState.irrigationCycleOnSeconds;
+        doc["irrigationCycleOffSeconds"] = currentState.irrigationCycleOffSeconds;
+    }
     doc["temperature"] = currentState.temperatureC;
     doc["waterEmpty"] = currentState.waterEmpty;
 
@@ -415,11 +462,23 @@ void OrtusSystem::publishPresence()
 void OrtusSystem::loadState()
 {
     currentState.brightness = preferences.getInt("brightness", 0);
+    currentState.irrigationCycleActive = preferences.getBool("cycleActive", false);
+    currentState.irrigationCycleOnSeconds = preferences.getULong("cycleOn", 0);
+    currentState.irrigationCycleOffSeconds = preferences.getULong("cycleOff", 0);
+    if (currentState.irrigationCycleActive)
+    {
+        irrigationCycleIsOnPhase = true;
+        currentState.irrigationActive = true;
+        irrigationCycleNextToggle = millis() + (currentState.irrigationCycleOnSeconds * 1000);
+    }
 }
 
 void OrtusSystem::saveState()
 {
     preferences.putInt("brightness", currentState.brightness);
+    preferences.putBool("cycleActive", currentState.irrigationCycleActive);
+    preferences.putULong("cycleOn", currentState.irrigationCycleOnSeconds);
+    preferences.putULong("cycleOff", currentState.irrigationCycleOffSeconds);
 }
 
 void OrtusSystem::loadCredentials()
