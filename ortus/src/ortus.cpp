@@ -36,8 +36,7 @@ void OrtusSystem::begin()
         .duty_resolution = LEDC_TIMER_8_BIT,
         .timer_num = LEDC_TIMER_0,
         .freq_hz = 1000,
-        .clk_cfg = LEDC_AUTO_CLK
-    };
+        .clk_cfg = LEDC_AUTO_CLK};
     ledc_timer_config(&timer);
 
     ledc_channel_config_t channel = {
@@ -46,8 +45,7 @@ void OrtusSystem::begin()
         .channel = LEDC_CHANNEL_0,
         .timer_sel = LEDC_TIMER_0,
         .duty = 0,
-        .hpoint = 0
-    };
+        .hpoint = 0};
     ledc_channel_config(&channel);
 
     sensors.begin();
@@ -263,6 +261,13 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
         else
             cmd.irrigationDurationSeconds = 60; // Default
     }
+    else if (type == "otaUpdate")
+    {
+        cmd.type = CommandType::OtaUpdate;
+        cmd.otaUrl = doc["value"] | "";
+        if (cmd.otaUrl.isEmpty())
+            return;
+    }
     else
     {
         return; // Unknown command
@@ -294,6 +299,10 @@ void OrtusSystem::handleCommand(const DeviceCommand &cmd)
             broadcastState();
         }
     }
+    else if (cmd.type == CommandType::OtaUpdate)
+    {
+        performOtaUpdate(cmd.otaUrl);
+    }
 }
 
 void OrtusSystem::updateActuators()
@@ -317,7 +326,7 @@ void OrtusSystem::updateActuators()
             broadcastState();
         }
     }
-    digitalWrite(PIN_RELAY_IRRIGATION, currentState.irrigationActive ? LOW : HIGH);
+    digitalWrite(PIN_RELAY_IRRIGATION, currentState.irrigationActive ? HIGH : LOW);
 }
 
 void OrtusSystem::updateSensors()
@@ -426,4 +435,45 @@ void OrtusSystem::saveCredentials(String s, String p)
     wifiSSID = s;
     wifiPass = p;
     Serial.println("[System] Credentials saved.");
+}
+
+void OrtusSystem::performOtaUpdate(const String &url)
+{
+    Serial.println("[OTA] Starting update from: " + url);
+
+    // Publish status so the app knows we're updating
+    if (mqttClient.connected())
+    {
+        String topic = "ortus/" + macAddress + "/ota";
+        mqttClient.publish(topic.c_str(), "started");
+    }
+
+    WiFiClientSecure otaClient;
+    otaClient.setInsecure(); // Skip cert validation (same as your MQTT client)
+
+    httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+    t_httpUpdate_return ret = httpUpdate.update(otaClient, url);
+
+    // If we get here, the update failed (success would reboot automatically)
+    String error;
+    switch (ret)
+    {
+    case HTTP_UPDATE_FAILED:
+        error = httpUpdate.getLastErrorString();
+        Serial.println("[OTA] Failed: " + error);
+        break;
+    case HTTP_UPDATE_NO_UPDATES:
+        error = "No update available";
+        Serial.println("[OTA] " + error);
+        break;
+    default:
+        error = "Unknown error";
+        break;
+    }
+
+    if (mqttClient.connected())
+    {
+        String topic = "ortus/" + macAddress + "/ota";
+        mqttClient.publish(topic.c_str(), ("failed: " + error).c_str());
+    }
 }

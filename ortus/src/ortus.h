@@ -9,6 +9,8 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#include <HTTPUpdate.h>
+
 #include "config.h"
 #include "types.h"
 #include "ble_provisioning.h"
@@ -43,6 +45,7 @@ private:
     void loadCredentials();
     void saveCredentials(String ssid, String pass);
     void processRawCommand(const uint8_t *payload, size_t length);
+    void performOtaUpdate(const String &url);
 
     // --- Callbacks ---
     static void mqttCallback(char *topic, uint8_t *payload, unsigned int length);

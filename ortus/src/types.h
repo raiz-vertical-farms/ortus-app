@@ -6,7 +6,8 @@
 enum class CommandType
 {
   SetBrightness,
-  TriggerIrrigation
+  TriggerIrrigation,
+  OtaUpdate
 };
 
 struct DeviceState
@@ -22,6 +23,7 @@ struct DeviceCommand
   CommandType type = CommandType::SetBrightness;
   int brightness = 0;
   unsigned long irrigationDurationSeconds = 0;
+  String otaUrl;
 };
 
 inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
