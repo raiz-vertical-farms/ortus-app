@@ -35,9 +35,11 @@ export default function DeviceCard({
       : "Offline";
 
   const statusText =
-    !online && created_at < Date.now() + 1000 * 60
+    !online && created_at > Date.now() - 1000 * 60
       ? "Connecting to your wifi..."
       : onlineLabel;
+
+  console.log({ created_at, now: Date.now() + 1000 * 60 });
 
   return (
     <Link
@@ -80,7 +82,7 @@ function formatLastSeen(last_seen: number): string {
   startOfDate.setHours(0, 0, 0, 0);
 
   const diffDays = Math.floor(
-    (startOfToday.getTime() - startOfDate.getTime()) / 86400000
+    (startOfToday.getTime() - startOfDate.getTime()) / 86400000,
   );
 
   // Time part without seconds
@@ -93,7 +95,7 @@ function formatLastSeen(last_seen: number): string {
   if (diffDays === 1) return `yesterday at ${time}`;
   if (diffDays < 7) {
     const weekday = new Intl.DateTimeFormat([], { weekday: "long" }).format(
-      date
+      date,
     );
     return `${weekday} at ${time}`;
   }

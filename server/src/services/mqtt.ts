@@ -8,7 +8,8 @@ const MQTT_CONFIG = {
     username: process.env.MQTT_USERNAME!,
     password: process.env.MQTT_PASSWORD!,
   },
-  subscriptions: ["+/presence", "+/status", "+/sensor/#"],
+  // Unified Subscription
+  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status"],
 };
 
 export const mqttClient: MqttClient = mqtt.connect(
@@ -37,123 +38,92 @@ function safeJSON<T>(str: string): T | undefined {
   }
 }
 
-function inferValueType(value: string): "int" | "float" | "boolean" | "text" {
-  const v = value.trim().toLowerCase();
-  if (v === "true" || v === "false") return "boolean";
-  const num = Number(value);
-  if (!isNaN(num)) return Number.isInteger(num) ? "int" : "float";
-  return "text";
-}
-
+// Schemas
 const presenceSchema = z.object({
-  publicIp: z.string().trim().optional(),
-  localIp: z.string().trim().optional(),
-  wsPort: z.preprocess(
-    (v) => (typeof v === "string" ? parseInt(v, 10) : v),
-    z.number().int().nonnegative().optional()
-  ),
+  ip: z.string().optional(),
+  mac: z.string(),
+  uptime: z.number().optional(),
+});
+
+const stateSchema = z.object({
+  brightness: z.number().optional(),
+  irrigationActive: z.boolean().optional(),
+  fanActive: z.boolean().optional(),
+  temperature: z.number().nullable().optional(),
+  waterEmpty: z.boolean().optional(),
 });
 
 type PresencePayload = z.infer<typeof presenceSchema>;
-
-type Handler = (mac: string, path: string[], payload: Buffer) => Promise<void>;
-type Handlers = Record<string, Handler>;
-
-const handlers: Handlers = {
-  async presence(mac, _path, payload) {
-    const raw = payload.toString();
-    const parsed = presenceSchema.safeParse(safeJSON<PresencePayload>(raw));
-
-    const update: Record<string, string | number | null> = {
-      last_seen: Math.floor(Date.now() / 1000),
-      online: 1,
-    };
-
-    if (parsed.success) {
-      const { localIp, wsPort } = parsed.data;
-      if (localIp) update.lan_ip = localIp;
-      if (wsPort !== undefined) update.lan_ws_port = wsPort;
-    }
-
-    await db
-      .updateTable("devices")
-      .set(update)
-      .where("mac_address", "=", mac)
-      .execute();
-
-    await db
-      .insertInto("device_timeseries")
-      .values({
-        mac_address: mac,
-        metric: "presence",
-        value_text: parsed.success ? JSON.stringify(parsed.data) : raw,
-        value_type: parsed.success ? "json" : "text",
-      })
-      .execute();
-
-    console.log(
-      `Presence ${mac}: IP=${parsed.data?.localIp ?? "?"}, WS=${parsed.data?.wsPort ?? "?"}`
-    );
-  },
-
-  async status(mac, _path, payload) {
-    const status = payload.toString().trim().toLowerCase();
-    const isOnline = status === "online";
-
-    await db
-      .updateTable("devices")
-      .set({
-        online: isOnline ? 1 : 0,
-        last_seen: Math.floor(Date.now() / 1000),
-      })
-      .where("mac_address", "=", mac)
-      .execute();
-
-    await db
-      .insertInto("device_timeseries")
-      .values({
-        mac_address: mac,
-        metric: "status",
-        value_text: status,
-        value_type: "text",
-      })
-      .execute();
-
-    console.log(`Status ${mac}: ${status}`);
-  },
-
-  async sensor(mac, path, payload) {
-    if (path.at(-1) !== "state") return;
-
-    const metric = path.slice(0, -1).join("/");
-    const valueStr = payload.toString();
-    const valueType = inferValueType(valueStr);
-
-    await db
-      .insertInto("device_timeseries")
-      .values({
-        mac_address: mac,
-        metric,
-        value_text: valueStr,
-        value_type: valueType,
-      })
-      .execute();
-
-    console.log(`Sensor ${mac}: ${metric}=${valueStr}`);
-  },
-};
+type StatePayload = z.infer<typeof stateSchema>;
 
 mqttClient.on("message", async (topic, payload) => {
-  const [mac, category, ...path] = topic.split("/");
-  if (!mac || !category) return;
-
-  const handler = handlers[category];
-  if (!handler) return;
-
   try {
-    await handler(mac, path, payload);
+    const raw = payload.toString();
+    const parts = topic.split("/");
+    // Expected topic: ortus/{mac}/{type}
+    if (parts.length !== 3 || parts[0] !== "ortus") return;
+
+    const mac = parts[1];
+    const type = parts[2];
+
+    if (type === "status") {
+      const isOnline = raw === "online";
+      await db.updateTable("devices")
+        .set({
+          online: isOnline ? 1 : 0,
+          ...(isOnline ? {} : { last_seen: Math.floor(Date.now() / 1000) }),
+        })
+        .where("mac_address", "=", mac)
+        .execute();
+
+      console.log(`[Status] ${mac} is ${raw}`);
+    }
+    else if (type === "presence") {
+      const data = safeJSON<PresencePayload>(raw);
+      if (!data) return;
+      
+      await db.updateTable("devices")
+        .set({
+          online: 1,
+          last_seen: Math.floor(Date.now() / 1000),
+          lan_ip: data.ip
+        })
+        .where("mac_address", "=", mac)
+        .execute();
+        
+      console.log(`[Presence] ${mac} is online at ${data.ip}`);
+    } 
+    else if (type === "state") {
+      const data = safeJSON<StatePayload>(raw);
+      if (!data) return;
+
+      // Update Timeseries & Notifications
+      const inserts = [];
+
+      if (data.brightness !== undefined) {
+        inserts.push({ mac_address: mac, metric: "light/brightness", value_text: String(data.brightness), value_type: "int" });
+      }
+      if (data.temperature !== undefined && data.temperature !== null) {
+        inserts.push({ mac_address: mac, metric: "temperature", value_text: String(data.temperature), value_type: "float" });
+      }
+      if (data.waterEmpty !== undefined) {
+        inserts.push({ mac_address: mac, metric: "water/empty", value_text: String(data.waterEmpty), value_type: "boolean" });
+      }
+      if (data.irrigationActive !== undefined) {
+        inserts.push({ mac_address: mac, metric: "irrigation/active", value_text: String(data.irrigationActive), value_type: "boolean" });
+      }
+      // Fan is now part of irrigation, but if we still receive it (or for legacy), we can log it or ignore it.
+      // Since we are removing fan logic from firmware, we probably won't receive it.
+      
+      if (inserts.length > 0) {
+        // @ts-ignore - complex insert type matching
+        await db.insertInto("device_timeseries").values(inserts).execute();
+      }
+      
+      console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
+    }
   } catch (err) {
-    console.error(`Error handling ${category} for ${mac}:`, err);
+    console.error("MQTT Message Error:", err);
   }
 });
 

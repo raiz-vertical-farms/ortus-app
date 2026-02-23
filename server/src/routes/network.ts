@@ -59,7 +59,7 @@ const app = new Hono()
         .select(["mac_address", "created_at"])
         .distinct()
         .where("metric", "=", "presence")
-        .where("value_text", "=", ip)
+        // .where("value_text", "=", ip) // TODO: Re-implement IP matching if needed
         .where("created_at", ">=", Date.now() - 60)
         .execute();
 

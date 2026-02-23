@@ -33,10 +33,8 @@ export function setLightSchedule(macAddress: string, schedule: LightSchedule) {
     { timezone: "UTC" },
     () => {
       console.log(`[${macAddress}] Light ON at ${onHour}:${onMinute} UTC`);
-      mqttClient.publish(
-        `${macAddress}/sensor/light/brightness/command`,
-        "100"
-      );
+      const payload = JSON.stringify({ type: "setBrightness", value: 100 });
+      mqttClient.publish(`ortus/${macAddress}/command`, payload);
     }
   );
 
@@ -45,7 +43,8 @@ export function setLightSchedule(macAddress: string, schedule: LightSchedule) {
     { timezone: "UTC" },
     () => {
       console.log(`[${macAddress}] Light OFF at ${offHour}:${offMinute} UTC`);
-      mqttClient.publish(`${macAddress}/sensor/light/brightness/command`, "0");
+      const payload = JSON.stringify({ type: "setBrightness", value: 0 });
+      mqttClient.publish(`ortus/${macAddress}/command`, payload);
     }
   );
 
@@ -63,10 +62,12 @@ export function setLightSchedule(macAddress: string, schedule: LightSchedule) {
 
   if (isWithinSchedule) {
     console.log(`[${macAddress}] Currently within schedule — turning ON now.`);
-    mqttClient.publish(`${macAddress}/sensor/light/brightness/command`, "100");
+    const payload = JSON.stringify({ type: "setBrightness", value: 100 });
+    mqttClient.publish(`ortus/${macAddress}/command`, payload);
   } else {
     console.log(`[${macAddress}] Currently outside schedule — ensuring OFF.`);
-    mqttClient.publish(`${macAddress}/sensor/light/brightness/command`, "0");
+    const payload = JSON.stringify({ type: "setBrightness", value: 0 });
+    mqttClient.publish(`ortus/${macAddress}/command`, payload);
   }
 }
 

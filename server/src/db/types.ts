@@ -15,6 +15,15 @@ export interface _Migrations {
   run_at: Generated<string | null>;
 }
 
+export interface AlertNotifications {
+  alert_type: string;
+  created_at: Generated<number>;
+  device_id: number;
+  id: Generated<number>;
+  last_notified: number | null;
+  message: string;
+}
+
 export interface Devices {
   created_at: Generated<number>;
   id: Generated<number>;
@@ -36,6 +45,15 @@ export interface DeviceTimeseries {
   value_type: string;
 }
 
+export interface IrrigationSchedules {
+  active: Generated<number>;
+  created_at: Generated<number>;
+  device_id: number;
+  id: Generated<number>;
+  start_time: number;
+  times_per_day: number;
+}
+
 export interface LightSchedules {
   active: Generated<number>;
   created_at: Generated<number>;
@@ -45,19 +63,11 @@ export interface LightSchedules {
   on_timestamp: number;
 }
 
-export interface PumpSchedules {
-  active: Generated<number>;
-  created_at: Generated<number>;
-  device_id: number;
-  id: Generated<number>;
-  start_time: number;
-  times_per_day: number;
-}
-
 export interface DB {
   _migrations: _Migrations;
+  alert_notifications: AlertNotifications;
   device_timeseries: DeviceTimeseries;
   devices: Devices;
+  irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;
-  pump_schedules: PumpSchedules;
 }

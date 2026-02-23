@@ -16,7 +16,7 @@
     "codegen": "npm run codegen:kysely",
     "codegen:kysely": "kysely-codegen --out-file ./src/db/types.ts --dialect sqlite",
     "compile": "pkgroll",
-    "deploy": "npm run migrate && npm run build",
+    "deploy": "npm run migrate && npm run compile",
     "migrate": "tsx ./src/scripts/migrate.ts db.sqlite ./src/migrations"
   },
   "keywords": [],
@@ -45,6 +45,7 @@
     "mqtt": "^5.14.1",
     "pkgroll": "^2.15.4",
     "tsc": "^2.0.4",
+    "twilio": "^5.12.2",
     "typescript": "^5.9.2",
     "zod": "^4.1.11"
   },

@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { setLightSchedule } from "./lights";
-import { setPumpSchedule } from "./pumps";
+import { setIrrigationSchedule } from "./irrigation";
 
 type LightScheduleRow = {
   mac_address: string;
@@ -8,14 +8,14 @@ type LightScheduleRow = {
   off_timestamp: number;
 };
 
-type PumpScheduleRow = {
+type IrrigationScheduleRow = {
   mac_address: string;
   start_time: number;
   times_per_day: number;
 };
 
 export async function bootstrapSchedulesFromDb() {
-  const [lightSchedules, pumpSchedules] = await Promise.all([
+  const [lightSchedules, irrigationSchedules] = await Promise.all([
     db
       .selectFrom("light_schedules as ls")
       .innerJoin("devices as d", "d.id", "ls.device_id")
@@ -27,7 +27,7 @@ export async function bootstrapSchedulesFromDb() {
       .where("ls.active", "=", 1)
       .execute() as Promise<LightScheduleRow[]>,
     db
-      .selectFrom("pump_schedules as ps")
+      .selectFrom("irrigation_schedules as ps")
       .innerJoin("devices as d", "d.id", "ps.device_id")
       .select((eb) => [
         eb.ref("d.mac_address").as("mac_address"),
@@ -35,7 +35,7 @@ export async function bootstrapSchedulesFromDb() {
         eb.ref("ps.times_per_day").as("times_per_day"),
       ])
       .where("ps.active", "=", 1)
-      .execute() as Promise<PumpScheduleRow[]>,
+      .execute() as Promise<IrrigationScheduleRow[]>,
   ]);
 
   lightSchedules.forEach((schedule) =>
@@ -45,17 +45,17 @@ export async function bootstrapSchedulesFromDb() {
     })
   );
 
-  pumpSchedules.forEach((schedule) =>
-    setPumpSchedule(schedule.mac_address, {
+  irrigationSchedules.forEach((schedule) =>
+    setIrrigationSchedule(schedule.mac_address, {
       startTime: schedule.start_time,
       timesPerDay: schedule.times_per_day,
     })
   );
 
   console.log(
-    `Bootstrapped ${lightSchedules.length} light schedules and ${pumpSchedules.length} pump schedules from DB`
+    `Bootstrapped ${lightSchedules.length} light schedules and ${irrigationSchedules.length} irrigation schedules from DB`
   );
 }
 
 export * from "./lights";
-export * from "./pumps";
+export * from "./irrigation";

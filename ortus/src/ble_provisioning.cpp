@@ -1,29 +1,26 @@
 #include "ble_provisioning.h"
+#include "config.h"
+#include <WiFi.h>
 
-namespace
-{
-    constexpr unsigned long WIFI_CONNECT_TIMEOUT_MS = 30000; // 30s window for Wi-Fi connect feedback
-}
-
-BluetoothProvisioning::BluetoothProvisioning(WiFiCredentialsStore &credentialsStore, NetworkManager &networkManager)
-    : credentials(credentialsStore), network(networkManager),
-      pServer(nullptr), pService(nullptr),
-      pCharSSID(nullptr), pCharPassword(nullptr), pCharStatus(nullptr), pCharMAC(nullptr), pCharCommand(nullptr),
+BluetoothProvisioning::BluetoothProvisioning()
+    : pServer(nullptr), pCharSSID(nullptr), pCharPassword(nullptr),
+      pCharStatus(nullptr), pCharMAC(nullptr), pCharCommand(nullptr),
       pStatusDescriptor(nullptr), pMacDescriptor(nullptr),
-      statusNotifyPending(false), macNotifyPending(false),
-      awaitingWiFiConnection(false), lastWifiConnected(false), provisionSawDisconnect(false),
-      wifiConnectionStart(0), wifiReconnectRequested(false),
-      bleActive(false), deviceConnected(false), lastActivityTime(0)
+      deviceConnected(false), oldDeviceConnected(false),
+      statusNotifyPending(false), macNotifyPending(false)
 {
 }
 
-void BluetoothProvisioning::begin()
+void BluetoothProvisioning::begin(CredentialsCallback onCreds, VoidCallback onRec)
 {
+    onCredentials = onCreds;
+    onReconnect = onRec;
+
     BLEDevice::init("Ortus-Provisioning");
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(this);
 
-    pService = pServer->createService(BLE_SERVICE_UUID);
+    BLEService *pService = pServer->createService(BLE_SERVICE_UUID);
 
     pCharSSID = pService->createCharacteristic(BLE_CHAR_SSID_UUID, BLECharacteristic::PROPERTY_WRITE);
     pCharSSID->setCallbacks(this);
@@ -35,9 +32,7 @@ void BluetoothProvisioning::begin()
     pCharStatus->addDescriptor(new BLE2902());
     pStatusDescriptor = (BLE2902 *)pCharStatus->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
 
-    pCharMAC = pService->createCharacteristic(
-        BLE_CHAR_MAC_UUID,
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+    pCharMAC = pService->createCharacteristic(BLE_CHAR_MAC_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
     pCharMAC->addDescriptor(new BLE2902());
     pMacDescriptor = (BLE2902 *)pCharMAC->getDescriptorByUUID(BLEUUID((uint16_t)0x2902));
 
@@ -47,214 +42,106 @@ void BluetoothProvisioning::begin()
     pService->start();
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(BLE_SERVICE_UUID);
+    pAdvertising->setScanResponse(true);
+    pAdvertising->setMinPreferred(0x06);
     BLEDevice::startAdvertising();
 
-    bleActive = true;
-    lastActivityTime = millis();
-
+    updateStatus("BLE Ready");
     updateMACAddress();
-    updateStatus("BLE started");
-
-    lastWifiConnected = (WiFi.status() == WL_CONNECTED);
 }
 
-void BluetoothProvisioning::checkAutoStop()
+void BluetoothProvisioning::loop()
 {
-    flushPendingNotifications();
-
-    if (wifiReconnectRequested)
+    if (!deviceConnected && oldDeviceConnected)
     {
-        wifiReconnectRequested = false;
-        connectWithCredentials();
+        delay(500); 
+        pServer->startAdvertising(); 
+        oldDeviceConnected = deviceConnected;
+        updateStatus("Disconnected");
     }
-
-    const bool wifiConnectedNow = (WiFi.status() == WL_CONNECTED);
-
-    if (awaitingWiFiConnection)
+    
+    if (deviceConnected && !oldDeviceConnected)
     {
-        if (!wifiConnectedNow)
-        {
-            provisionSawDisconnect = true;
-        }
-        else if (provisionSawDisconnect || !lastWifiConnected)
-        {
-            awaitingWiFiConnection = false;
-            provisionSawDisconnect = false;
-            updateStatus("Provisioning successful");
-            updateMACAddress();
-        }
-        if (awaitingWiFiConnection && millis() - wifiConnectionStart >= WIFI_CONNECT_TIMEOUT_MS)
-        {
-            awaitingWiFiConnection = false;
-            provisionSawDisconnect = false;
-            updateStatus("Provisioning failed");
-        }
-    }
-    else if (wifiConnectedNow && !lastWifiConnected)
-    {
-        updateStatus("WiFi connected");
+        oldDeviceConnected = deviceConnected;
+        updateStatus("Connected");
         updateMACAddress();
     }
 
-    if (!wifiConnectedNow && lastWifiConnected)
-    {
-        updateStatus("WiFi disconnected");
-    }
-
-    lastWifiConnected = wifiConnectedNow;
-
-    // Keep BLE provisioning always available; restart advertising if needed.
-    if (!bleActive)
-    {
-        BLEDevice::startAdvertising();
-        bleActive = true;
-        updateStatus("BLE advertising resumed");
-    }
-}
-
-void BluetoothProvisioning::onConnect(BLEServer *pServer)
-{
-    deviceConnected = true;
-    lastActivityTime = millis();
-
-    if (pStatusDescriptor)
-    {
-        pStatusDescriptor->setNotifications(false);
-    }
-    if (pMacDescriptor)
-    {
-        pMacDescriptor->setNotifications(false);
-    }
-    awaitingWiFiConnection = false;
-    provisionSawDisconnect = false;
-    lastWifiConnected = (WiFi.status() == WL_CONNECTED);
-    updateStatus("Device connected");
-    updateMACAddress();
-}
-
-void BluetoothProvisioning::onDisconnect(BLEServer *pServer)
-{
-    deviceConnected = false;
-    updateStatus("Device disconnected");
-    awaitingWiFiConnection = false;
-    provisionSawDisconnect = false;
-    if (pStatusDescriptor)
-    {
-        pStatusDescriptor->setNotifications(false);
-    }
-    if (pMacDescriptor)
-    {
-        pMacDescriptor->setNotifications(false);
-    }
-    BLEDevice::startAdvertising();
-}
-
-void BluetoothProvisioning::onWrite(BLECharacteristic *pCharacteristic)
-{
-    lastActivityTime = millis();
-
-    if (pCharacteristic == pCharSSID)
-    {
-        tempSSID = pCharacteristic->getValue().c_str();
-        updateStatus("SSID received");
-    }
-    else if (pCharacteristic == pCharPassword)
-    {
-        tempPassword = pCharacteristic->getValue().c_str();
-        updateStatus("Password received");
-        credentials.save(tempSSID, tempPassword);
-        wifiReconnectRequested = true;
-    }
-    else if (pCharacteristic == pCharCommand)
-    {
-        String command = pCharacteristic->getValue().c_str();
-        processCommand(command);
-    }
-}
-
-void BluetoothProvisioning::onRead(BLECharacteristic *pCharacteristic)
-{
-    lastActivityTime = millis();
-}
-
-void BluetoothProvisioning::updateStatus(const String &status)
-{
-    if (pCharStatus)
-    {
-        pCharStatus->setValue(status.c_str());
-        if (canNotify(pStatusDescriptor))
-        {
-            pCharStatus->notify();
-            statusNotifyPending = false;
-        }
-        else
-        {
-            statusNotifyPending = true;
-        }
-    }
-    Serial.println("[BLE] " + status);
-}
-
-void BluetoothProvisioning::updateMACAddress()
-{
-    if (pCharMAC)
-    {
-        String mac = WiFi.macAddress();
-        pCharMAC->setValue(mac.c_str());
-        if (canNotify(pMacDescriptor))
-        {
-            pCharMAC->notify();
-            macNotifyPending = false;
-        }
-        else
-        {
-            macNotifyPending = true;
-        }
-        Serial.print("[BLE] MAC ready: ");
-        Serial.println(mac);
-    }
-}
-
-bool BluetoothProvisioning::connectWithCredentials()
-{
-    awaitingWiFiConnection = true;
-    wifiConnectionStart = millis();
-    provisionSawDisconnect = (WiFi.status() != WL_CONNECTED);
-    updateStatus("Provisioning WiFi...");
-    network.forceReconnect();
-    return true;
-}
-
-void BluetoothProvisioning::processCommand(const String &command)
-{
-    if (command == "STOP")
-    {
-        Serial.println("[BLE] STOP command received but ignored; BLE stays active");
-        updateStatus("BLE remains active");
-    }
-}
-
-void BluetoothProvisioning::flushPendingNotifications()
-{
-    if (statusNotifyPending && pCharStatus && canNotify(pStatusDescriptor))
+    if (statusNotifyPending && canNotify(pStatusDescriptor))
     {
         pCharStatus->notify();
         statusNotifyPending = false;
     }
-
-    if (macNotifyPending && pCharMAC && canNotify(pMacDescriptor))
+    if (macNotifyPending && canNotify(pMacDescriptor))
     {
         pCharMAC->notify();
         macNotifyPending = false;
     }
 }
 
-bool BluetoothProvisioning::canNotify(BLE2902 *descriptor) const
+void BluetoothProvisioning::onConnect(BLEServer *pServer)
 {
-    if (!deviceConnected || descriptor == nullptr)
-    {
-        return false;
-    }
+    deviceConnected = true;
+}
 
-    return descriptor->getNotifications();
+void BluetoothProvisioning::onDisconnect(BLEServer *pServer)
+{
+    deviceConnected = false;
+}
+
+void BluetoothProvisioning::onWrite(BLECharacteristic *pCharacteristic)
+{
+    std::string value = pCharacteristic->getValue();
+    String sValue = String(value.c_str());
+
+    if (pCharacteristic == pCharSSID)
+    {
+        tempSSID = sValue;
+        updateStatus("SSID set");
+    }
+    else if (pCharacteristic == pCharPassword)
+    {
+        tempPassword = sValue;
+        if (onCredentials) onCredentials(tempSSID, tempPassword);
+        updateStatus("Creds saved");
+        if (onReconnect) onReconnect();
+    }
+    else if (pCharacteristic == pCharCommand)
+    {
+        // Simple commands if needed
+    }
+}
+
+void BluetoothProvisioning::updateStatus(const String &status)
+{
+    if (!pCharStatus) return;
+
+    if (pCharStatus->getValue() == status.c_str()) return;
+
+    pCharStatus->setValue(status.c_str());
+    if (canNotify(pStatusDescriptor)) pCharStatus->notify();
+    else statusNotifyPending = true;
+}
+
+void BluetoothProvisioning::updateWiFiState(bool connected)
+{
+    updateStatus(connected ? "WiFi Connected" : "WiFi Disconnected");
+    if (connected)
+    {
+        updateMACAddress();
+    }
+}
+
+void BluetoothProvisioning::updateMACAddress()
+{
+    if (!pCharMAC) return;
+    String mac = WiFi.macAddress();
+    pCharMAC->setValue(mac.c_str());
+    if (canNotify(pMacDescriptor)) pCharMAC->notify();
+    else macNotifyPending = true;
+}
+
+bool BluetoothProvisioning::canNotify(BLE2902 *descriptor)
+{
+    return deviceConnected && descriptor && descriptor->getNotifications();
 }

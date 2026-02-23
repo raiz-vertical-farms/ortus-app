@@ -99,14 +99,14 @@ function WaterView({
   deviceId: string;
   device: ReturnType<typeof useDevice>;
 }) {
-  const scheduleActive = device.state?.pump_schedule?.active ?? false;
+  const scheduleActive = device.state?.irrigation_schedule?.active ?? false;
 
   const { hours: startHours, minutes: startMinutes } =
-    getHoursAndMinutesByTimestamp(device.state?.pump_schedule?.start_time ?? 0);
+    getHoursAndMinutesByTimestamp(device.state?.irrigation_schedule?.start_time ?? 0);
 
   const timesPerDay = Math.max(
     1,
-    device.state?.pump_schedule?.times_per_day ?? 1
+    device.state?.irrigation_schedule?.times_per_day ?? 1
   );
 
   const scheduleState = { startHours, startMinutes, timesPerDay };
@@ -123,7 +123,7 @@ function WaterView({
         </Text>
 
         <Text align="center" size="lg">
-          Pump schedule
+          Irrigation schedule
         </Text>
         <Toggle
           onLabel="Schedule on"
@@ -132,9 +132,9 @@ function WaterView({
           onChange={(e) => {
             const enabled = e.target.checked;
             if (enabled) {
-              device.schedulePump(scheduleState);
+              device.scheduleIrrigation(scheduleState);
             } else {
-              device.togglePumpSchedule(false);
+              device.toggleIrrigationSchedule(false);
             }
           }}
         />
@@ -146,7 +146,7 @@ function WaterView({
               </Text>
               <select
                 onChange={(e) =>
-                  device.schedulePump({
+                  device.scheduleIrrigation({
                     ...scheduleState,
                     startHours: parseInt(e.target.value, 10),
                   })
@@ -161,7 +161,7 @@ function WaterView({
               </select>
               <select
                 onChange={(e) =>
-                  device.schedulePump({
+                  device.scheduleIrrigation({
                     ...scheduleState,
                     startMinutes: parseInt(e.target.value, 10),
                   })
@@ -181,7 +181,7 @@ function WaterView({
               </Text>
               <select
                 onChange={(e) =>
-                  device.schedulePump({
+                  device.scheduleIrrigation({
                     ...scheduleState,
                     timesPerDay: parseInt(e.target.value, 10),
                   })
