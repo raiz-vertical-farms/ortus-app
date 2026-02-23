@@ -210,19 +210,18 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
     DeviceCommand cmd;
     String type = doc["type"] | "";
     
-    // Unified command parsing (supports both MQTT flat & WS nested styles)
-    if (type == "brightness" || type == "setBrightness")
+    // Unified command parsing
+    // Supports strictly { "type": "...", "value": ... }
+    if (type == "setBrightness")
     {
         cmd.type = CommandType::SetBrightness;
         if (doc.containsKey("value")) cmd.brightness = doc["value"];
-        else if (doc["payload"].containsKey("brightness")) cmd.brightness = doc["payload"]["brightness"];
         else return; 
     }
-    else if (type == "pump" || type == "triggerPump")
+    else if (type == "triggerPump")
     {
         cmd.type = CommandType::TriggerPump;
-        if (doc.containsKey("duration")) cmd.pumpDurationSeconds = doc["duration"];
-        else if (doc["payload"].containsKey("duration")) cmd.pumpDurationSeconds = doc["payload"]["duration"];
+        if (doc.containsKey("value")) cmd.pumpDurationSeconds = doc["value"];
         else cmd.pumpDurationSeconds = 60; // Default
     }
     else 

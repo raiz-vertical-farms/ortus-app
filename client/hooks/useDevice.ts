@@ -183,7 +183,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
   const setBrightness = useCallback(
     async (value: number) => {
-      if (sendOverWebSocket({ type: "setBrightness", brightness: value })) {
+      if (sendOverWebSocket({ type: "setBrightness", value })) {
         setLiveState((prev) => (prev ? { ...prev, light: value } : prev));
         return;
       }
