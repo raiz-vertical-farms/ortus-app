@@ -21,7 +21,7 @@ export const Route = createFileRoute("/device/connect")({
 });
 
 function Page() {
-  const [view, setView] = useState<"main" | "save">("main");
+  const [view, setView] = useState<"main" | "mac" | "save">("main");
   const [macAddress, setMacAddress] = useState("");
 
   const handleProvisionSucceeded = (mac: string) => {
@@ -35,11 +35,82 @@ function Page() {
         .with({ view: "main" }, () => (
           <Box pt="6xl">
             <ProvisionFlow onProvisionSucceeded={handleProvisionSucceeded} />
+            <Box pt="xl" style={{ textAlign: "center" }}>
+              <button
+                onClick={() => setView("mac")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  fontSize: "inherit",
+                  color: "inherit",
+                  opacity: 0.6,
+                }}
+              >
+                Connect with mac address
+              </button>
+            </Box>
           </Box>
+        ))
+        .with({ view: "mac" }, () => (
+          <EnterMacAddress
+            onSubmit={(mac) => {
+              setMacAddress(mac);
+              setView("save");
+            }}
+            onBack={() => setView("main")}
+          />
         ))
         .with({ view: "save" }, () => <SaveDevice deviceId={macAddress} />)
         .exhaustive()}
     </PageLayout>
+  );
+}
+
+function EnterMacAddress({
+  onSubmit,
+  onBack,
+}: {
+  onSubmit: (mac: string) => void;
+  onBack: () => void;
+}) {
+  const [mac, setMac] = useState("");
+
+  return (
+    <Box pt="6xl">
+      <Group direction="column" spacing="xl">
+        <Input
+          full
+          inputSize="lg"
+          label="Mac address"
+          placeholder="AA:BB:CC:DD:EE:FF"
+          value={mac}
+          onChange={(e) => setMac(e.target.value)}
+        />
+        <Button size="lg" onClick={() => onSubmit(mac)} disabled={!mac.trim()}>
+          Continue
+        </Button>
+        <Box style={{ textAlign: "center" }}>
+          <button
+            onClick={onBack}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "inherit",
+              color: "inherit",
+              opacity: 0.6,
+            }}
+          >
+            Back
+          </button>
+        </Box>
+      </Group>
+    </Box>
   );
 }
 
