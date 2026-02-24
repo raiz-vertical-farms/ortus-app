@@ -223,6 +223,10 @@ app
       // Optionally, publish a "disconnect" or "delete" event over MQTT
       mqttClient.publish(`${device.mac_address}/device/command`, "delete");
 
+      // Remove any running cron jobs for this device
+      removeLightSchedule(device.mac_address);
+      removeIrrigationSchedule(device.mac_address);
+
       // Delete device
       await db.deleteFrom("devices").where("id", "=", id).execute();
 
