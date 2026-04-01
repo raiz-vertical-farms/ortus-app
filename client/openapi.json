@@ -192,23 +192,25 @@
                                 "active": {
                                   "type": "boolean"
                                 },
-                                "on": {
-                                  "description": "UTC timestamp in milliseconds",
-                                  "type": "integer",
-                                  "minimum": 0,
-                                  "maximum": 9007199254740991
+                                "start_at": {
+                                  "type": "number"
                                 },
-                                "off": {
-                                  "description": "UTC timestamp in milliseconds",
-                                  "type": "integer",
-                                  "minimum": 0,
-                                  "maximum": 9007199254740991
+                                "start_off": {
+                                  "type": "boolean"
+                                },
+                                "minutes_on": {
+                                  "type": "number"
+                                },
+                                "minutes_off": {
+                                  "type": "number"
                                 }
                               },
                               "required": [
                                 "active",
-                                "on",
-                                "off"
+                                "start_at",
+                                "start_off",
+                                "minutes_on",
+                                "minutes_off"
                               ]
                             },
                             {
@@ -224,23 +226,59 @@
                                 "active": {
                                   "type": "boolean"
                                 },
-                                "start_time": {
-                                  "description": "UTC timestamp in milliseconds",
-                                  "type": "integer",
-                                  "minimum": 0,
-                                  "maximum": 9007199254740991
+                                "start_at": {
+                                  "type": "number"
                                 },
-                                "times_per_day": {
-                                  "description": "Number of activations per UTC day",
-                                  "type": "integer",
-                                  "exclusiveMinimum": 0,
-                                  "maximum": 9007199254740991
+                                "start_off": {
+                                  "type": "boolean"
+                                },
+                                "minutes_on": {
+                                  "type": "number"
+                                },
+                                "minutes_off": {
+                                  "type": "number"
                                 }
                               },
                               "required": [
                                 "active",
-                                "start_time",
-                                "times_per_day"
+                                "start_at",
+                                "start_off",
+                                "minutes_on",
+                                "minutes_off"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "fan_schedule": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "active": {
+                                  "type": "boolean"
+                                },
+                                "start_at": {
+                                  "type": "number"
+                                },
+                                "start_off": {
+                                  "type": "boolean"
+                                },
+                                "minutes_on": {
+                                  "type": "number"
+                                },
+                                "minutes_off": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "active",
+                                "start_at",
+                                "start_off",
+                                "minutes_on",
+                                "minutes_off"
                               ]
                             },
                             {
@@ -281,6 +319,7 @@
                         "water_level",
                         "light_schedule",
                         "irrigation_schedule",
+                        "fan_schedule",
                         "lan_ip",
                         "lan_ws_port"
                       ]
@@ -379,23 +418,59 @@
                                   "active": {
                                     "type": "boolean"
                                   },
-                                  "start_time": {
-                                    "description": "UTC timestamp in milliseconds",
-                                    "type": "integer",
-                                    "minimum": 0,
-                                    "maximum": 9007199254740991
+                                  "start_at": {
+                                    "type": "number"
                                   },
-                                  "times_per_day": {
-                                    "description": "Number of activations per UTC day",
-                                    "type": "integer",
-                                    "exclusiveMinimum": 0,
-                                    "maximum": 9007199254740991
+                                  "start_off": {
+                                    "type": "boolean"
+                                  },
+                                  "minutes_on": {
+                                    "type": "number"
+                                  },
+                                  "minutes_off": {
+                                    "type": "number"
                                   }
                                 },
                                 "required": [
                                   "active",
-                                  "start_time",
-                                  "times_per_day"
+                                  "start_at",
+                                  "start_off",
+                                  "minutes_on",
+                                  "minutes_off"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "fan_schedule": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "active": {
+                                    "type": "boolean"
+                                  },
+                                  "start_at": {
+                                    "type": "number"
+                                  },
+                                  "start_off": {
+                                    "type": "boolean"
+                                  },
+                                  "minutes_on": {
+                                    "type": "number"
+                                  },
+                                  "minutes_off": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "active",
+                                  "start_at",
+                                  "start_off",
+                                  "minutes_on",
+                                  "minutes_off"
                                 ]
                               },
                               {
@@ -434,6 +509,7 @@
                           "temperature",
                           "water_level",
                           "irrigation_schedule",
+                          "fan_schedule",
                           "lan_ip",
                           "lan_ws_port"
                         ]
@@ -453,7 +529,7 @@
     "/api/device/{id}/light/brightness": {
       "post": {
         "operationId": "setBrightness",
-        "summary": "Adjust the the brightness of the light",
+        "summary": "Adjust the brightness of the light",
         "tags": [
           "Devices"
         ],
@@ -492,7 +568,7 @@
     "/api/device/{id}/light/schedule": {
       "post": {
         "operationId": "scheduleLight",
-        "summary": "Set a schedule for the light",
+        "summary": "Start or pause the light schedule",
         "tags": [
           "Devices"
         ],
@@ -506,16 +582,14 @@
                   "active": {
                     "type": "boolean"
                   },
-                  "on": {
-                    "description": "UTC timestamp in milliseconds",
+                  "minutes_on": {
                     "type": "integer",
-                    "minimum": 0,
+                    "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
                   },
-                  "off": {
-                    "description": "UTC timestamp in milliseconds",
+                  "minutes_off": {
                     "type": "integer",
-                    "minimum": 0,
+                    "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
                   }
                 },
@@ -538,10 +612,30 @@
         ]
       }
     },
+    "/api/device/{id}/light/schedule/skip": {
+      "post": {
+        "operationId": "skipLightSchedule",
+        "summary": "Skip the current light phase",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
     "/api/device/{id}/irrigation/schedule": {
       "post": {
         "operationId": "scheduleIrrigation",
-        "summary": "Set a schedule for the irrigation",
+        "summary": "Start or pause the irrigation schedule",
         "tags": [
           "Devices"
         ],
@@ -555,14 +649,12 @@
                   "active": {
                     "type": "boolean"
                   },
-                  "start_time": {
-                    "description": "UTC timestamp in milliseconds",
+                  "minutes_on": {
                     "type": "integer",
-                    "minimum": 0,
+                    "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
                   },
-                  "times_per_day": {
-                    "description": "Number of activations per UTC day",
+                  "minutes_off": {
                     "type": "integer",
                     "exclusiveMinimum": 0,
                     "maximum": 9007199254740991
@@ -575,6 +667,93 @@
             }
           }
         },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/irrigation/schedule/skip": {
+      "post": {
+        "operationId": "skipIrrigationSchedule",
+        "summary": "Skip the current irrigation phase",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/fan/schedule": {
+      "post": {
+        "operationId": "scheduleFan",
+        "summary": "Start or pause the fan schedule",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  },
+                  "minutes_on": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "minutes_off": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "active"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/fan/schedule/skip": {
+      "post": {
+        "operationId": "skipFanSchedule",
+        "summary": "Skip the current fan phase",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
         "parameters": [
           {
             "schema": {

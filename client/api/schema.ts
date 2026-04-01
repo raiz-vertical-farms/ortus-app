@@ -81,7 +81,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Adjust the the brightness of the light */
+        /** Adjust the brightness of the light */
         post: operations["setBrightness"];
         delete?: never;
         options?: never;
@@ -98,8 +98,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set a schedule for the light */
+        /** Start or pause the light schedule */
         post: operations["scheduleLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/light/schedule/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip the current light phase */
+        post: operations["skipLightSchedule"];
         delete?: never;
         options?: never;
         head?: never;
@@ -115,8 +132,59 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set a schedule for the irrigation */
+        /** Start or pause the irrigation schedule */
         post: operations["scheduleIrrigation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/irrigation/schedule/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip the current irrigation phase */
+        post: operations["skipIrrigationSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/fan/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start or pause the fan schedule */
+        post: operations["scheduleFan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/fan/schedule/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip the current fan phase */
+        post: operations["skipFanSchedule"];
         delete?: never;
         options?: never;
         head?: never;
@@ -262,17 +330,24 @@ export interface operations {
                             water_level: number | null;
                             light_schedule: {
                                 active: boolean;
-                                /** @description UTC timestamp in milliseconds */
-                                on: number;
-                                /** @description UTC timestamp in milliseconds */
-                                off: number;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
                             } | null;
                             irrigation_schedule: {
                                 active: boolean;
-                                /** @description UTC timestamp in milliseconds */
-                                start_time: number;
-                                /** @description Number of activations per UTC day */
-                                times_per_day: number;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
+                            } | null;
+                            fan_schedule: {
+                                active: boolean;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
                             } | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
@@ -309,10 +384,17 @@ export interface operations {
                             water_level: number | null;
                             irrigation_schedule: {
                                 active: boolean;
-                                /** @description UTC timestamp in milliseconds */
-                                start_time: number;
-                                /** @description Number of activations per UTC day */
-                                times_per_day: number;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
+                            } | null;
+                            fan_schedule: {
+                                active: boolean;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
                             } | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
@@ -353,13 +435,23 @@ export interface operations {
             content: {
                 "application/json": {
                     active: boolean;
-                    /** @description UTC timestamp in milliseconds */
-                    on?: number;
-                    /** @description UTC timestamp in milliseconds */
-                    off?: number;
+                    minutes_on?: number;
+                    minutes_off?: number;
                 };
             };
         };
+        responses: never;
+    };
+    skipLightSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: never;
     };
     scheduleIrrigation: {
@@ -375,13 +467,55 @@ export interface operations {
             content: {
                 "application/json": {
                     active: boolean;
-                    /** @description UTC timestamp in milliseconds */
-                    start_time?: number;
-                    /** @description Number of activations per UTC day */
-                    times_per_day?: number;
+                    minutes_on?: number;
+                    minutes_off?: number;
                 };
             };
         };
+        responses: never;
+    };
+    skipIrrigationSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: never;
+    };
+    scheduleFan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    active: boolean;
+                    minutes_on?: number;
+                    minutes_off?: number;
+                };
+            };
+        };
+        responses: never;
+    };
+    skipFanSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: never;
     };
     myIp: {

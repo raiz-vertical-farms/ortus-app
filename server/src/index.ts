@@ -8,18 +8,12 @@ import fs from "fs";
 import { mqttClient } from "./services/mqtt";
 import { Scalar } from "@scalar/hono-api-reference";
 import { clerkMiddleware } from "@hono/clerk-auth";
-import { bootstrapSchedulesFromDb } from "./cron";
 
 console.log("🚀 Starting Hono server...");
 
-// TODO: We shouldnt have to do this, and just run initMQTT or something
 mqttClient.on("error", (err) => {
   console.error("MQTT connection error:", err);
 });
-
-bootstrapSchedulesFromDb().catch((err) =>
-  console.error("Failed to bootstrap schedules:", err)
-);
 
 const app = new Hono();
 
@@ -46,7 +40,6 @@ app.get(
   })
 );
 
-// This is not auth middleware, but just injects the Clerk user into the request
 app.use("*", clerkMiddleware());
 
 app.route("/", routes);

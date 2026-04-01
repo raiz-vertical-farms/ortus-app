@@ -45,13 +45,27 @@ export interface DeviceTimeseries {
   value_type: string;
 }
 
+export interface FanSchedules {
+  active: Generated<number>;
+  created_at: Generated<number>;
+  device_id: number;
+  id: Generated<number>;
+  minutes_off: Generated<number>;
+  minutes_on: Generated<number>;
+  start_at: Generated<number>;
+  start_off: Generated<number>;
+}
+
 export interface IrrigationSchedules {
   active: Generated<number>;
   created_at: Generated<number>;
   device_id: number;
   id: Generated<number>;
-  start_time: number;
-  times_per_day: number;
+  minutes_off: Generated<number>;
+  minutes_on: Generated<number>;
+  skipped_at: number | null;
+  start_at: Generated<number>;
+  start_off: Generated<number>;
 }
 
 export interface LightSchedules {
@@ -59,8 +73,10 @@ export interface LightSchedules {
   created_at: Generated<number>;
   device_id: number;
   id: Generated<number>;
-  off_timestamp: number;
-  on_timestamp: number;
+  minutes_off: Generated<number>;
+  minutes_on: Generated<number>;
+  start_at: Generated<number>;
+  start_off: Generated<number>;
 }
 
 export interface DB {
@@ -68,6 +84,7 @@ export interface DB {
   alert_notifications: AlertNotifications;
   device_timeseries: DeviceTimeseries;
   devices: Devices;
+  fan_schedules: FanSchedules;
   irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;
 }

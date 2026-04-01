@@ -6,22 +6,33 @@
 enum class CommandType
 {
   SetBrightness,
-  TriggerIrrigation,
-  IrrigationCycle,
-  LightCycle,
+  SetLightSchedule,
+  SetIrrigationSchedule,
+  SetFanSchedule,
   OtaUpdate
 };
 
 struct DeviceState
 {
   int brightness = 0;
-  bool irrigationActive = false;
+
+  // Irrigation cycle
   bool irrigationCycleActive = false;
   unsigned long irrigationCycleOnSeconds = 0;
   unsigned long irrigationCycleOffSeconds = 0;
+  bool irrigationActive = false;
+
+  // Light cycle
   bool lightCycleActive = false;
   unsigned long lightCycleOnSeconds = 0;
   unsigned long lightCycleOffSeconds = 0;
+
+  // Fan cycle
+  bool fanCycleActive = false;
+  unsigned long fanCycleOnSeconds = 0;
+  unsigned long fanCycleOffSeconds = 0;
+  bool fanActive = false;
+
   float temperatureC = NAN;
   bool waterEmpty = false;
 };
@@ -30,11 +41,13 @@ struct DeviceCommand
 {
   CommandType type = CommandType::SetBrightness;
   int brightness = 0;
-  unsigned long irrigationDurationSeconds = 0;
-  unsigned long irrigationCycleOnSeconds = 0;
-  unsigned long irrigationCycleOffSeconds = 0;
-  unsigned long lightCycleOnSeconds = 0;
-  unsigned long lightCycleOffSeconds = 0;
+
+  // Shared interval schedule fields
+  bool scheduleActive = false;
+  unsigned long cycleOnSeconds = 0;
+  unsigned long cycleOffSeconds = 0;
+  bool startOff = false;
+
   String otaUrl;
 };
 
@@ -50,6 +63,10 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
          lhs.lightCycleActive == rhs.lightCycleActive &&
          lhs.lightCycleOnSeconds == rhs.lightCycleOnSeconds &&
          lhs.lightCycleOffSeconds == rhs.lightCycleOffSeconds &&
+         lhs.fanCycleActive == rhs.fanCycleActive &&
+         lhs.fanCycleOnSeconds == rhs.fanCycleOnSeconds &&
+         lhs.fanCycleOffSeconds == rhs.fanCycleOffSeconds &&
+         lhs.fanActive == rhs.fanActive &&
          lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;
 }

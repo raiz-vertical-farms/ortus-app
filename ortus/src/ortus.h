@@ -8,7 +8,6 @@
 #include <Preferences.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
 #include <HTTPUpdate.h>
 
 #include "config.h"
@@ -31,14 +30,15 @@ private:
     void connectMQTT();
     void setupSensors();
     void setupActuators();
-    
+
     // --- Logic ---
     void handleCommand(const DeviceCommand &cmd);
     void updateSensors();
     void updateActuators();
     void broadcastState(bool force = false);
     void publishPresence();
-    
+    void publishAck(const String &cmdType);
+
     // --- State & Storage ---
     void loadState();
     void saveState();
@@ -68,19 +68,26 @@ private:
 
     DeviceState currentState;
     DeviceState lastBroadcastState;
-    
+
     unsigned long lastWifiAttempt = 0;
     unsigned long lastPresence = 0;
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
-    unsigned long irrigationStopAt = 0;
+
+    // Irrigation cycle timing
     unsigned long irrigationCycleNextToggle = 0;
     bool irrigationCycleIsOnPhase = false;
+
+    // Light cycle timing
     unsigned long lightCycleNextToggle = 0;
     bool lightCycleIsOnPhase = false;
 
+    // Fan cycle timing
+    unsigned long fanCycleNextToggle = 0;
+    bool fanCycleIsOnPhase = false;
+
     int appliedBrightness = -1;
     bool wifiConnected = false;
-    
-    static OrtusSystem* instance;
+
+    static OrtusSystem *instance;
 };

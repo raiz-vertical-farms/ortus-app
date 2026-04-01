@@ -3,19 +3,21 @@ import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
 import Box from "../../primitives/Box/Box";
 import { client } from "../../lib/apiClient";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { match } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
 import Tabs from "../../primitives/Tabs/Tabs";
-import Toggle from "../../primitives/Toggle/Toggle";
 import Button from "../../primitives/Button/Button";
 import LightSwitch from "../../components/LightSwitch/LightSwitch";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import PageLayout from "../../layout/PageLayout/PageLayout";
 import Modal from "../../primitives/Modal/Modal";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
-import { useDevice } from "../../hooks/useDevice";
-import { getHoursAndMinutesByTimestamp } from "../../utils/time";
+import {
+  useDevice,
+  computePhase,
+  type IntervalSchedule,
+} from "../../hooks/useDevice";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
@@ -23,26 +25,22 @@ export const Route = createFileRoute("/device/$id")({
 
 function RouteComponent() {
   const { id } = Route.useParams();
-
   const [view, setView] = useState<
-    "lights" | "temperature" | "water" | "settings"
+    "lights" | "temperature" | "water" | "fan" | "settings"
   >("lights");
-
   const device = useDevice(id);
 
   if (device.isLoading || device.state === null) {
     return "Loading your garden...";
   }
 
-  const state = device.state;
-
-  if (state === null) {
-    return "Device not found";
-  }
-
   if (device.error) {
     return getErrorMessage(device.error);
   }
+
+  const state = device.state;
+
+  console.log("Device state:", state, "View:", view);
 
   return (
     <PageLayout layout={{ pageTitle: state.name, backButton: true }}>
@@ -52,37 +50,26 @@ function RouteComponent() {
             value={state.online ? view : "settings"}
             onChange={setView}
             options={[
-              {
-                value: "lights",
-                label: "Lights",
-                disabled: !state.online,
-              },
-              {
-                value: "water",
-                label: "Water",
-                disabled: !state.online,
-              },
-              {
-                value: "temperature",
-                label: "Temperature",
-                disabled: !state.online,
-              },
+              { value: "lights", label: "Lights", disabled: false },
+              { value: "water", label: "Water", disabled: false },
+              { value: "fan", label: "Fan", disabled: false },
+              { value: "temperature", label: "Temperature", disabled: false },
               { value: "settings", label: "Settings" },
             ]}
           />
         </Group>
-        {match({
-          view: state.online ? view : "settings",
-          online: state.online ? true : false,
-        })
+        {match({ view })
           .with({ view: "lights" }, () => (
             <LightView deviceId={id} device={device} />
           ))
           .with({ view: "temperature" }, () => (
-            <Text>Temperature level {device.state?.temperature} .</Text>
+            <Text>Temperature: {device.state?.temperature}°C</Text>
           ))
           .with({ view: "water" }, () => (
             <WaterView deviceId={id} device={device} />
+          ))
+          .with({ view: "fan" }, () => (
+            <FanView deviceId={id} device={device} />
           ))
           .with({ view: "settings" }, () => (
             <SettingsView macAddress={state.mac_address!} deviceId={id} />
@@ -93,114 +80,374 @@ function RouteComponent() {
   );
 }
 
-function WaterView({
+// --- Shared helpers ---
+
+function formatTime(ts: number) {
+  return new Date(ts).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+type ConfirmModalProps = {
+  open: boolean;
+  title: string;
+  description: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
+
+function ConfirmModal({
+  open,
+  title,
+  description,
+  onConfirm,
+  onCancel,
+}: ConfirmModalProps) {
+  return (
+    <Modal open={open} onClose={onCancel} title={title}>
+      <Group direction="column" spacing="xl">
+        <Text>{description}</Text>
+        <Group direction="row" spacing="xl">
+          <Button onClick={onConfirm}>Confirm</Button>
+          <Button onClick={onCancel}>Cancel</Button>
+        </Group>
+      </Group>
+    </Modal>
+  );
+}
+
+// --- Light View ---
+
+function LightView({
+  deviceId,
   device,
 }: {
   deviceId: string;
   device: ReturnType<typeof useDevice>;
 }) {
-  const scheduleActive = device.state?.irrigation_schedule?.active ?? false;
+  const [pendingBrightness, setPendingBrightness] = useState<number | null>(
+    null,
+  );
+  const [confirm, setConfirm] = useState<{
+    action: string;
+    description: string;
+    fn: () => Promise<void>;
+  } | null>(null);
 
-  const { hours: startHours, minutes: startMinutes } =
-    getHoursAndMinutesByTimestamp(device.state?.irrigation_schedule?.start_time ?? 0);
-
-  const timesPerDay = Math.max(
-    1,
-    device.state?.irrigation_schedule?.times_per_day ?? 1
+  const debouncedSetLight = useDebouncedCallback(
+    (brightness: number) => {
+      device
+        .setBrightness(brightness)
+        .catch((err) => console.error("Failed to set brightness", err));
+    },
+    device.isWebSocketConnected ? 0 : 1000,
   );
 
-  const scheduleState = { startHours, startMinutes, timesPerDay };
+  const handleBrightnessChange = (value: number) => {
+    setPendingBrightness(value);
+    debouncedSetLight(value);
+  };
 
-  const minuteOptions = Array.from(Array(60)).map((_, i) => i);
-  //const minuteOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-  const timesPerDayOptions = [1, 2, 3, 4, 6, 8, 12];
+  const schedule = device.state?.light_schedule;
+  const currentBrightness = pendingBrightness ?? device.state?.brightness ?? 0;
+
+  const phaseInfo = schedule?.active ? computePhase(schedule) : null;
+
+  const statusText = (() => {
+    if (!schedule?.active || !phaseInfo) return "Schedule off";
+    return phaseInfo.isOn
+      ? `Lights on until ${formatTime(phaseInfo.phaseEndsAt)}`
+      : `Lights off until ${formatTime(phaseInfo.phaseEndsAt)}`;
+  })();
+
+  const skipLabel = (() => {
+    if (!phaseInfo) return "Skip";
+    const nextPhaseEnd =
+      phaseInfo.phaseEndsAt +
+      (phaseInfo.isOn ? schedule!.minutes_off : schedule!.minutes_on) *
+        60 *
+        1000;
+    return phaseInfo.isOn
+      ? `Skip: Lights will turn on again at ${formatTime(phaseInfo.phaseEndsAt + schedule!.minutes_off * 60 * 1000)}`
+      : `Start now: Lights on until ${formatTime(Date.now() + schedule!.minutes_on * 60 * 1000)}`;
+  })();
+
+  function ask(action: string, description: string, fn: () => Promise<void>) {
+    setConfirm({ action, description, fn });
+  }
+
+  return (
+    <Box pt="5xl">
+      <Group direction="column" align="center" justify="center" spacing="xl">
+        <LightSwitch
+          brightness={currentBrightness}
+          onChange={handleBrightnessChange}
+        />
+        <Text size="sm">
+          {device.isWebSocketConnected
+            ? "LAN control active"
+            : "Using cloud fallback"}
+        </Text>
+      </Group>
+
+      <Box pt="5xl">
+        <Group direction="column" align="center" justify="center" spacing="xl">
+          <Text align="center" size="lg">
+            Light schedule
+          </Text>
+          <Text align="center">{statusText}</Text>
+
+          {!schedule?.active ? (
+            <Button
+              onClick={() =>
+                ask(
+                  "Start schedule",
+                  "Start the light cycle? Lights will follow the default 12h on / 12h off schedule.",
+                  device.startLightSchedule,
+                )
+              }
+            >
+              Start schedule
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={() =>
+                  ask(
+                    "Pause schedule",
+                    "Pause the light schedule?",
+                    device.pauseLightSchedule,
+                  )
+                }
+              >
+                Pause schedule
+              </Button>
+              <Button
+                onClick={() =>
+                  ask("Skip phase", skipLabel, device.skipLightSchedule)
+                }
+              >
+                {phaseInfo?.isOn ? "Skip current ON phase" : "Start now"}
+              </Button>
+            </>
+          )}
+        </Group>
+      </Box>
+
+      {confirm && (
+        <ConfirmModal
+          open
+          title={confirm.action}
+          description={confirm.description}
+          onConfirm={async () => {
+            await confirm.fn();
+            setConfirm(null);
+          }}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+    </Box>
+  );
+}
+
+// --- Water View ---
+
+function WaterView({
+  deviceId,
+  device,
+}: {
+  deviceId: string;
+  device: ReturnType<typeof useDevice>;
+}) {
+  const [confirm, setConfirm] = useState<{
+    action: string;
+    description: string;
+    fn: () => Promise<void>;
+  } | null>(null);
+
+  const schedule = device.state?.irrigation_schedule;
+  const phaseInfo = schedule?.active ? computePhase(schedule) : null;
+
+  const statusText = (() => {
+    if (!schedule?.active || !phaseInfo) return "Schedule off";
+    return phaseInfo.isOn
+      ? `Watering until ${formatTime(phaseInfo.phaseEndsAt)}`
+      : `Next watering at ${formatTime(phaseInfo.phaseEndsAt)}`;
+  })();
+
+  const skipLabel = (() => {
+    if (!phaseInfo || !schedule) return "Skip";
+    return phaseInfo.isOn
+      ? `Skip: Next watering will happen at ${formatTime(phaseInfo.phaseEndsAt + schedule.minutes_off * 60 * 1000)}`
+      : `Start now: Will water until ${formatTime(Date.now() + schedule.minutes_on * 60 * 1000)}`;
+  })();
+
+  function ask(action: string, description: string, fn: () => Promise<void>) {
+    setConfirm({ action, description, fn });
+  }
 
   return (
     <Box pt="5xl">
       <Group direction="column" align="center" justify="center" spacing="xl">
         <Text variant="heading" size="xl">
-          Water level: {device.state?.water_level}
+          Water level: {device.state?.water_level ?? "—"}
         </Text>
 
         <Text align="center" size="lg">
           Irrigation schedule
         </Text>
-        <Toggle
-          onLabel="Schedule on"
-          offLabel="Manual control"
-          checked={scheduleActive}
-          onChange={(e) => {
-            const enabled = e.target.checked;
-            if (enabled) {
-              device.scheduleIrrigation(scheduleState);
-            } else {
-              device.toggleIrrigationSchedule(false);
+        <Text align="center">{statusText}</Text>
+
+        {!schedule?.active ? (
+          <Button
+            onClick={() =>
+              ask(
+                "Start irrigation",
+                "Start irrigation schedule? Will water on the default cycle.",
+                device.startIrrigationSchedule,
+              )
             }
-          }}
-        />
-        {scheduleActive && (
+          >
+            Start schedule
+          </Button>
+        ) : (
           <>
-            <Group direction="row" align="center" justify="center" spacing="xl">
-              <Text align="left" size="lg">
-                First watering
-              </Text>
-              <select
-                onChange={(e) =>
-                  device.scheduleIrrigation({
-                    ...scheduleState,
-                    startHours: parseInt(e.target.value, 10),
-                  })
-                }
-                value={scheduleState.startHours}
-              >
-                {new Array(24).fill(null).map((_, i) => (
-                  <option key={i} value={i}>
-                    {i}
-                  </option>
-                ))}
-              </select>
-              <select
-                onChange={(e) =>
-                  device.scheduleIrrigation({
-                    ...scheduleState,
-                    startMinutes: parseInt(e.target.value, 10),
-                  })
-                }
-                value={scheduleState.startMinutes}
-              >
-                {minuteOptions.map((label) => (
-                  <option key={label} value={parseInt(label, 10)}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Group>
-            <Group direction="row" align="center" justify="center" spacing="xl">
-              <Text align="left" size="lg">
-                Times per day
-              </Text>
-              <select
-                onChange={(e) =>
-                  device.scheduleIrrigation({
-                    ...scheduleState,
-                    timesPerDay: parseInt(e.target.value, 10),
-                  })
-                }
-                value={scheduleState.timesPerDay}
-              >
-                {timesPerDayOptions.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </Group>
+            <Button
+              onClick={() =>
+                ask(
+                  "Pause irrigation",
+                  "Pause the irrigation schedule?",
+                  device.pauseIrrigationSchedule,
+                )
+              }
+            >
+              Pause schedule
+            </Button>
+            <Button
+              onClick={() =>
+                ask("Skip phase", skipLabel, device.skipIrrigationSchedule)
+              }
+            >
+              {phaseInfo?.isOn ? "Skip current watering" : "Water now"}
+            </Button>
           </>
         )}
       </Group>
+
+      {confirm && (
+        <ConfirmModal
+          open
+          title={confirm.action}
+          description={confirm.description}
+          onConfirm={async () => {
+            await confirm.fn();
+            setConfirm(null);
+          }}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
     </Box>
   );
 }
+
+// --- Fan View ---
+
+function FanView({
+  deviceId,
+  device,
+}: {
+  deviceId: string;
+  device: ReturnType<typeof useDevice>;
+}) {
+  const [confirm, setConfirm] = useState<{
+    action: string;
+    description: string;
+    fn: () => Promise<void>;
+  } | null>(null);
+
+  const schedule = device.state?.fan_schedule;
+  const phaseInfo = schedule?.active ? computePhase(schedule) : null;
+
+  const statusText = (() => {
+    if (!schedule?.active || !phaseInfo) return "Schedule off";
+    return phaseInfo.isOn
+      ? `Fan on until ${formatTime(phaseInfo.phaseEndsAt)}`
+      : `Fan off until ${formatTime(phaseInfo.phaseEndsAt)}`;
+  })();
+
+  const skipLabel = (() => {
+    if (!phaseInfo || !schedule) return "Skip";
+    return phaseInfo.isOn
+      ? `Skip: Fan will turn on again at ${formatTime(phaseInfo.phaseEndsAt + schedule.minutes_off * 60 * 1000)}`
+      : `Start now: Fan on until ${formatTime(Date.now() + schedule.minutes_on * 60 * 1000)}`;
+  })();
+
+  function ask(action: string, description: string, fn: () => Promise<void>) {
+    setConfirm({ action, description, fn });
+  }
+
+  return (
+    <Box pt="5xl">
+      <Group direction="column" align="center" justify="center" spacing="xl">
+        <Text align="center" size="lg">
+          Fan schedule
+        </Text>
+        <Text align="center">{statusText}</Text>
+
+        {!schedule?.active ? (
+          <Button
+            onClick={() =>
+              ask(
+                "Start fan",
+                "Start fan schedule? Fan will run on the default 30min on / 30min off cycle.",
+                device.startFanSchedule,
+              )
+            }
+          >
+            Start schedule
+          </Button>
+        ) : (
+          <>
+            <Button
+              onClick={() =>
+                ask(
+                  "Pause fan",
+                  "Pause the fan schedule?",
+                  device.pauseFanSchedule,
+                )
+              }
+            >
+              Pause schedule
+            </Button>
+            <Button
+              onClick={() =>
+                ask("Skip phase", skipLabel, device.skipFanSchedule)
+              }
+            >
+              {phaseInfo?.isOn ? "Skip current ON phase" : "Turn on now"}
+            </Button>
+          </>
+        )}
+      </Group>
+
+      {confirm && (
+        <ConfirmModal
+          open
+          title={confirm.action}
+          description={confirm.description}
+          onConfirm={async () => {
+            await confirm.fn();
+            setConfirm(null);
+          }}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+    </Box>
+  );
+}
+
+// --- Settings View ---
 
 function SettingsView({
   deviceId,
@@ -234,177 +481,8 @@ function SettingsView({
         onClose={() => setShowReconnect(false)}
         title="Reconnect to Ortus"
       >
-        <ProvisionFlow
-          onProvisionSucceeded={(mac) => {
-            setShowReconnect(false);
-          }}
-        />
+        <ProvisionFlow onProvisionSucceeded={() => setShowReconnect(false)} />
       </Modal>
     </>
-  );
-}
-
-type ScheduleState = {
-  fromHours: number;
-  fromMinutes: number;
-  toHours: number;
-  toMinutes: number;
-};
-
-function LightView({
-  deviceId,
-  device,
-}: {
-  deviceId: string;
-  device: ReturnType<typeof useDevice>;
-}) {
-  const [pendingBrightness, setPendingBrightness] = useState<number | null>(
-    null
-  );
-
-  useEffect(() => {
-    if (pendingBrightness === null) {
-      return;
-    }
-
-    if (device.state && device.state.brightness === pendingBrightness) {
-      const timeout = setTimeout(() => setPendingBrightness(null), 150);
-      return () => clearTimeout(timeout);
-    }
-  }, [pendingBrightness, device.state?.brightness]);
-
-  const debouncedSetLight = useDebouncedCallback(
-    (brightness: number) => {
-      device
-        .setBrightness(brightness)
-        .catch((error) => console.error("Failed to set brightness", error));
-    },
-    device.isWebSocketConnected ? 0 : 1000
-  );
-
-  const handleBrightnessChange = (value: number) => {
-    setPendingBrightness(value);
-    debouncedSetLight(value);
-  };
-
-  const currentBrightness = pendingBrightness ?? device.state?.brightness ?? 0;
-  const scheduleActive = device.state?.light_schedule?.active ?? false;
-
-  const { hours: fromHours, minutes: fromMinutes } =
-    getHoursAndMinutesByTimestamp(device.state?.light_schedule?.on ?? 0);
-
-  const { hours: toHours, minutes: toMinutes } = getHoursAndMinutesByTimestamp(
-    device.state?.light_schedule?.off ?? 0
-  );
-
-  const scheduleState = { fromHours, fromMinutes, toHours, toMinutes };
-
-  return (
-    <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
-        <LightSwitch
-          brightness={currentBrightness}
-          onChange={handleBrightnessChange}
-        />
-        <Text size="sm">
-          {device.isWebSocketConnected
-            ? "LAN control active"
-            : "Using cloud fallback"}
-        </Text>
-      </Group>
-      <Box pt="5xl">
-        <Group direction="column" align="center" justify="center" spacing="xl">
-          <Text align="center" size="lg">
-            Light schedule
-          </Text>
-          <Toggle
-            onLabel="Schedule on"
-            offLabel="Manual control"
-            checked={scheduleActive}
-            onChange={(e) => device.toggleLightSchedule(e.target.checked)}
-          />
-          {scheduleActive && (
-            <>
-              <Group
-                direction="row"
-                align="center"
-                justify="center"
-                spacing="xl"
-              >
-                <Text align="left" size="lg">
-                  Lights on
-                </Text>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      fromHours: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.fromHours}
-                >
-                  {new Array(24).fill(null).map((_, i) => (
-                    <option key={i}>{i}</option>
-                  ))}
-                </select>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      fromMinutes: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.fromMinutes}
-                >
-                  {["00", "15", "30", "45"].map((label) => (
-                    <option key={label} value={parseInt(label)}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Group>
-              <Group
-                direction="row"
-                align="center"
-                justify="center"
-                spacing="xl"
-              >
-                <Text align="left" size="lg">
-                  Lights off
-                </Text>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      toHours: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.toHours}
-                >
-                  {new Array(24).fill(null).map((_, i) => (
-                    <option key={i}>{i}</option>
-                  ))}
-                </select>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      toMinutes: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.toMinutes}
-                >
-                  {["00", "15", "30", "36", "45"].map((label) => (
-                    <option key={label} value={parseInt(label)}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Group>
-            </>
-          )}
-        </Group>
-      </Box>
-    </Box>
   );
 }

@@ -1,6 +1,7 @@
 import mqtt, { MqttClient } from "mqtt";
 import { z } from "zod";
 import { db } from "../db";
+import { ACK_TIMEOUT_MS } from "../config/schedules";
 
 const MQTT_CONFIG = {
   url: `mqtts://${process.env.MQTT_BROKER_HOST}:8883`,
@@ -8,8 +9,7 @@ const MQTT_CONFIG = {
     username: process.env.MQTT_USERNAME!,
     password: process.env.MQTT_PASSWORD!,
   },
-  // Unified Subscription
-  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status"],
+  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status", "ortus/+/ack"],
 };
 
 export const mqttClient: MqttClient = mqtt.connect(
@@ -30,15 +30,39 @@ mqttClient.on("connect", () => {
   );
 });
 
-function safeJSON<T>(str: string): T | undefined {
-  try {
-    return JSON.parse(str) as T;
-  } catch {
-    return undefined;
-  }
+// --- ACK pattern ---
+
+type PendingAck = {
+  resolve: () => void;
+  reject: (err: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const pendingAcks = new Map<string, PendingAck>();
+
+/**
+ * Publishes an MQTT command and waits for an ACK from the device.
+ * If no ACK is received within `timeoutMs`, rejects with an error.
+ */
+export function sendWithAck(
+  mac: string,
+  cmdType: string,
+  payload: string,
+  timeoutMs = ACK_TIMEOUT_MS
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const key = `${mac}:${cmdType}`;
+    const timer = setTimeout(() => {
+      pendingAcks.delete(key);
+      reject(new Error(`ACK timeout for ${cmdType} on ${mac}`));
+    }, timeoutMs);
+    pendingAcks.set(key, { resolve, reject, timer });
+    mqttClient.publish(`ortus/${mac}/command`, payload);
+  });
 }
 
-// Schemas
+// --- Message schemas ---
+
 const presenceSchema = z.object({
   ip: z.string().optional(),
   mac: z.string(),
@@ -56,11 +80,18 @@ const stateSchema = z.object({
 type PresencePayload = z.infer<typeof presenceSchema>;
 type StatePayload = z.infer<typeof stateSchema>;
 
+function safeJSON<T>(str: string): T | undefined {
+  try {
+    return JSON.parse(str) as T;
+  } catch {
+    return undefined;
+  }
+}
+
 mqttClient.on("message", async (topic, payload) => {
   try {
     const raw = payload.toString();
     const parts = topic.split("/");
-    // Expected topic: ortus/{mac}/{type}
     if (parts.length !== 3 || parts[0] !== "ortus") return;
 
     const mac = parts[1];
@@ -68,38 +99,29 @@ mqttClient.on("message", async (topic, payload) => {
 
     if (type === "status") {
       const isOnline = raw === "online";
-      await db.updateTable("devices")
+      await db
+        .updateTable("devices")
         .set({
           online: isOnline ? 1 : 0,
           ...(isOnline ? {} : { last_seen: Math.floor(Date.now() / 1000) }),
         })
         .where("mac_address", "=", mac)
         .execute();
-
       console.log(`[Status] ${mac} is ${raw}`);
-    }
-    else if (type === "presence") {
+    } else if (type === "presence") {
       const data = safeJSON<PresencePayload>(raw);
       if (!data) return;
-      
-      await db.updateTable("devices")
-        .set({
-          online: 1,
-          last_seen: Math.floor(Date.now() / 1000),
-          lan_ip: data.ip
-        })
+      await db
+        .updateTable("devices")
+        .set({ online: 1, last_seen: Math.floor(Date.now() / 1000), lan_ip: data.ip })
         .where("mac_address", "=", mac)
         .execute();
-        
       console.log(`[Presence] ${mac} is online at ${data.ip}`);
-    } 
-    else if (type === "state") {
+    } else if (type === "state") {
       const data = safeJSON<StatePayload>(raw);
       if (!data) return;
 
-      // Update Timeseries & Notifications
       const inserts = [];
-
       if (data.brightness !== undefined) {
         inserts.push({ mac_address: mac, metric: "light/brightness", value_text: String(data.brightness), value_type: "int" });
       }
@@ -112,15 +134,22 @@ mqttClient.on("message", async (topic, payload) => {
       if (data.irrigationActive !== undefined) {
         inserts.push({ mac_address: mac, metric: "irrigation/active", value_text: String(data.irrigationActive), value_type: "boolean" });
       }
-      // Fan is now part of irrigation, but if we still receive it (or for legacy), we can log it or ignore it.
-      // Since we are removing fan logic from firmware, we probably won't receive it.
-      
       if (inserts.length > 0) {
         // @ts-ignore - complex insert type matching
         await db.insertInto("device_timeseries").values(inserts).execute();
       }
-      
       console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
+    } else if (type === "ack") {
+      const data = safeJSON<{ type: string }>(raw);
+      if (!data?.type) return;
+      const key = `${mac}:${data.type}`;
+      const pending = pendingAcks.get(key);
+      if (pending) {
+        clearTimeout(pending.timer);
+        pendingAcks.delete(key);
+        pending.resolve();
+        console.log(`[ACK] ${mac} acknowledged ${data.type}`);
+      }
     }
   } catch (err) {
     console.error("MQTT Message Error:", err);
