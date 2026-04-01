@@ -50,6 +50,7 @@ void OrtusSystem::begin()
 
     sensors.begin();
     sensors.setResolution(12);
+    sensors.setWaitForConversion(false); // Non-blocking
 
     preferences.begin("ortus", false);
     loadCredentials();
@@ -88,6 +89,7 @@ void OrtusSystem::loop()
 
     if (wifiConnected)
     {
+        syncSystemTime();
         connectMQTT();
         mqttClient.loop();
 
@@ -119,6 +121,7 @@ void OrtusSystem::connectWiFi()
         {
             wifiConnected = true;
             Serial.println("[WiFi] Connected! IP: " + WiFi.localIP().toString());
+            configTime(0, 0, "pool.ntp.org", "time.google.com");
             ble.updateWiFiState(true);
             publishPresence();
         }
@@ -128,6 +131,7 @@ void OrtusSystem::connectWiFi()
     if (wifiConnected)
     {
         wifiConnected = false;
+        timeSynced = false;
         ble.updateWiFiState(false);
     }
 
@@ -140,6 +144,108 @@ void OrtusSystem::connectWiFi()
         Serial.println("[WiFi] Connecting to " + wifiSSID + "...");
         WiFi.begin(wifiSSID.c_str(), wifiPass.c_str());
     }
+}
+
+// --- Time Sync ---
+
+void OrtusSystem::syncSystemTime()
+{
+    if (timeSynced)
+        return;
+
+    time_t now;
+    time(&now);
+    if (now > 1700000000)
+    {
+        timeSynced = true;
+        Serial.println("[Time] System time synchronized");
+        recoverSchedules();
+    }
+}
+
+void OrtusSystem::recoverSchedules()
+{
+    if (!timeSynced)
+        return;
+
+    time_t now;
+    time(&now);
+    unsigned long currentEpoch = (unsigned long)now;
+
+    // Light Cycle Recovery
+    if (currentState.lightCycleActive && currentState.lightCycleStartEpoch > 0)
+    {
+        unsigned long totalCycle = currentState.lightCycleOnSeconds + currentState.lightCycleOffSeconds;
+        if (totalCycle > 0)
+        {
+            unsigned long elapsed = currentEpoch - currentState.lightCycleStartEpoch;
+            unsigned long position = elapsed % totalCycle;
+
+            if (position < currentState.lightCycleOnSeconds)
+            {
+                lightCycleIsOnPhase = true;
+                lightCycleStartMillis = millis() - (position * 1000);
+            }
+            else
+            {
+                lightCycleIsOnPhase = false;
+                lightCycleStartMillis = millis() - ((position - currentState.lightCycleOnSeconds) * 1000);
+            }
+            currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
+            appliedBrightness = -1;
+            Serial.println("[Schedule] Light cycle recovered");
+        }
+    }
+
+    // Irrigation Cycle Recovery
+    if (currentState.irrigationCycleActive && currentState.irrigationCycleStartEpoch > 0)
+    {
+        unsigned long totalCycle = currentState.irrigationCycleOnSeconds + currentState.irrigationCycleOffSeconds;
+        if (totalCycle > 0)
+        {
+            unsigned long elapsed = currentEpoch - currentState.irrigationCycleStartEpoch;
+            unsigned long position = elapsed % totalCycle;
+
+            if (position < currentState.irrigationCycleOnSeconds)
+            {
+                irrigationCycleIsOnPhase = true;
+                irrigationCycleStartMillis = millis() - (position * 1000);
+            }
+            else
+            {
+                irrigationCycleIsOnPhase = false;
+                irrigationCycleStartMillis = millis() - ((position - currentState.irrigationCycleOnSeconds) * 1000);
+            }
+            currentState.irrigationActive = irrigationCycleIsOnPhase;
+            Serial.println("[Schedule] Irrigation cycle recovered");
+        }
+    }
+
+    // Fan Cycle Recovery
+    if (currentState.fanCycleActive && currentState.fanCycleStartEpoch > 0)
+    {
+        unsigned long totalCycle = currentState.fanCycleOnSeconds + currentState.fanCycleOffSeconds;
+        if (totalCycle > 0)
+        {
+            unsigned long elapsed = currentEpoch - currentState.fanCycleStartEpoch;
+            unsigned long position = elapsed % totalCycle;
+
+            if (position < currentState.fanCycleOnSeconds)
+            {
+                fanCycleIsOnPhase = true;
+                fanCycleStartMillis = millis() - (position * 1000);
+            }
+            else
+            {
+                fanCycleIsOnPhase = false;
+                fanCycleStartMillis = millis() - ((position - currentState.fanCycleOnSeconds) * 1000);
+            }
+            currentState.fanActive = fanCycleIsOnPhase;
+            Serial.println("[Schedule] Fan cycle recovered");
+        }
+    }
+
+    broadcastState(true);
 }
 
 // --- MQTT ---
@@ -230,29 +336,34 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
             return;
         cmd.brightness = doc["value"];
     }
-    else if (type == "setLightSchedule")
+    else if (type == "setLightSchedule" || type == "setIrrigationSchedule" || type == "setFanSchedule")
     {
-        cmd.type = CommandType::SetLightSchedule;
+        if (type == "setLightSchedule")
+            cmd.type = CommandType::SetLightSchedule;
+        else if (type == "setIrrigationSchedule")
+            cmd.type = CommandType::SetIrrigationSchedule;
+        else
+            cmd.type = CommandType::SetFanSchedule;
+
         cmd.scheduleActive = doc["active"] | false;
         cmd.cycleOnSeconds = (unsigned long)(doc["minutes_on"] | 0) * 60;
         cmd.cycleOffSeconds = (unsigned long)(doc["minutes_off"] | 0) * 60;
         cmd.startOff = doc["start_off"] | false;
-    }
-    else if (type == "setIrrigationSchedule")
-    {
-        cmd.type = CommandType::SetIrrigationSchedule;
-        cmd.scheduleActive = doc["active"] | false;
-        cmd.cycleOnSeconds = (unsigned long)(doc["minutes_on"] | 0) * 60;
-        cmd.cycleOffSeconds = (unsigned long)(doc["minutes_off"] | 0) * 60;
-        cmd.startOff = doc["start_off"] | false;
-    }
-    else if (type == "setFanSchedule")
-    {
-        cmd.type = CommandType::SetFanSchedule;
-        cmd.scheduleActive = doc["active"] | false;
-        cmd.cycleOnSeconds = (unsigned long)(doc["minutes_on"] | 0) * 60;
-        cmd.cycleOffSeconds = (unsigned long)(doc["minutes_off"] | 0) * 60;
-        cmd.startOff = doc["start_off"] | false;
+
+        if (doc.containsKey("start_at"))
+        {
+            cmd.start_at_epoch = doc["start_at"];
+        }
+        else if (timeSynced)
+        {
+            time_t now;
+            time(&now);
+            cmd.start_at_epoch = (unsigned long)now;
+        }
+        else
+        {
+            cmd.start_at_epoch = 0;
+        }
     }
     else if (type == "otaUpdate")
     {
@@ -273,88 +384,111 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
 
 void OrtusSystem::handleCommand(const DeviceCommand &cmd)
 {
+    bool changed = false;
+
     if (cmd.type == CommandType::SetBrightness)
     {
         int b = constrain(cmd.brightness, 0, 100);
-        if (currentState.brightness != b)
+        if (currentState.brightness != b || currentState.lightCycleActive)
         {
             currentState.brightness = b;
-            // Turning brightness on/off cancels the light cycle
             currentState.lightCycleActive = false;
-            saveState();
+            changed = true;
             updateActuators();
             broadcastState();
         }
     }
     else if (cmd.type == CommandType::SetLightSchedule)
     {
-        currentState.lightCycleActive = cmd.scheduleActive;
-        if (cmd.scheduleActive)
+        if (currentState.lightCycleActive != cmd.scheduleActive ||
+            currentState.lightCycleOnSeconds != cmd.cycleOnSeconds ||
+            currentState.lightCycleOffSeconds != cmd.cycleOffSeconds ||
+            currentState.lightCycleStartEpoch != cmd.start_at_epoch)
         {
-            currentState.lightCycleOnSeconds = cmd.cycleOnSeconds;
-            currentState.lightCycleOffSeconds = cmd.cycleOffSeconds;
-            // Determine initial phase
-            lightCycleIsOnPhase = !cmd.startOff;
-            unsigned long firstDuration = lightCycleIsOnPhase ? cmd.cycleOnSeconds : cmd.cycleOffSeconds;
-            lightCycleNextToggle = millis() + (firstDuration * 1000);
-            currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
-            appliedBrightness = -1;
+            currentState.lightCycleActive = cmd.scheduleActive;
+            if (cmd.scheduleActive)
+            {
+                currentState.lightCycleOnSeconds = cmd.cycleOnSeconds;
+                currentState.lightCycleOffSeconds = cmd.cycleOffSeconds;
+                currentState.lightCycleStartEpoch = cmd.start_at_epoch;
+                lightCycleIsOnPhase = !cmd.startOff;
+                lightCycleStartMillis = millis();
+                currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
+                appliedBrightness = -1;
+            }
+            else
+            {
+                currentState.brightness = 0;
+                appliedBrightness = -1;
+            }
+            changed = true;
+            updateActuators();
+            broadcastState();
+            publishAck("setLightSchedule");
         }
-        else
-        {
-            currentState.brightness = 0;
-            appliedBrightness = -1;
-        }
-        saveState();
-        updateActuators();
-        broadcastState();
-        publishAck("setLightSchedule");
     }
     else if (cmd.type == CommandType::SetIrrigationSchedule)
     {
-        currentState.irrigationCycleActive = cmd.scheduleActive;
-        if (cmd.scheduleActive)
+        if (currentState.irrigationCycleActive != cmd.scheduleActive ||
+            currentState.irrigationCycleOnSeconds != cmd.cycleOnSeconds ||
+            currentState.irrigationCycleOffSeconds != cmd.cycleOffSeconds ||
+            currentState.irrigationCycleStartEpoch != cmd.start_at_epoch)
         {
-            currentState.irrigationCycleOnSeconds = cmd.cycleOnSeconds;
-            currentState.irrigationCycleOffSeconds = cmd.cycleOffSeconds;
-            irrigationCycleIsOnPhase = !cmd.startOff;
-            unsigned long firstDuration = irrigationCycleIsOnPhase ? cmd.cycleOnSeconds : cmd.cycleOffSeconds;
-            irrigationCycleNextToggle = millis() + (firstDuration * 1000);
-            currentState.irrigationActive = irrigationCycleIsOnPhase;
+            currentState.irrigationCycleActive = cmd.scheduleActive;
+            if (cmd.scheduleActive)
+            {
+                currentState.irrigationCycleOnSeconds = cmd.cycleOnSeconds;
+                currentState.irrigationCycleOffSeconds = cmd.cycleOffSeconds;
+                currentState.irrigationCycleStartEpoch = cmd.start_at_epoch;
+                irrigationCycleIsOnPhase = !cmd.startOff;
+                irrigationCycleStartMillis = millis();
+                currentState.irrigationActive = irrigationCycleIsOnPhase;
+            }
+            else
+            {
+                currentState.irrigationActive = false;
+            }
+            changed = true;
+            updateActuators();
+            broadcastState();
+            publishAck("setIrrigationSchedule");
         }
-        else
-        {
-            currentState.irrigationActive = false;
-        }
-        saveState();
-        updateActuators();
-        broadcastState();
-        publishAck("setIrrigationSchedule");
     }
     else if (cmd.type == CommandType::SetFanSchedule)
     {
-        currentState.fanCycleActive = cmd.scheduleActive;
-        if (cmd.scheduleActive)
+        if (currentState.fanCycleActive != cmd.scheduleActive ||
+            currentState.fanCycleOnSeconds != cmd.cycleOnSeconds ||
+            currentState.fanCycleOffSeconds != cmd.cycleOffSeconds ||
+            currentState.fanCycleStartEpoch != cmd.start_at_epoch)
         {
-            currentState.fanCycleOnSeconds = cmd.cycleOnSeconds;
-            currentState.fanCycleOffSeconds = cmd.cycleOffSeconds;
-            fanCycleIsOnPhase = !cmd.startOff;
-            unsigned long firstDuration = fanCycleIsOnPhase ? cmd.cycleOnSeconds : cmd.cycleOffSeconds;
-            fanCycleNextToggle = millis() + (firstDuration * 1000);
-            currentState.fanActive = fanCycleIsOnPhase;
+            currentState.fanCycleActive = cmd.scheduleActive;
+            if (cmd.scheduleActive)
+            {
+                currentState.fanCycleOnSeconds = cmd.cycleOnSeconds;
+                currentState.fanCycleOffSeconds = cmd.cycleOffSeconds;
+                currentState.fanCycleStartEpoch = cmd.start_at_epoch;
+                fanCycleIsOnPhase = !cmd.startOff;
+                fanCycleStartMillis = millis();
+                currentState.fanActive = fanCycleIsOnPhase;
+            }
+            else
+            {
+                currentState.fanActive = false;
+            }
+            changed = true;
+            updateActuators();
+            broadcastState();
+            publishAck("setFanSchedule");
         }
-        else
-        {
-            currentState.fanActive = false;
-        }
-        saveState();
-        updateActuators();
-        broadcastState();
-        publishAck("setFanSchedule");
     }
     else if (cmd.type == CommandType::OtaUpdate)
     {
         performOtaUpdate(cmd.otaUrl);
+    }
+
+    if (changed)
+    {
+        saveState();
     }
 }
 
@@ -362,15 +496,18 @@ void OrtusSystem::handleCommand(const DeviceCommand &cmd)
 
 void OrtusSystem::updateActuators()
 {
-    // Light cycle toggle
-    if (currentState.lightCycleActive && millis() >= lightCycleNextToggle)
+    // Light cycle
+    if (currentState.lightCycleActive)
     {
-        lightCycleIsOnPhase = !lightCycleIsOnPhase;
-        currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
-        appliedBrightness = -1;
         unsigned long duration = lightCycleIsOnPhase ? currentState.lightCycleOnSeconds : currentState.lightCycleOffSeconds;
-        lightCycleNextToggle = millis() + (duration * 1000);
-        broadcastState();
+        if (millis() - lightCycleStartMillis >= (duration * 1000))
+        {
+            lightCycleIsOnPhase = !lightCycleIsOnPhase;
+            lightCycleStartMillis = millis();
+            currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
+            appliedBrightness = -1;
+            broadcastState();
+        }
     }
 
     // Light PWM
@@ -382,25 +519,31 @@ void OrtusSystem::updateActuators()
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
     }
 
-    // Irrigation cycle toggle
-    if (currentState.irrigationCycleActive && millis() >= irrigationCycleNextToggle)
+    // Irrigation cycle
+    if (currentState.irrigationCycleActive)
     {
-        irrigationCycleIsOnPhase = !irrigationCycleIsOnPhase;
-        currentState.irrigationActive = irrigationCycleIsOnPhase;
         unsigned long duration = irrigationCycleIsOnPhase ? currentState.irrigationCycleOnSeconds : currentState.irrigationCycleOffSeconds;
-        irrigationCycleNextToggle = millis() + (duration * 1000);
-        broadcastState();
+        if (millis() - irrigationCycleStartMillis >= (duration * 1000))
+        {
+            irrigationCycleIsOnPhase = !irrigationCycleIsOnPhase;
+            irrigationCycleStartMillis = millis();
+            currentState.irrigationActive = irrigationCycleIsOnPhase;
+            broadcastState();
+        }
     }
     digitalWrite(PIN_RELAY_IRRIGATION, currentState.irrigationActive ? HIGH : LOW);
 
-    // Fan cycle toggle
-    if (currentState.fanCycleActive && millis() >= fanCycleNextToggle)
+    // Fan cycle
+    if (currentState.fanCycleActive)
     {
-        fanCycleIsOnPhase = !fanCycleIsOnPhase;
-        currentState.fanActive = fanCycleIsOnPhase;
         unsigned long duration = fanCycleIsOnPhase ? currentState.fanCycleOnSeconds : currentState.fanCycleOffSeconds;
-        fanCycleNextToggle = millis() + (duration * 1000);
-        broadcastState();
+        if (millis() - fanCycleStartMillis >= (duration * 1000))
+        {
+            fanCycleIsOnPhase = !fanCycleIsOnPhase;
+            fanCycleStartMillis = millis();
+            currentState.fanActive = fanCycleIsOnPhase;
+            broadcastState();
+        }
     }
     digitalWrite(PIN_RELAY_FAN, currentState.fanActive ? HIGH : LOW);
 }
@@ -414,8 +557,11 @@ void OrtusSystem::updateSensors()
     if (now - lastTempPoll > TEMP_POLL_MS)
     {
         lastTempPoll = now;
-        sensors.requestTemperatures();
+        // Read the previous conversion
         float t = sensors.getTempCByIndex(0);
+        // Start next conversion in background
+        sensors.requestTemperatures();
+
         if (t > -50 && t < 150)
         {
             if (isnan(currentState.temperatureC) || fabs(t - currentState.temperatureC) > TEMP_DELTA_THRESHOLD)
@@ -505,32 +651,36 @@ void OrtusSystem::loadState()
     currentState.lightCycleActive = preferences.getBool("lCycleActive", false);
     currentState.lightCycleOnSeconds = preferences.getULong("lCycleOn", 0);
     currentState.lightCycleOffSeconds = preferences.getULong("lCycleOff", 0);
-    if (currentState.lightCycleActive)
-    {
-        lightCycleIsOnPhase = true;
-        currentState.brightness = 100;
-        appliedBrightness = -1;
-        lightCycleNextToggle = millis() + (currentState.lightCycleOnSeconds * 1000);
-    }
+    currentState.lightCycleStartEpoch = preferences.getULong("lCycleStart", 0);
 
     currentState.irrigationCycleActive = preferences.getBool("iCycleActive", false);
     currentState.irrigationCycleOnSeconds = preferences.getULong("iCycleOn", 0);
     currentState.irrigationCycleOffSeconds = preferences.getULong("iCycleOff", 0);
-    if (currentState.irrigationCycleActive)
-    {
-        irrigationCycleIsOnPhase = true;
-        currentState.irrigationActive = true;
-        irrigationCycleNextToggle = millis() + (currentState.irrigationCycleOnSeconds * 1000);
-    }
+    currentState.irrigationCycleStartEpoch = preferences.getULong("iCycleStart", 0);
 
     currentState.fanCycleActive = preferences.getBool("fCycleActive", false);
     currentState.fanCycleOnSeconds = preferences.getULong("fCycleOn", 0);
     currentState.fanCycleOffSeconds = preferences.getULong("fCycleOff", 0);
+    currentState.fanCycleStartEpoch = preferences.getULong("fCycleStart", 0);
+
+    // Initial phase setup (will be refined by recoverSchedules if NTP is available)
+    if (currentState.lightCycleActive)
+    {
+        lightCycleIsOnPhase = true;
+        currentState.brightness = 100;
+        lightCycleStartMillis = millis();
+    }
+    if (currentState.irrigationCycleActive)
+    {
+        irrigationCycleIsOnPhase = true;
+        currentState.irrigationActive = true;
+        irrigationCycleStartMillis = millis();
+    }
     if (currentState.fanCycleActive)
     {
         fanCycleIsOnPhase = true;
         currentState.fanActive = true;
-        fanCycleNextToggle = millis() + (currentState.fanCycleOnSeconds * 1000);
+        fanCycleStartMillis = millis();
     }
 }
 
@@ -541,14 +691,19 @@ void OrtusSystem::saveState()
     preferences.putBool("lCycleActive", currentState.lightCycleActive);
     preferences.putULong("lCycleOn", currentState.lightCycleOnSeconds);
     preferences.putULong("lCycleOff", currentState.lightCycleOffSeconds);
+    preferences.putULong("lCycleStart", currentState.lightCycleStartEpoch);
 
     preferences.putBool("iCycleActive", currentState.irrigationCycleActive);
     preferences.putULong("iCycleOn", currentState.irrigationCycleOnSeconds);
     preferences.putULong("iCycleOff", currentState.irrigationCycleOffSeconds);
+    preferences.putULong("iCycleStart", currentState.irrigationCycleStartEpoch);
 
     preferences.putBool("fCycleActive", currentState.fanCycleActive);
     preferences.putULong("fCycleOn", currentState.fanCycleOnSeconds);
     preferences.putULong("fCycleOff", currentState.fanCycleOffSeconds);
+    preferences.putULong("fCycleStart", currentState.fanCycleStartEpoch);
+
+    Serial.println("[System] State saved to NVS.");
 }
 
 void OrtusSystem::loadCredentials()

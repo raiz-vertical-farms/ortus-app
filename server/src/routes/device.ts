@@ -307,7 +307,7 @@ app
           .set({ active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
           .execute();
         await dispatchSchedule(mac, "setLightSchedule",
-          { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false },
+          { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
           async () => {
             await db.updateTable("light_schedules").where("device_id", "=", id)
               .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
@@ -319,7 +319,7 @@ app
           .values({ device_id: id, active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
           .execute();
         await dispatchSchedule(mac, "setLightSchedule",
-          { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false },
+          { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
           async () => {
             await db.deleteFrom("light_schedules").where("device_id", "=", id).execute();
           }
@@ -356,7 +356,7 @@ app
         .execute();
 
       await dispatchSchedule(mac, "setLightSchedule",
-        { type: "setLightSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff) },
+        { type: "setLightSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff), start_at: Math.floor(now / 1000) },
         async () => {
           await db.updateTable("light_schedules").where("device_id", "=", id)
             .set({ start_at: prevStartAt, start_off: prevStartOff })
@@ -397,7 +397,7 @@ app
           .set({ active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: initialStartOff } : {}) })
           .execute();
         await dispatchSchedule(mac, "setIrrigationSchedule",
-          { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: Boolean(initialStartOff) },
+          { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: Boolean(initialStartOff), start_at: Math.floor(now / 1000) },
           async () => {
             await db.updateTable("irrigation_schedules").where("device_id", "=", id)
               .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
@@ -409,7 +409,7 @@ app
           .values({ device_id: id, active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: initialStartOff } : {}) })
           .execute();
         await dispatchSchedule(mac, "setIrrigationSchedule",
-          { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: Boolean(initialStartOff) },
+          { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: Boolean(initialStartOff), start_at: Math.floor(now / 1000) },
           async () => {
             await db.deleteFrom("irrigation_schedules").where("device_id", "=", id).execute();
           }
@@ -445,7 +445,7 @@ app
         .execute();
 
       await dispatchSchedule(mac, "setIrrigationSchedule",
-        { type: "setIrrigationSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff) },
+        { type: "setIrrigationSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff), start_at: Math.floor(now / 1000) },
         async () => {
           await db.updateTable("irrigation_schedules").where("device_id", "=", id)
             .set({ start_at: prevStartAt, start_off: prevStartOff, skipped_at: null })
@@ -484,7 +484,7 @@ app
           .set({ active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
           .execute();
         await dispatchSchedule(mac, "setFanSchedule",
-          { type: "setFanSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false },
+          { type: "setFanSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
           async () => {
             await db.updateTable("fan_schedules").where("device_id", "=", id)
               .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
@@ -496,7 +496,7 @@ app
           .values({ device_id: id, active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
           .execute();
         await dispatchSchedule(mac, "setFanSchedule",
-          { type: "setFanSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false },
+          { type: "setFanSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
           async () => {
             await db.deleteFrom("fan_schedules").where("device_id", "=", id).execute();
           }
@@ -532,7 +532,7 @@ app
         .execute();
 
       await dispatchSchedule(mac, "setFanSchedule",
-        { type: "setFanSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff) },
+        { type: "setFanSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff), start_at: Math.floor(now / 1000) },
         async () => {
           await db.updateTable("fan_schedules").where("device_id", "=", id)
             .set({ start_at: prevStartAt, start_off: prevStartOff })

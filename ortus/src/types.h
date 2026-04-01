@@ -20,17 +20,20 @@ struct DeviceState
   bool irrigationCycleActive = false;
   unsigned long irrigationCycleOnSeconds = 0;
   unsigned long irrigationCycleOffSeconds = 0;
+  unsigned long irrigationCycleStartEpoch = 0;
   bool irrigationActive = false;
 
   // Light cycle
   bool lightCycleActive = false;
   unsigned long lightCycleOnSeconds = 0;
   unsigned long lightCycleOffSeconds = 0;
+  unsigned long lightCycleStartEpoch = 0;
 
   // Fan cycle
   bool fanCycleActive = false;
   unsigned long fanCycleOnSeconds = 0;
   unsigned long fanCycleOffSeconds = 0;
+  unsigned long fanCycleStartEpoch = 0;
   bool fanActive = false;
 
   float temperatureC = NAN;
@@ -47,6 +50,7 @@ struct DeviceCommand
   unsigned long cycleOnSeconds = 0;
   unsigned long cycleOffSeconds = 0;
   bool startOff = false;
+  unsigned long start_at_epoch = 0;
 
   String otaUrl;
 };
@@ -60,12 +64,15 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
          lhs.irrigationCycleActive == rhs.irrigationCycleActive &&
          lhs.irrigationCycleOnSeconds == rhs.irrigationCycleOnSeconds &&
          lhs.irrigationCycleOffSeconds == rhs.irrigationCycleOffSeconds &&
+         lhs.irrigationCycleStartEpoch == rhs.irrigationCycleStartEpoch &&
          lhs.lightCycleActive == rhs.lightCycleActive &&
          lhs.lightCycleOnSeconds == rhs.lightCycleOnSeconds &&
          lhs.lightCycleOffSeconds == rhs.lightCycleOffSeconds &&
+         lhs.lightCycleStartEpoch == rhs.lightCycleStartEpoch &&
          lhs.fanCycleActive == rhs.fanCycleActive &&
          lhs.fanCycleOnSeconds == rhs.fanCycleOnSeconds &&
          lhs.fanCycleOffSeconds == rhs.fanCycleOffSeconds &&
+         lhs.fanCycleStartEpoch == rhs.fanCycleStartEpoch &&
          lhs.fanActive == rhs.fanActive &&
          lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;

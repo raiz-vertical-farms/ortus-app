@@ -9,6 +9,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <HTTPUpdate.h>
+#include <time.h>
 
 #include "config.h"
 #include "types.h"
@@ -38,6 +39,8 @@ private:
     void broadcastState(bool force = false);
     void publishPresence();
     void publishAck(const String &cmdType);
+    void syncSystemTime();
+    void recoverSchedules();
 
     // --- State & Storage ---
     void loadState();
@@ -75,17 +78,18 @@ private:
     unsigned long lastWaterPoll = 0;
 
     // Irrigation cycle timing
-    unsigned long irrigationCycleNextToggle = 0;
+    unsigned long irrigationCycleStartMillis = 0;
     bool irrigationCycleIsOnPhase = false;
 
     // Light cycle timing
-    unsigned long lightCycleNextToggle = 0;
+    unsigned long lightCycleStartMillis = 0;
     bool lightCycleIsOnPhase = false;
 
     // Fan cycle timing
-    unsigned long fanCycleNextToggle = 0;
+    unsigned long fanCycleStartMillis = 0;
     bool fanCycleIsOnPhase = false;
 
+    bool timeSynced = false;
     int appliedBrightness = -1;
     bool wifiConnected = false;
 
