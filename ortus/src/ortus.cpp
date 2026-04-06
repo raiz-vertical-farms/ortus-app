@@ -115,12 +115,15 @@ void OrtusSystem::setupWiFi()
 
 void OrtusSystem::connectWiFi()
 {
-    if (WiFi.status() == WL_CONNECTED)
+    wl_status_t status = WiFi.status();
+
+    if (status == WL_CONNECTED)
     {
         if (!wifiConnected)
         {
             wifiConnected = true;
             Serial.println("[WiFi] Connected! IP: " + WiFi.localIP().toString());
+            Serial.println("[WiFi] RSSI: " + String(WiFi.RSSI()) + " dBm");
             configTime(0, 0, "pool.ntp.org", "time.google.com");
             ble.updateWiFiState(true);
             publishPresence();
@@ -138,10 +141,27 @@ void OrtusSystem::connectWiFi()
     if (wifiSSID.isEmpty())
         return;
 
-    if (millis() - lastWifiAttempt > 10000)
+    // Only call WiFi.begin() on definitive failure or first attempt.
+    // Calling it while a connection is in progress resets the attempt.
+    bool shouldRetry = false;
+
+    if (status == WL_NO_SSID_AVAIL || status == WL_CONNECT_FAILED || status == WL_CONNECTION_LOST)
+        shouldRetry = true;
+    else if (status == WL_DISCONNECTED && millis() - lastWifiAttempt > 30000)
+        shouldRetry = true; // stuck in disconnected state too long
+    else if (lastWifiAttempt == 0)
+        shouldRetry = true; // first attempt
+
+    if (shouldRetry)
     {
         lastWifiAttempt = millis();
-        Serial.println("[WiFi] Connecting to " + wifiSSID + "...");
+        Serial.print("[WiFi] Connecting to '");
+        Serial.print(wifiSSID);
+        Serial.print("' (status=");
+        Serial.print(status);
+        Serial.println(")");
+        // Status codes: 0=IDLE, 1=NO_SSID_AVAIL, 2=SCAN_COMPLETED,
+        //   3=CONNECTED, 4=CONNECT_FAILED, 5=CONNECTION_LOST, 6=DISCONNECTED
         WiFi.begin(wifiSSID.c_str(), wifiPass.c_str());
     }
 }
