@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "npm run codegen && vite dev",
-    "build": "npm run codegen && vite build",
+    "build": "npm run tsc && npm run codegen && vite build",
+    "tsc": "tsc --noEmit",
     "iphone": "VITE_BACKEND_URL=https://ortus-pi.vercel.app npm run build && npx cap sync ios && npx cap open ios",
     "codegen": "openapi-qraft --plugin tanstack-query-react --plugin openapi-typescript ./openapi.json --output-dir api"
   },
@@ -34,11 +35,13 @@
     "mz-react-round-slider": "^1.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-international-phone": "^4.5.1",
     "ts-pattern": "^5.8.0",
     "view-transitions-polyfill": "^1.0.6",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "typescript": "^5.0.0",
     "@capacitor/cli": "^7.4.3",
     "@openapi-qraft/cli": "^2.12.0",
     "@tanstack/router-cli": "^1.131.47",

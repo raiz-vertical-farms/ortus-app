@@ -66,6 +66,9 @@
 .color-muted {
   color: var(--color-text-muted);
 }
+.color-destructive {
+  color: var(--color-destructive);
+}
 
 /* Variant */
 .variant-heading {

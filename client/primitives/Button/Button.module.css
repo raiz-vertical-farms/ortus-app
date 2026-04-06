@@ -18,6 +18,11 @@
   width: 100%;
 }
 
+.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Sizes */
 .xs {
   font-size: var(--font-size-xs);
@@ -70,7 +75,7 @@
 /* Variants */
 .primary {
   background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
+  color: var(--color-on-primary);
 }
 
 .primary:hover {
@@ -83,7 +88,7 @@
 
 .secondary {
   background-color: var(--color-secondary);
-  color: var(--color-secondary-foreground);
+  color: var(--color-on-secondary);
   border: 1px solid var(--color-border);
 }
 
@@ -97,7 +102,7 @@
 
 .accent {
   background-color: var(--color-accent);
-  color: var(--color-accent-foreground);
+  color: var(--color-on-accent);
 }
 
 .accent:hover {
@@ -110,7 +115,7 @@
 
 .destructive {
   background-color: var(--color-destructive);
-  color: var(--color-destructive-foreground);
+  color: var(--color-on-destructive);
 }
 
 .destructive:hover {

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import styles from "./DeviceCard.module.css";
 import { Text } from "../../primitives/Text/Text";
 import { Group } from "../../primitives/Group/Group";
-import OrtusIcon from "../../icons/Ortus.tsx/Ortus";
+import OrtusIcon from "../../icons/Ortus/Ortus";
 import { client } from "../../lib/apiClient";
 
 type Device = (typeof client.api.allDevices.types.data.devices)[number];

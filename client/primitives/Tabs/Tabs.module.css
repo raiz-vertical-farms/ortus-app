@@ -31,7 +31,7 @@
 
 .tab:hover:not(.disabled) {
   background-color: var(--color-secondary-hover);
-  color: var(var(--color-secondary-foreground));
+  color: var(var(--color-on-secondary));
 }
 
 .tab:focus-visible {
@@ -41,7 +41,7 @@
 
 .active {
   background-color: var(--color-primary);
-  color: var(--color-primary-foreground);
+  color: var(--color-on-primary);
 }
 
 .active:hover:not(.disabled) {

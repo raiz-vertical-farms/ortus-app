@@ -87,8 +87,8 @@ function RootLayout() {
   );
 }
 
-class ErrorBoundary extends React.Component {
-  constructor(props: any) {
+class ErrorBoundary extends React.Component<React.PropsWithChildren, { hasError: boolean }> {
+  constructor(props: React.PropsWithChildren) {
     super(props);
     this.state = { hasError: false };
   }
