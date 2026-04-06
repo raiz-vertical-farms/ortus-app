@@ -90,8 +90,7 @@ interface BluetoothAdapter {
   provision: (
     connection: BLEConnection,
     ssid: string,
-    password: string,
-    timeoutMs?: number
+    password: string
   ) => Promise<string>;
   sendCommand: (connection: BLEConnection, command: string) => Promise<void>;
   readMac: (connection: BLEConnection) => Promise<string>;
@@ -192,8 +191,8 @@ const capacitorAdapter: BluetoothAdapter = {
 
     return { deviceId, disconnect, waitForMac };
   },
-  provision: async (connection, ssid, password, timeoutMs = 30000) => {
-    const { deviceId, waitForMac } = connection;
+  provision: async (connection, ssid, password) => {
+    const { deviceId } = connection;
 
     await BleClient.write(
       deviceId,
@@ -213,7 +212,13 @@ const capacitorAdapter: BluetoothAdapter = {
     );
     console.log("Password sent");
 
-    const macAddress = await waitForMac(timeoutMs);
+    const result = await BleClient.read(
+      deviceId,
+      BLE_SERVICE_UUID,
+      BLE_CHAR_MAC_UUID
+    );
+    const macAddress = bytesToString(result);
+    console.log("MAC address read:", macAddress);
     return macAddress;
   },
   sendCommand: async (connection, command) => {
@@ -503,7 +508,7 @@ const webAdapter: BluetoothAdapter = {
 
     return { deviceId, disconnect, waitForMac };
   },
-  provision: async (connection, ssid, password, timeoutMs = 30000) => {
+  provision: async (connection, ssid, password) => {
     const data = requireWebConnection(connection.deviceId);
 
     await data.ssidCharacteristic.writeValue(encodeString(ssid));
@@ -514,7 +519,10 @@ const webAdapter: BluetoothAdapter = {
     await data.passwordCharacteristic.writeValue(encodeString(password));
     console.log("Password sent");
 
-    return connection.waitForMac(timeoutMs);
+    const value = await data.macCharacteristic.readValue();
+    const macAddress = bytesToString(value);
+    console.log("MAC address read:", macAddress);
+    return macAddress;
   },
   sendCommand: async (connection, command) => {
     const data = requireWebConnection(connection.deviceId);
@@ -567,11 +575,10 @@ export const connectToDevice = async (
 export const provisionWiFi = async (
   connection: BLEConnection,
   ssid: string,
-  password: string,
-  timeoutMs?: number
+  password: string
 ): Promise<string> => {
   const adapter = requireAdapter();
-  return adapter.provision(connection, ssid, password, timeoutMs);
+  return adapter.provision(connection, ssid, password);
 };
 
 export const sendCommand = async (

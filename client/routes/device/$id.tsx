@@ -47,7 +47,7 @@ function RouteComponent() {
       <Box pt="xl">
         <Group spacing="xl" justify="center">
           <Tabs
-            value={state.online ? view : "settings"}
+            value={view}
             onChange={setView}
             options={[
               { value: "lights", label: "Lights", disabled: false },
