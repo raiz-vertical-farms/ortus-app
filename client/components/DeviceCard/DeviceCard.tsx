@@ -58,9 +58,6 @@ export default function DeviceCard({
 
           <Group align="center">
             <Text size="lg">{name}</Text>
-            <Text size="xs" color="muted">
-              ID: {mac_address}
-            </Text>
           </Group>
         </Group>
       </Group>

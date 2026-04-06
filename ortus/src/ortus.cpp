@@ -615,7 +615,10 @@ void OrtusSystem::broadcastState(bool force)
     JsonDocument doc;
     doc["brightness"] = currentState.brightness;
     doc["irrigationActive"] = currentState.irrigationActive;
+    doc["irrigationCycleActive"] = currentState.irrigationCycleActive;
     doc["fanActive"] = currentState.fanActive;
+    doc["fanCycleActive"] = currentState.fanCycleActive;
+    doc["lightCycleActive"] = currentState.lightCycleActive;
     doc["temperature"] = currentState.temperatureC;
     doc["waterEmpty"] = currentState.waterEmpty;
 

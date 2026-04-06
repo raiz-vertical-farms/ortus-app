@@ -1,33 +1,30 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
-import Box from "../../primitives/Box/Box";
 import { client } from "../../lib/apiClient";
 import { useState } from "react";
-import { match } from "ts-pattern";
-import { Group } from "../../primitives/Group/Group";
-import Tabs from "../../primitives/Tabs/Tabs";
 import Button from "../../primitives/Button/Button";
-import LightSwitch from "../../components/LightSwitch/LightSwitch";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import PageLayout from "../../layout/PageLayout/PageLayout";
 import Modal from "../../primitives/Modal/Modal";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
-import {
-  useDevice,
-  computePhase,
-  type IntervalSchedule,
-} from "../../hooks/useDevice";
+import { useDevice, computePhase } from "../../hooks/useDevice";
+import { classNames } from "../../utils/classnames";
+import styles from "./$id.module.css";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
 });
 
+function formatTime(ts: number) {
+  return new Date(ts).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function RouteComponent() {
   const { id } = Route.useParams();
-  const [view, setView] = useState<
-    "lights" | "temperature" | "water" | "fan" | "settings"
-  >("lights");
   const device = useDevice(id);
 
   if (device.isLoading || device.state === null) {
@@ -40,87 +37,23 @@ function RouteComponent() {
 
   const state = device.state;
 
-  console.log("Device state:", state, "View:", view);
-
   return (
     <PageLayout layout={{ pageTitle: state.name, backButton: true }}>
-      <Box pt="xl">
-        <Group spacing="xl" justify="center">
-          <Tabs
-            value={view}
-            onChange={setView}
-            options={[
-              { value: "lights", label: "Lights", disabled: false },
-              { value: "water", label: "Water", disabled: false },
-              { value: "fan", label: "Fan", disabled: false },
-              { value: "temperature", label: "Temperature", disabled: false },
-              { value: "settings", label: "Settings" },
-            ]}
-          />
-        </Group>
-        {match({ view })
-          .with({ view: "lights" }, () => (
-            <LightView deviceId={id} device={device} />
-          ))
-          .with({ view: "temperature" }, () => (
-            <Text>Temperature: {device.state?.temperature}°C</Text>
-          ))
-          .with({ view: "water" }, () => (
-            <WaterView deviceId={id} device={device} />
-          ))
-          .with({ view: "fan" }, () => (
-            <FanView deviceId={id} device={device} />
-          ))
-          .with({ view: "settings" }, () => (
-            <SettingsView macAddress={state.mac_address!} deviceId={id} />
-          ))
-          .exhaustive()}
-      </Box>
+      <div className={styles.layout}>
+        <LightCard deviceId={id} device={device} />
+        <IrrigationCard deviceId={id} device={device} />
+        <div className={styles.halfGrid}>
+          <TemperatureCard temperature={state.temperature} />
+          <SettingsCard deviceId={id} macAddress={state.mac_address!} />
+        </div>
+      </div>
     </PageLayout>
   );
 }
 
-// --- Shared helpers ---
+// --- Light Card ---
 
-function formatTime(ts: number) {
-  return new Date(ts).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-type ConfirmModalProps = {
-  open: boolean;
-  title: string;
-  description: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-};
-
-function ConfirmModal({
-  open,
-  title,
-  description,
-  onConfirm,
-  onCancel,
-}: ConfirmModalProps) {
-  return (
-    <Modal open={open} onClose={onCancel} title={title}>
-      <Group direction="column" spacing="xl">
-        <Text>{description}</Text>
-        <Group direction="row" spacing="xl">
-          <Button onClick={onConfirm}>Confirm</Button>
-          <Button onClick={onCancel}>Cancel</Button>
-        </Group>
-      </Group>
-    </Modal>
-  );
-}
-
-// --- Light View ---
-
-function LightView({
-  deviceId,
+function LightCard({
   device,
 }: {
   deviceId: string;
@@ -129,11 +62,7 @@ function LightView({
   const [pendingBrightness, setPendingBrightness] = useState<number | null>(
     null,
   );
-  const [confirm, setConfirm] = useState<{
-    action: string;
-    description: string;
-    fn: () => Promise<void>;
-  } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const debouncedSetLight = useDebouncedCallback(
     (brightness: number) => {
@@ -144,312 +73,160 @@ function LightView({
     device.isWebSocketConnected ? 0 : 1000,
   );
 
-  const handleBrightnessChange = (value: number) => {
+  const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
     setPendingBrightness(value);
     debouncedSetLight(value);
   };
 
   const schedule = device.state?.light_schedule;
   const currentBrightness = pendingBrightness ?? device.state?.brightness ?? 0;
-
   const phaseInfo = schedule?.active ? computePhase(schedule) : null;
 
+  const hasSchedule = schedule != null;
+  const isPaused = hasSchedule && !schedule.active;
+  const isActive = hasSchedule && schedule.active;
+
   const statusText = (() => {
-    if (!schedule?.active || !phaseInfo) return "Schedule off";
-    return phaseInfo.isOn
-      ? `Lights on until ${formatTime(phaseInfo.phaseEndsAt)}`
-      : `Lights off until ${formatTime(phaseInfo.phaseEndsAt)}`;
+    if (!hasSchedule) return "No light schedule";
+    if (isPaused) return "Light schedule paused";
+    if (phaseInfo?.isOn)
+      return `Lights are on, will turn off at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    if (phaseInfo)
+      return `Lights are off, will turn on at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    return "Light schedule active";
   })();
 
-  const skipLabel = (() => {
-    if (!phaseInfo) return "Skip";
-    const nextPhaseEnd =
-      phaseInfo.phaseEndsAt +
-      (phaseInfo.isOn ? schedule!.minutes_off : schedule!.minutes_on) *
-        60 *
-        1000;
-    return phaseInfo.isOn
-      ? `Skip: Lights will turn on again at ${formatTime(phaseInfo.phaseEndsAt + schedule!.minutes_off * 60 * 1000)}`
-      : `Start now: Lights on until ${formatTime(Date.now() + schedule!.minutes_on * 60 * 1000)}`;
-  })();
+  const handlePause = async () => {
+    setLoading(true);
+    try {
+      await device.pauseLightSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  function ask(action: string, description: string, fn: () => Promise<void>) {
-    setConfirm({ action, description, fn });
-  }
+  const handleResumeOrStart = async () => {
+    setLoading(true);
+    try {
+      await device.startLightSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
-        <LightSwitch
-          brightness={currentBrightness}
-          onChange={handleBrightnessChange}
-        />
-        <Text size="sm">
-          {device.isWebSocketConnected
-            ? "LAN control active"
-            : "Using cloud fallback"}
+    <div className={styles.card}>
+      <div className={classNames(styles.cardContent, isPaused && styles.faded)}>
+        <Text variant="heading" size="lg" mb="md">
+          {statusText}
         </Text>
-      </Group>
-
-      <Box pt="5xl">
-        <Group direction="column" align="center" justify="center" spacing="xl">
-          <Text align="center" size="lg">
-            Light schedule
-          </Text>
-          <Text align="center">{statusText}</Text>
-
-          {!schedule?.active ? (
-            <Button
-              onClick={() =>
-                ask(
-                  "Start schedule",
-                  "Start the light cycle? Lights will follow the default 12h on / 12h off schedule.",
-                  device.startLightSchedule,
-                )
-              }
-            >
-              Start schedule
-            </Button>
-          ) : (
-            <>
-              <Button
-                onClick={() =>
-                  ask(
-                    "Pause schedule",
-                    "Pause the light schedule?",
-                    device.pauseLightSchedule,
-                  )
-                }
-              >
-                Pause schedule
-              </Button>
-              <Button
-                onClick={() =>
-                  ask("Skip phase", skipLabel, device.skipLightSchedule)
-                }
-              >
-                {phaseInfo?.isOn ? "Skip current ON phase" : "Start now"}
-              </Button>
-            </>
-          )}
-        </Group>
-      </Box>
-
-      {confirm && (
-        <ConfirmModal
-          open
-          title={confirm.action}
-          description={confirm.description}
-          onConfirm={async () => {
-            await confirm.fn();
-            setConfirm(null);
-          }}
-          onCancel={() => setConfirm(null)}
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={currentBrightness}
+          onChange={handleBrightnessChange}
+          className={styles.slider}
         />
+      </div>
+      {isActive && (
+        <Button onClick={handlePause} loading={loading}>
+          Pause
+        </Button>
       )}
-    </Box>
+      {(isPaused || !hasSchedule) && (
+        <Button onClick={handleResumeOrStart} loading={loading}>
+          {isPaused ? "Resume" : "Start schedule"}
+        </Button>
+      )}
+    </div>
   );
 }
 
-// --- Water View ---
+// --- Irrigation Card ---
 
-function WaterView({
-  deviceId,
+function IrrigationCard({
   device,
 }: {
   deviceId: string;
   device: ReturnType<typeof useDevice>;
 }) {
-  const [confirm, setConfirm] = useState<{
-    action: string;
-    description: string;
-    fn: () => Promise<void>;
-  } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const schedule = device.state?.irrigation_schedule;
   const phaseInfo = schedule?.active ? computePhase(schedule) : null;
 
+  const hasSchedule = schedule != null;
+  const isPaused = hasSchedule && !schedule.active;
+  const isActive = hasSchedule && schedule.active;
+
   const statusText = (() => {
-    if (!schedule?.active || !phaseInfo) return "Schedule off";
-    return phaseInfo.isOn
-      ? `Watering until ${formatTime(phaseInfo.phaseEndsAt)}`
-      : `Next watering at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    if (!hasSchedule) return "No irrigation schedule";
+    if (isPaused) return "Irrigation paused";
+    if (phaseInfo?.isOn)
+      return `Irrigation is running, watering until ${formatTime(phaseInfo.phaseEndsAt)}`;
+    if (phaseInfo) return `Next watering at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    return "Irrigation schedule active";
   })();
 
-  const skipLabel = (() => {
-    if (!phaseInfo || !schedule) return "Skip";
-    return phaseInfo.isOn
-      ? `Skip: Next watering will happen at ${formatTime(phaseInfo.phaseEndsAt + schedule.minutes_off * 60 * 1000)}`
-      : `Start now: Will water until ${formatTime(Date.now() + schedule.minutes_on * 60 * 1000)}`;
-  })();
+  const handlePause = async () => {
+    setLoading(true);
+    try {
+      await device.pauseIrrigationSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  function ask(action: string, description: string, fn: () => Promise<void>) {
-    setConfirm({ action, description, fn });
-  }
+  const handleResumeOrStart = async () => {
+    setLoading(true);
+    try {
+      await device.startIrrigationSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
-        <Text variant="heading" size="xl">
-          Water level: {device.state?.water_level ?? "—"}
+    <div className={styles.card}>
+      <div className={classNames(styles.cardContent, isPaused && styles.faded)}>
+        <Text variant="heading" size="lg" mb="md">
+          {statusText}
         </Text>
-
-        <Text align="center" size="lg">
-          Irrigation schedule
-        </Text>
-        <Text align="center">{statusText}</Text>
-
-        {!schedule?.active ? (
-          <Button
-            onClick={() =>
-              ask(
-                "Start irrigation",
-                "Start irrigation schedule? Will water on the default cycle.",
-                device.startIrrigationSchedule,
-              )
-            }
-          >
-            Start schedule
-          </Button>
-        ) : (
-          <>
-            <Button
-              onClick={() =>
-                ask(
-                  "Pause irrigation",
-                  "Pause the irrigation schedule?",
-                  device.pauseIrrigationSchedule,
-                )
-              }
-            >
-              Pause schedule
-            </Button>
-            <Button
-              onClick={() =>
-                ask("Skip phase", skipLabel, device.skipIrrigationSchedule)
-              }
-            >
-              {phaseInfo?.isOn ? "Skip current watering" : "Water now"}
-            </Button>
-          </>
-        )}
-      </Group>
-
-      {confirm && (
-        <ConfirmModal
-          open
-          title={confirm.action}
-          description={confirm.description}
-          onConfirm={async () => {
-            await confirm.fn();
-            setConfirm(null);
-          }}
-          onCancel={() => setConfirm(null)}
-        />
+      </div>
+      {isActive && (
+        <Button onClick={handlePause} loading={loading}>
+          Pause
+        </Button>
       )}
-    </Box>
+      {(isPaused || !hasSchedule) && (
+        <Button onClick={handleResumeOrStart} loading={loading}>
+          {isPaused ? "Resume" : "Start schedule"}
+        </Button>
+      )}
+    </div>
   );
 }
 
-// --- Fan View ---
+// --- Temperature Card ---
 
-function FanView({
-  deviceId,
-  device,
-}: {
-  deviceId: string;
-  device: ReturnType<typeof useDevice>;
-}) {
-  const [confirm, setConfirm] = useState<{
-    action: string;
-    description: string;
-    fn: () => Promise<void>;
-  } | null>(null);
-
-  const schedule = device.state?.fan_schedule;
-  const phaseInfo = schedule?.active ? computePhase(schedule) : null;
-
-  const statusText = (() => {
-    if (!schedule?.active || !phaseInfo) return "Schedule off";
-    return phaseInfo.isOn
-      ? `Fan on until ${formatTime(phaseInfo.phaseEndsAt)}`
-      : `Fan off until ${formatTime(phaseInfo.phaseEndsAt)}`;
-  })();
-
-  const skipLabel = (() => {
-    if (!phaseInfo || !schedule) return "Skip";
-    return phaseInfo.isOn
-      ? `Skip: Fan will turn on again at ${formatTime(phaseInfo.phaseEndsAt + schedule.minutes_off * 60 * 1000)}`
-      : `Start now: Fan on until ${formatTime(Date.now() + schedule.minutes_on * 60 * 1000)}`;
-  })();
-
-  function ask(action: string, description: string, fn: () => Promise<void>) {
-    setConfirm({ action, description, fn });
-  }
-
+function TemperatureCard({ temperature }: { temperature: number | null }) {
   return (
-    <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
-        <Text align="center" size="lg">
-          Fan schedule
-        </Text>
-        <Text align="center">{statusText}</Text>
-
-        {!schedule?.active ? (
-          <Button
-            onClick={() =>
-              ask(
-                "Start fan",
-                "Start fan schedule? Fan will run on the default 30min on / 30min off cycle.",
-                device.startFanSchedule,
-              )
-            }
-          >
-            Start schedule
-          </Button>
-        ) : (
-          <>
-            <Button
-              onClick={() =>
-                ask(
-                  "Pause fan",
-                  "Pause the fan schedule?",
-                  device.pauseFanSchedule,
-                )
-              }
-            >
-              Pause schedule
-            </Button>
-            <Button
-              onClick={() =>
-                ask("Skip phase", skipLabel, device.skipFanSchedule)
-              }
-            >
-              {phaseInfo?.isOn ? "Skip current ON phase" : "Turn on now"}
-            </Button>
-          </>
-        )}
-      </Group>
-
-      {confirm && (
-        <ConfirmModal
-          open
-          title={confirm.action}
-          description={confirm.description}
-          onConfirm={async () => {
-            await confirm.fn();
-            setConfirm(null);
-          }}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
-    </Box>
+    <div className={classNames(styles.card, styles.temperatureCard)}>
+      <Text variant="heading" size="4xl">
+        {temperature != null ? `${Math.round(temperature)}°` : "—"}
+      </Text>
+      <Text color="muted" size="sm">
+        temperature
+      </Text>
+    </div>
   );
 }
 
-// --- Settings View ---
+// --- Settings Card ---
 
-function SettingsView({
+function SettingsCard({
   deviceId,
   macAddress,
 }: {
@@ -457,7 +234,7 @@ function SettingsView({
   macAddress: string;
 }) {
   const router = useRouter();
-  const [showReconnect, setShowReconnect] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { mutate } = client.api.deleteDevice.useMutation(undefined, {
     onSuccess: () => {
       router.navigate({ to: "/" });
@@ -466,23 +243,47 @@ function SettingsView({
 
   return (
     <>
-      <Box pt="5xl">
-        <Text>Danger zone (careful!)</Text>
-        <Button onClick={() => mutate({ path: { id: deviceId } })}>
+      <div
+        className={classNames(styles.card, styles.settingsCard)}
+        onClick={() => setShowSettings(true)}
+      >
+        <GearIcon />
+        <Text color="muted" size="sm">
+          settings
+        </Text>
+      </div>
+      <Modal
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        title="Settings"
+      >
+        <Button
+          variant="destructive"
+          onClick={() => mutate({ path: { id: deviceId } })}
+        >
           Remove this Ortus
         </Button>
-        <Text>Reconnect to a device</Text>
-        <Button onClick={() => setShowReconnect(true)}>
-          Reconnect to device
-        </Button>
-      </Box>
-      <Modal
-        open={showReconnect}
-        onClose={() => setShowReconnect(false)}
-        title="Reconnect to Ortus"
-      >
-        <ProvisionFlow onProvisionSucceeded={() => setShowReconnect(false)} />
+        <ProvisionFlow onProvisionSucceeded={() => setShowSettings(false)} />
       </Modal>
     </>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg
+      width="48"
+      height="48"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={styles.gearIcon}
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
   );
 }

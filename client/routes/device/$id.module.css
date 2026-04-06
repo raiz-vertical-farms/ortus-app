@@ -1,0 +1,67 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding-top: var(--spacing-xl);
+}
+
+/* --- Card base --- */
+
+.card {
+  background: var(--color-card-background);
+  border: var(--border-width) solid var(--color-card-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-xl);
+  box-shadow: 0 1px 4px var(--color-card-shadow);
+}
+
+.cardContent {
+  transition: opacity 0.2s ease;
+}
+
+.cardContent.faded {
+  opacity: var(--opacity-40);
+}
+
+/* --- Slider --- */
+
+.slider {
+  width: 100%;
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  accent-color: var(--color-primary);
+}
+
+/* --- Half-width grid --- */
+
+.halfGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+/* --- Temperature card --- */
+
+.temperatureCard {
+  text-align: center;
+}
+
+/* --- Settings card --- */
+
+.settingsCard {
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.settingsCard:hover {
+  background-color: var(--color-card-background-hover);
+}
+
+/* --- Gear icon --- */
+
+.gearIcon {
+  display: block;
+  margin: 0 auto var(--spacing-sm);
+  color: var(--color-text-muted);
+}

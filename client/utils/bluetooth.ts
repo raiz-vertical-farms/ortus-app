@@ -18,7 +18,7 @@ const toDataView = (bytes: Uint8Array<ArrayBuffer>): DataView =>
   new DataView(bytes.buffer);
 
 const bytesToString = (
-  value: DataView | ArrayBuffer | Uint8Array | null | undefined
+  value: DataView | ArrayBuffer | Uint8Array | null | undefined,
 ): string => {
   if (!value) {
     return "";
@@ -85,12 +85,12 @@ interface BluetoothAdapter {
   scan: (timeoutMs?: number) => Promise<OrtusDevice[]>;
   connect: (
     deviceId: string,
-    callbacks?: ProvisioningCallbacks
+    callbacks?: ProvisioningCallbacks,
   ) => Promise<BLEConnection>;
   provision: (
     connection: BLEConnection,
     ssid: string,
-    password: string
+    password: string,
   ) => Promise<string>;
   sendCommand: (connection: BLEConnection, command: string) => Promise<void>;
   readMac: (connection: BLEConnection) => Promise<string>;
@@ -98,7 +98,7 @@ interface BluetoothAdapter {
 
 const startStatusNotificationsCapacitor = async (
   deviceId: string,
-  callbacks: ProvisioningCallbacks
+  callbacks: ProvisioningCallbacks,
 ): Promise<void> => {
   try {
     await BleClient.startNotifications(
@@ -109,7 +109,7 @@ const startStatusNotificationsCapacitor = async (
         const status = bytesToString(value);
         console.log("Status update:", status);
         callbacks.onStatusUpdate?.(status);
-      }
+      },
     );
   } catch (error) {
     console.error("Failed to start status notifications:", error);
@@ -138,7 +138,7 @@ const capacitorAdapter: BluetoothAdapter = {
             console.log("Found device:", device);
           }
         }
-      }
+      },
     );
 
     await delay(timeoutMs);
@@ -167,7 +167,7 @@ const capacitorAdapter: BluetoothAdapter = {
         console.log("MAC address received:", mac);
         callbacks.onMacAddressReceived?.(mac);
         macResolver?.(mac);
-      }
+      },
     );
 
     const waitForMac = (timeoutMs: number): Promise<string> =>
@@ -198,7 +198,7 @@ const capacitorAdapter: BluetoothAdapter = {
       deviceId,
       BLE_SERVICE_UUID,
       BLE_CHAR_SSID_UUID,
-      toDataView(encodeString(ssid))
+      toDataView(encodeString(ssid)),
     );
     console.log("SSID sent:", ssid);
 
@@ -208,14 +208,14 @@ const capacitorAdapter: BluetoothAdapter = {
       deviceId,
       BLE_SERVICE_UUID,
       BLE_CHAR_PASSWORD_UUID,
-      toDataView(encodeString(password))
+      toDataView(encodeString(password)),
     );
     console.log("Password sent");
 
     const result = await BleClient.read(
       deviceId,
       BLE_SERVICE_UUID,
-      BLE_CHAR_MAC_UUID
+      BLE_CHAR_MAC_UUID,
     );
     const macAddress = bytesToString(result);
     console.log("MAC address read:", macAddress);
@@ -226,7 +226,7 @@ const capacitorAdapter: BluetoothAdapter = {
       connection.deviceId,
       BLE_SERVICE_UUID,
       BLE_CHAR_COMMAND_UUID,
-      toDataView(encodeString(command))
+      toDataView(encodeString(command)),
     );
     console.log("Command sent:", command);
   },
@@ -234,7 +234,7 @@ const capacitorAdapter: BluetoothAdapter = {
     const result = await BleClient.read(
       connection.deviceId,
       BLE_SERVICE_UUID,
-      BLE_CHAR_MAC_UUID
+      BLE_CHAR_MAC_UUID,
     );
     const macAddress = bytesToString(result);
     console.log("MAC address read:", macAddress);
@@ -271,7 +271,7 @@ const requireWebConnection = (deviceId: string): WebConnectionData => {
   const connection = webConnections.get(deviceId);
   if (!connection) {
     throw new Error(
-      "No active Web Bluetooth connection found. Please reconnect."
+      "No active Web Bluetooth connection found. Please reconnect.",
     );
   }
   return connection;
@@ -286,15 +286,15 @@ const cleanupWebConnection = async (deviceId: string) => {
 
   connection.statusCharacteristic.removeEventListener(
     "characteristicvaluechanged",
-    connection.statusListener
+    connection.statusListener,
   );
   connection.macCharacteristic.removeEventListener(
     "characteristicvaluechanged",
-    connection.macListener
+    connection.macListener,
   );
   connection.device.removeEventListener(
     "gattserverdisconnected",
-    connection.disconnectListener
+    connection.disconnectListener,
   );
 
   await Promise.allSettled([
@@ -336,7 +336,7 @@ const webAdapter: BluetoothAdapter = {
     }
 
     const requestDevice = async (
-      options: RequestDeviceOptions
+      options: RequestDeviceOptions,
     ): Promise<BluetoothDevice | null> => {
       try {
         return await navigator.bluetooth.requestDevice(options);
@@ -359,15 +359,8 @@ const webAdapter: BluetoothAdapter = {
     });
 
     if (!device) {
-      device = await requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [BLE_SERVICE_UUID],
-      });
-
-      if (!device) {
-        console.warn("No Ortus device found.");
-        return [];
-      }
+      console.warn("No Ortus device found.");
+      return [];
     }
 
     webDevices.set(device.id, device);
@@ -432,7 +425,7 @@ const webAdapter: BluetoothAdapter = {
     await statusCharacteristic.startNotifications();
     statusCharacteristic.addEventListener(
       "characteristicvaluechanged",
-      statusListener
+      statusListener,
     );
 
     const macListener: EventListener = (event) => {
@@ -447,7 +440,7 @@ const webAdapter: BluetoothAdapter = {
     await macCharacteristic.startNotifications();
     macCharacteristic.addEventListener(
       "characteristicvaluechanged",
-      macListener
+      macListener,
     );
 
     const disconnectListener: EventListener = () => {
@@ -558,7 +551,7 @@ export const initializeBLE = async (): Promise<void> => {
 };
 
 export const scanForOrtusDevices = async (
-  timeoutMs?: number
+  timeoutMs?: number,
 ): Promise<OrtusDevice[]> => {
   const adapter = requireAdapter();
   return adapter.scan(timeoutMs);
@@ -566,7 +559,7 @@ export const scanForOrtusDevices = async (
 
 export const connectToDevice = async (
   deviceId: string,
-  callbacks?: ProvisioningCallbacks
+  callbacks?: ProvisioningCallbacks,
 ): Promise<BLEConnection> => {
   const adapter = requireAdapter();
   return adapter.connect(deviceId, callbacks);
@@ -575,7 +568,7 @@ export const connectToDevice = async (
 export const provisionWiFi = async (
   connection: BLEConnection,
   ssid: string,
-  password: string
+  password: string,
 ): Promise<string> => {
   const adapter = requireAdapter();
   return adapter.provision(connection, ssid, password);
@@ -583,14 +576,14 @@ export const provisionWiFi = async (
 
 export const sendCommand = async (
   connection: BLEConnection,
-  command: string
+  command: string,
 ): Promise<void> => {
   const adapter = requireAdapter();
   await adapter.sendCommand(connection, command);
 };
 
 export const readMacAddress = async (
-  connection: BLEConnection
+  connection: BLEConnection,
 ): Promise<string> => {
   const adapter = requireAdapter();
   return adapter.readMac(connection);
@@ -599,7 +592,7 @@ export const readMacAddress = async (
 export const completeProvisioning = async (
   ssid: string,
   password: string,
-  callbacks: ProvisioningCallbacks = {}
+  callbacks: ProvisioningCallbacks = {},
 ): Promise<string> => {
   await initializeBLE();
 
