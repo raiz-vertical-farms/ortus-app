@@ -40,6 +40,16 @@
   gap: var(--spacing-lg);
 }
 
+/* --- Water empty card --- */
+
+.waterEmptyCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  border-color: var(--color-destructive);
+  color: var(--color-destructive);
+}
+
 /* --- Temperature card --- */
 
 .temperatureCard {

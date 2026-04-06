@@ -174,10 +174,10 @@
                             }
                           ]
                         },
-                        "water_level": {
+                        "water_empty": {
                           "anyOf": [
                             {
-                              "type": "number"
+                              "type": "boolean"
                             },
                             {
                               "type": "null"
@@ -316,7 +316,7 @@
                         "online",
                         "brightness",
                         "temperature",
-                        "water_level",
+                        "water_empty",
                         "light_schedule",
                         "irrigation_schedule",
                         "fan_schedule",
@@ -400,10 +400,10 @@
                               }
                             ]
                           },
-                          "water_level": {
+                          "water_empty": {
                             "anyOf": [
                               {
-                                "type": "number"
+                                "type": "boolean"
                               },
                               {
                                 "type": "null"
@@ -507,7 +507,7 @@
                           "last_seen",
                           "online",
                           "temperature",
-                          "water_level",
+                          "water_empty",
                           "irrigation_schedule",
                           "fan_schedule",
                           "lan_ip",

@@ -22,7 +22,7 @@ export type DeviceState = {
   online: boolean;
   brightness: number | null;
   temperature: number | null;
-  water_level: number | null;
+  water_empty: boolean | null;
   light_schedule: IntervalSchedule | null;
   irrigation_schedule: IntervalSchedule | null;
   fan_schedule: IntervalSchedule | null;
@@ -83,6 +83,7 @@ type UseDeviceResult = {
 
 type WsStateMessage = {
   brightness?: number;
+  waterEmpty?: boolean;
 };
 
 async function apiFetch(path: string, options: RequestInit = {}) {
@@ -167,6 +168,7 @@ export function useDevice(deviceId: string): UseDeviceResult {
           return {
             ...base,
             brightness: typeof parsed.brightness === "number" ? parsed.brightness : base.brightness,
+            water_empty: typeof parsed.waterEmpty === "boolean" ? parsed.waterEmpty : base.water_empty,
           };
         });
       } catch {

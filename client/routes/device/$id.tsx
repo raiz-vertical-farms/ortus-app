@@ -10,6 +10,7 @@ import Modal from "../../primitives/Modal/Modal";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
 import { useDevice, computePhase } from "../../hooks/useDevice";
 import { classNames } from "../../utils/classnames";
+import { Drop } from "@phosphor-icons/react";
 import styles from "./$id.module.css";
 
 export const Route = createFileRoute("/device/$id")({
@@ -40,6 +41,7 @@ function RouteComponent() {
   return (
     <PageLayout layout={{ pageTitle: state.name, backButton: true }}>
       <div className={styles.layout}>
+        {state.water_empty && <WaterEmptyCard />}
         <LightCard deviceId={id} device={device} />
         <IrrigationCard deviceId={id} device={device} />
         <div className={styles.halfGrid}>
@@ -205,6 +207,19 @@ function IrrigationCard({
           {isPaused ? "Resume" : "Start schedule"}
         </Button>
       )}
+    </div>
+  );
+}
+
+// --- Water Empty Card ---
+
+function WaterEmptyCard() {
+  return (
+    <div className={classNames(styles.card, styles.waterEmptyCard)}>
+      <Drop size={32} weight="fill" />
+      <Text variant="heading" size="lg">
+        Water tank is empty
+      </Text>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import styles from "./DeviceCard.module.css";
 import { Text } from "../../primitives/Text/Text";
 import { Group } from "../../primitives/Group/Group";
 import OrtusIcon from "../../icons/Ortus/Ortus";
+import { Drop } from "@phosphor-icons/react";
 import { client } from "../../lib/apiClient";
 
 type Device = (typeof client.api.allDevices.types.data.devices)[number];
@@ -14,6 +15,7 @@ export default function DeviceCard({
   mac_address,
   last_seen,
   online,
+  water_empty,
 }: Device) {
   const statusDot = (
     <span
@@ -59,6 +61,14 @@ export default function DeviceCard({
           <Group align="center">
             <Text size="lg">{name}</Text>
           </Group>
+          {water_empty && (
+            <Group align="center" spacing="xs">
+              <Drop size={14} weight="fill" className={styles.waterEmptyIcon} />
+              <Text size="xs" className={styles.waterEmptyText}>
+                Water empty
+              </Text>
+            </Group>
+          )}
         </Group>
       </Group>
     </Link>
