@@ -119,13 +119,8 @@ export function useDevice(deviceId: string): UseDeviceResult {
       const latest = deviceQuery.data.state as unknown as DeviceState;
       setLiveState((current) => {
         if (!current) return latest;
-        return {
-          ...latest,
-          brightness: current.brightness ?? latest.brightness,
-          light_schedule: current.light_schedule ?? latest.light_schedule,
-          irrigation_schedule: current.irrigation_schedule ?? latest.irrigation_schedule,
-          fan_schedule: current.fan_schedule ?? latest.fan_schedule,
-        };
+        // Preserve brightness for low-latency slider control; everything else comes from server.
+        return { ...latest, brightness: current.brightness ?? latest.brightness };
       });
     }
   }, [deviceQuery.data?.state]);
@@ -225,6 +220,9 @@ export function useDevice(deviceId: string): UseDeviceResult {
       method: "POST",
       body: JSON.stringify({ active: true, ...opts }),
     });
+    setLiveState((prev) =>
+      prev?.light_schedule ? { ...prev, light_schedule: { ...prev.light_schedule, active: true } } : prev
+    );
     await deviceQuery.refetch();
   }, [deviceId, deviceQuery]);
 
@@ -249,6 +247,9 @@ export function useDevice(deviceId: string): UseDeviceResult {
       method: "POST",
       body: JSON.stringify({ active: true, ...opts }),
     });
+    setLiveState((prev) =>
+      prev?.irrigation_schedule ? { ...prev, irrigation_schedule: { ...prev.irrigation_schedule, active: true } } : prev
+    );
     await deviceQuery.refetch();
   }, [deviceId, deviceQuery]);
 
@@ -273,6 +274,9 @@ export function useDevice(deviceId: string): UseDeviceResult {
       method: "POST",
       body: JSON.stringify({ active: true, ...opts }),
     });
+    setLiveState((prev) =>
+      prev?.fan_schedule ? { ...prev, fan_schedule: { ...prev.fan_schedule, active: true } } : prev
+    );
     await deviceQuery.refetch();
   }, [deviceId, deviceQuery]);
 
