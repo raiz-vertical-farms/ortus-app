@@ -21,8 +21,11 @@ export type DeviceState = {
   last_seen: number | null;
   online: boolean;
   brightness: number | null;
+  light_on: boolean | null;
   temperature: number | null;
   water_empty: boolean | null;
+  irrigation_on: boolean | null;
+  fan_on: boolean | null;
   light_schedule: IntervalSchedule | null;
   irrigation_schedule: IntervalSchedule | null;
   fan_schedule: IntervalSchedule | null;
@@ -83,6 +86,13 @@ type UseDeviceResult = {
 
 type WsStateMessage = {
   brightness?: number;
+  lightOn?: boolean;
+  lightScheduleActive?: boolean;
+  irrigationOn?: boolean;
+  irrigationScheduleActive?: boolean;
+  fanOn?: boolean;
+  fanScheduleActive?: boolean;
+  temperature?: number | null;
   waterEmpty?: boolean;
 };
 
@@ -168,6 +178,10 @@ export function useDevice(deviceId: string): UseDeviceResult {
           return {
             ...base,
             brightness: typeof parsed.brightness === "number" ? parsed.brightness : base.brightness,
+            light_on: typeof parsed.lightOn === "boolean" ? parsed.lightOn : base.light_on,
+            irrigation_on: typeof parsed.irrigationOn === "boolean" ? parsed.irrigationOn : base.irrigation_on,
+            fan_on: typeof parsed.fanOn === "boolean" ? parsed.fanOn : base.fan_on,
+            temperature: parsed.temperature !== undefined ? parsed.temperature : base.temperature,
             water_empty: typeof parsed.waterEmpty === "boolean" ? parsed.waterEmpty : base.water_empty,
           };
         });

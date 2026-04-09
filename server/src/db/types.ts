@@ -36,13 +36,16 @@ export interface Devices {
   user_id: string;
 }
 
-export interface DeviceTimeseries {
-  created_at: Generated<number>;
+export interface DeviceState {
+  brightness: Generated<number>;
+  device_id: number;
+  fan_on: Generated<number>;
   id: Generated<number>;
-  mac_address: string;
-  metric: string;
-  value_text: string;
-  value_type: string;
+  irrigation_on: Generated<number>;
+  light_on: Generated<number>;
+  temperature: number | null;
+  updated_at: Generated<number>;
+  water_empty: Generated<number>;
 }
 
 export interface FanSchedules {
@@ -82,7 +85,7 @@ export interface LightSchedules {
 export interface DB {
   _migrations: _Migrations;
   alert_notifications: AlertNotifications;
-  device_timeseries: DeviceTimeseries;
+  device_state: DeviceState;
   devices: Devices;
   fan_schedules: FanSchedules;
   irrigation_schedules: IrrigationSchedules;

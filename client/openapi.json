@@ -164,6 +164,16 @@
                             }
                           ]
                         },
+                        "light_on": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "temperature": {
                           "anyOf": [
                             {
@@ -175,6 +185,26 @@
                           ]
                         },
                         "water_empty": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "irrigation_on": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "fan_on": {
                           "anyOf": [
                             {
                               "type": "boolean"
@@ -315,8 +345,11 @@
                         "last_seen",
                         "online",
                         "brightness",
+                        "light_on",
                         "temperature",
                         "water_empty",
+                        "irrigation_on",
+                        "fan_on",
                         "light_schedule",
                         "irrigation_schedule",
                         "fan_schedule",
@@ -410,68 +443,20 @@
                               }
                             ]
                           },
-                          "irrigation_schedule": {
+                          "irrigation_on": {
                             "anyOf": [
                               {
-                                "type": "object",
-                                "properties": {
-                                  "active": {
-                                    "type": "boolean"
-                                  },
-                                  "start_at": {
-                                    "type": "number"
-                                  },
-                                  "start_off": {
-                                    "type": "boolean"
-                                  },
-                                  "minutes_on": {
-                                    "type": "number"
-                                  },
-                                  "minutes_off": {
-                                    "type": "number"
-                                  }
-                                },
-                                "required": [
-                                  "active",
-                                  "start_at",
-                                  "start_off",
-                                  "minutes_on",
-                                  "minutes_off"
-                                ]
+                                "type": "boolean"
                               },
                               {
                                 "type": "null"
                               }
                             ]
                           },
-                          "fan_schedule": {
+                          "fan_on": {
                             "anyOf": [
                               {
-                                "type": "object",
-                                "properties": {
-                                  "active": {
-                                    "type": "boolean"
-                                  },
-                                  "start_at": {
-                                    "type": "number"
-                                  },
-                                  "start_off": {
-                                    "type": "boolean"
-                                  },
-                                  "minutes_on": {
-                                    "type": "number"
-                                  },
-                                  "minutes_off": {
-                                    "type": "number"
-                                  }
-                                },
-                                "required": [
-                                  "active",
-                                  "start_at",
-                                  "start_off",
-                                  "minutes_on",
-                                  "minutes_off"
-                                ]
+                                "type": "boolean"
                               },
                               {
                                 "type": "null"
@@ -508,8 +493,8 @@
                           "online",
                           "temperature",
                           "water_empty",
-                          "irrigation_schedule",
-                          "fan_schedule",
+                          "irrigation_on",
+                          "fan_on",
                           "lan_ip",
                           "lan_ws_port"
                         ]

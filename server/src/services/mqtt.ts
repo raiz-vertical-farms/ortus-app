@@ -71,8 +71,12 @@ const presenceSchema = z.object({
 
 const stateSchema = z.object({
   brightness: z.number().optional(),
-  irrigationActive: z.boolean().optional(),
-  fanActive: z.boolean().optional(),
+  lightOn: z.boolean().optional(),
+  lightScheduleActive: z.boolean().optional(),
+  irrigationOn: z.boolean().optional(),
+  irrigationScheduleActive: z.boolean().optional(),
+  fanOn: z.boolean().optional(),
+  fanScheduleActive: z.boolean().optional(),
   temperature: z.number().nullable().optional(),
   waterEmpty: z.boolean().optional(),
 });
@@ -121,23 +125,38 @@ mqttClient.on("message", async (topic, payload) => {
       const data = safeJSON<StatePayload>(raw);
       if (!data) return;
 
-      const inserts = [];
-      if (data.brightness !== undefined) {
-        inserts.push({ mac_address: mac, metric: "light/brightness", value_text: String(data.brightness), value_type: "int" });
-      }
-      if (data.temperature !== undefined && data.temperature !== null) {
-        inserts.push({ mac_address: mac, metric: "temperature", value_text: String(data.temperature), value_type: "float" });
-      }
-      if (data.waterEmpty !== undefined) {
-        inserts.push({ mac_address: mac, metric: "water/empty", value_text: String(data.waterEmpty), value_type: "boolean" });
-      }
-      if (data.irrigationActive !== undefined) {
-        inserts.push({ mac_address: mac, metric: "irrigation/active", value_text: String(data.irrigationActive), value_type: "boolean" });
-      }
-      if (inserts.length > 0) {
-        // @ts-ignore - complex insert type matching
-        await db.insertInto("device_timeseries").values(inserts).execute();
-      }
+      const device = await db
+        .selectFrom("devices")
+        .select(["id"])
+        .where("mac_address", "=", mac)
+        .executeTakeFirst();
+      if (!device) return;
+
+      await db
+        .insertInto("device_state")
+        .values({
+          device_id: device.id,
+          brightness: data.brightness ?? 0,
+          light_on: data.lightOn ? 1 : 0,
+          irrigation_on: data.irrigationOn ? 1 : 0,
+          fan_on: data.fanOn ? 1 : 0,
+          temperature: data.temperature ?? null,
+          water_empty: data.waterEmpty ? 1 : 0,
+          updated_at: Date.now(),
+        })
+        .onConflict((oc) =>
+          oc.column("device_id").doUpdateSet({
+            brightness: data.brightness ?? 0,
+            light_on: data.lightOn ? 1 : 0,
+            irrigation_on: data.irrigationOn ? 1 : 0,
+            fan_on: data.fanOn ? 1 : 0,
+            temperature: data.temperature ?? null,
+            water_empty: data.waterEmpty ? 1 : 0,
+            updated_at: Date.now(),
+          })
+        )
+        .execute();
+
       console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
     } else if (type === "ack") {
       const data = safeJSON<{ type: string }>(raw);

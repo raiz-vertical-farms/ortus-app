@@ -74,20 +74,21 @@ private:
 
     unsigned long lastWifiAttempt = 0;
     unsigned long lastPresence = 0;
+    unsigned long lastStateBroadcast = 0;
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
 
-    // Irrigation cycle timing
-    unsigned long irrigationCycleStartMillis = 0;
-    bool irrigationCycleIsOnPhase = false;
+    // Light schedule timing
+    unsigned long lightPhaseStartMillis = 0;
+    bool lightIsOnPhase = false;
 
-    // Light cycle timing
-    unsigned long lightCycleStartMillis = 0;
-    bool lightCycleIsOnPhase = false;
+    // Irrigation schedule timing
+    unsigned long irrigationPhaseStartMillis = 0;
+    bool irrigationIsOnPhase = false;
 
-    // Fan cycle timing
-    unsigned long fanCycleStartMillis = 0;
-    bool fanCycleIsOnPhase = false;
+    // Fan schedule timing
+    unsigned long fanPhaseStartMillis = 0;
+    bool fanIsOnPhase = false;
 
     bool timeSynced = false;
     int appliedBrightness = -1;

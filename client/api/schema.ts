@@ -326,8 +326,11 @@ export interface operations {
                             last_seen: number | null;
                             online: boolean;
                             brightness: number | null;
+                            light_on: boolean | null;
                             temperature: number | null;
-                            water_level: number | null;
+                            water_empty: boolean | null;
+                            irrigation_on: boolean | null;
+                            fan_on: boolean | null;
                             light_schedule: {
                                 active: boolean;
                                 start_at: number;
@@ -381,21 +384,9 @@ export interface operations {
                             last_seen: number | null;
                             online: boolean;
                             temperature: number | null;
-                            water_level: number | null;
-                            irrigation_schedule: {
-                                active: boolean;
-                                start_at: number;
-                                start_off: boolean;
-                                minutes_on: number;
-                                minutes_off: number;
-                            } | null;
-                            fan_schedule: {
-                                active: boolean;
-                                start_at: number;
-                                start_off: boolean;
-                                minutes_on: number;
-                                minutes_off: number;
-                            } | null;
+                            water_empty: boolean | null;
+                            irrigation_on: boolean | null;
+                            fan_on: boolean | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         }[];

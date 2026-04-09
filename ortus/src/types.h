@@ -16,25 +16,26 @@ struct DeviceState
 {
   int brightness = 0;
 
-  // Irrigation cycle
-  bool irrigationCycleActive = false;
-  unsigned long irrigationCycleOnSeconds = 0;
-  unsigned long irrigationCycleOffSeconds = 0;
-  unsigned long irrigationCycleStartEpoch = 0;
-  bool irrigationActive = false;
+  // Light
+  bool lightScheduleActive = false;
+  unsigned long lightScheduleOnSeconds = 0;
+  unsigned long lightScheduleOffSeconds = 0;
+  unsigned long lightScheduleStartEpoch = 0;
+  bool lightOn = false;
 
-  // Light cycle
-  bool lightCycleActive = false;
-  unsigned long lightCycleOnSeconds = 0;
-  unsigned long lightCycleOffSeconds = 0;
-  unsigned long lightCycleStartEpoch = 0;
+  // Irrigation
+  bool irrigationScheduleActive = false;
+  unsigned long irrigationScheduleOnSeconds = 0;
+  unsigned long irrigationScheduleOffSeconds = 0;
+  unsigned long irrigationScheduleStartEpoch = 0;
+  bool irrigationOn = false;
 
-  // Fan cycle
-  bool fanCycleActive = false;
-  unsigned long fanCycleOnSeconds = 0;
-  unsigned long fanCycleOffSeconds = 0;
-  unsigned long fanCycleStartEpoch = 0;
-  bool fanActive = false;
+  // Fan
+  bool fanScheduleActive = false;
+  unsigned long fanScheduleOnSeconds = 0;
+  unsigned long fanScheduleOffSeconds = 0;
+  unsigned long fanScheduleStartEpoch = 0;
+  bool fanOn = false;
 
   float temperatureC = NAN;
   bool waterEmpty = false;
@@ -60,20 +61,21 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
   const bool tempsEqual = isnan(lhs.temperatureC) ? isnan(rhs.temperatureC) : fabs(lhs.temperatureC - rhs.temperatureC) < 0.01f;
 
   return lhs.brightness == rhs.brightness &&
-         lhs.irrigationActive == rhs.irrigationActive &&
-         lhs.irrigationCycleActive == rhs.irrigationCycleActive &&
-         lhs.irrigationCycleOnSeconds == rhs.irrigationCycleOnSeconds &&
-         lhs.irrigationCycleOffSeconds == rhs.irrigationCycleOffSeconds &&
-         lhs.irrigationCycleStartEpoch == rhs.irrigationCycleStartEpoch &&
-         lhs.lightCycleActive == rhs.lightCycleActive &&
-         lhs.lightCycleOnSeconds == rhs.lightCycleOnSeconds &&
-         lhs.lightCycleOffSeconds == rhs.lightCycleOffSeconds &&
-         lhs.lightCycleStartEpoch == rhs.lightCycleStartEpoch &&
-         lhs.fanCycleActive == rhs.fanCycleActive &&
-         lhs.fanCycleOnSeconds == rhs.fanCycleOnSeconds &&
-         lhs.fanCycleOffSeconds == rhs.fanCycleOffSeconds &&
-         lhs.fanCycleStartEpoch == rhs.fanCycleStartEpoch &&
-         lhs.fanActive == rhs.fanActive &&
+         lhs.lightOn == rhs.lightOn &&
+         lhs.lightScheduleActive == rhs.lightScheduleActive &&
+         lhs.lightScheduleOnSeconds == rhs.lightScheduleOnSeconds &&
+         lhs.lightScheduleOffSeconds == rhs.lightScheduleOffSeconds &&
+         lhs.lightScheduleStartEpoch == rhs.lightScheduleStartEpoch &&
+         lhs.irrigationOn == rhs.irrigationOn &&
+         lhs.irrigationScheduleActive == rhs.irrigationScheduleActive &&
+         lhs.irrigationScheduleOnSeconds == rhs.irrigationScheduleOnSeconds &&
+         lhs.irrigationScheduleOffSeconds == rhs.irrigationScheduleOffSeconds &&
+         lhs.irrigationScheduleStartEpoch == rhs.irrigationScheduleStartEpoch &&
+         lhs.fanOn == rhs.fanOn &&
+         lhs.fanScheduleActive == rhs.fanScheduleActive &&
+         lhs.fanScheduleOnSeconds == rhs.fanScheduleOnSeconds &&
+         lhs.fanScheduleOffSeconds == rhs.fanScheduleOffSeconds &&
+         lhs.fanScheduleStartEpoch == rhs.fanScheduleStartEpoch &&
          lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;
 }

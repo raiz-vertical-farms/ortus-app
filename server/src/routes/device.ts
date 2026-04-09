@@ -46,8 +46,11 @@ const deviceStateSchema = z.object({
   last_seen: z.number().nullable(),
   online: z.boolean(),
   brightness: z.number().nullable(),
+  light_on: z.boolean().nullable(),
   temperature: z.number().nullable(),
   water_empty: z.boolean().nullable(),
+  irrigation_on: z.boolean().nullable(),
+  fan_on: z.boolean().nullable(),
   light_schedule: intervalScheduleSchema.nullable(),
   irrigation_schedule: intervalScheduleSchema.nullable(),
   fan_schedule: intervalScheduleSchema.nullable(),
@@ -57,7 +60,7 @@ const deviceStateSchema = z.object({
 
 const deviceStateResponseSchema = z.object({ state: deviceStateSchema });
 
-const deviceListItemSchema = deviceStateSchema.omit({ brightness: true, light_schedule: true });
+const deviceListItemSchema = deviceStateSchema.omit({ brightness: true, light_on: true, light_schedule: true, irrigation_schedule: true, fan_schedule: true });
 const deviceListResponseSchema = z.object({ devices: z.array(deviceListItemSchema) });
 
 type DeviceStateResponse = z.infer<typeof deviceStateResponseSchema>;
@@ -72,17 +75,6 @@ async function getDeviceMac(id: number, user_id: string) {
     .where("user_id", "=", user_id)
     .executeTakeFirst();
   return device?.mac_address ?? null;
-}
-
-function toNumberOrNull(value?: string | null) {
-  if (value === undefined || value === null) return null;
-  const num = Number(value);
-  return Number.isNaN(num) ? null : num;
-}
-
-function toBooleanOrNull(value?: string | null) {
-  if (value === undefined || value === null) return null;
-  return value === "true";
 }
 
 /** Compute the current phase and end time given interval schedule params. */
@@ -213,17 +205,9 @@ app
         .where("id", "=", id)
         .executeTakeFirstOrThrow();
 
-      const [brightness, waterEmpty, temperature, lightSchedule, irrigationSchedule, fanSchedule] =
+      const [state, lightSchedule, irrigationSchedule, fanSchedule] =
         await Promise.all([
-          db.selectFrom("device_timeseries as dt1").select(["metric", "value_text", "value_type"])
-            .where("mac_address", "=", device.mac_address).where("metric", "=", "light/brightness")
-            .orderBy("dt1.created_at", "desc").limit(1).executeTakeFirst(),
-          db.selectFrom("device_timeseries as dt1").select(["metric", "value_text", "value_type"])
-            .where("mac_address", "=", device.mac_address).where("metric", "=", "water/empty")
-            .orderBy("dt1.created_at", "desc").limit(1).executeTakeFirst(),
-          db.selectFrom("device_timeseries as dt1").select(["metric", "value_text", "value_type"])
-            .where("mac_address", "=", device.mac_address).where("metric", "=", "temperature")
-            .orderBy("dt1.created_at", "desc").limit(1).executeTakeFirst(),
+          db.selectFrom("device_state").selectAll().where("device_id", "=", id).executeTakeFirst(),
           db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
           db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
           db.selectFrom("fan_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
@@ -233,9 +217,12 @@ app
         state: {
           ...device,
           online: Boolean(device.online),
-          water_empty: toBooleanOrNull(waterEmpty?.value_text),
-          temperature: toNumberOrNull(temperature?.value_text),
-          brightness: toNumberOrNull(brightness?.value_text),
+          brightness: state?.brightness ?? null,
+          light_on: state ? Boolean(state.light_on) : null,
+          temperature: state?.temperature ?? null,
+          water_empty: state ? Boolean(state.water_empty) : null,
+          irrigation_on: state ? Boolean(state.irrigation_on) : null,
+          fan_on: state ? Boolean(state.fan_on) : null,
           light_schedule: lightSchedule
             ? { active: Boolean(lightSchedule.active), start_at: lightSchedule.start_at, start_off: Boolean(lightSchedule.start_off), minutes_on: lightSchedule.minutes_on, minutes_off: lightSchedule.minutes_off }
             : null,
@@ -266,14 +253,11 @@ app
         .where("user_id", "=", user.id)
         .execute();
 
-      const waterStatuses = await Promise.all(
+      const states = await Promise.all(
         devices.map((d) =>
-          db.selectFrom("device_timeseries")
-            .select(["value_text"])
-            .where("mac_address", "=", d.mac_address)
-            .where("metric", "=", "water/empty")
-            .orderBy("created_at", "desc")
-            .limit(1)
+          db.selectFrom("device_state")
+            .select(["water_empty", "irrigation_on", "fan_on", "temperature"])
+            .where("device_id", "=", d.id)
             .executeTakeFirst()
         )
       );
@@ -282,7 +266,10 @@ app
         devices: devices.map((d, i) => ({
           ...d,
           online: Boolean(d.online),
-          water_empty: toBooleanOrNull(waterStatuses[i]?.value_text),
+          water_empty: states[i] ? Boolean(states[i].water_empty) : null,
+          irrigation_on: states[i] ? Boolean(states[i].irrigation_on) : null,
+          fan_on: states[i] ? Boolean(states[i].fan_on) : null,
+          temperature: states[i]?.temperature ?? null,
         })),
       });
     }
