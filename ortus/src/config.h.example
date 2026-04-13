@@ -21,12 +21,13 @@ constexpr unsigned long PUBLIC_IP_REFRESH_MS = 10UL * 60UL * 1000UL;
 constexpr int PIN_RELAY_LIGHT = 11;
 constexpr int PIN_RELAY_IRRIGATION = 14;
 constexpr int PIN_RELAY_FAN = 12;
-constexpr int PIN_SENSOR_WATER = 10;
-constexpr int PIN_SENSOR_TEMP = 7;
+constexpr int PIN_SENSOR_WATER = 16;
+constexpr int PIN_SENSOR_TEMP = 15;
 
 // Logic Constants
-constexpr unsigned long TEMP_POLL_MS = 5000;
-constexpr unsigned long WATER_POLL_MS = 2000;
+constexpr unsigned long TEMP_POLL_MS = 1000;
+constexpr unsigned long WATER_POLL_MS = 200;
+constexpr unsigned long WATER_SENSITIVITY_MS = 500;
 constexpr unsigned long MAX_IRRIGATION_DURATION_S = 900;
 constexpr float TEMP_DELTA_THRESHOLD = 0.25f;
 

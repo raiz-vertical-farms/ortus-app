@@ -7,7 +7,6 @@
 #include <WebSocketsServer.h>
 #include <Preferences.h>
 #include <OneWire.h>
-#include <DallasTemperature.h>
 #include <HTTPUpdate.h>
 #include <time.h>
 
@@ -29,8 +28,6 @@ private:
     void connectWiFi();
     void setupMQTT();
     void connectMQTT();
-    void setupSensors();
-    void setupActuators();
 
     // --- Logic ---
     void handleCommand(const DeviceCommand &cmd);
@@ -62,7 +59,6 @@ private:
     WebSocketsServer wsServer;
     Preferences preferences;
     OneWire oneWire;
-    DallasTemperature sensors;
     BluetoothProvisioning ble;
 
     String wifiSSID;
@@ -77,6 +73,10 @@ private:
     unsigned long lastStateBroadcast = 0;
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
+
+    // Water level filtering
+    unsigned long waterDetectionStart = 0;
+    bool waterConfirmed = false;
 
     // Light schedule timing
     unsigned long lightPhaseStartMillis = 0;

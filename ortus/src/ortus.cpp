@@ -7,8 +7,7 @@ OrtusSystem *OrtusSystem::instance = nullptr;
 OrtusSystem::OrtusSystem()
     : mqttClient(wifiClient),
       wsServer(WS_SERVER_PORT),
-      oneWire(PIN_SENSOR_TEMP),
-      sensors(&oneWire)
+      oneWire(PIN_SENSOR_TEMP)
 {
     instance = this;
 }
@@ -48,9 +47,10 @@ void OrtusSystem::begin()
         .hpoint = 0};
     ledc_channel_config(&channel);
 
-    sensors.begin();
-    sensors.setResolution(12);
-    sensors.setWaitForConversion(false); // Non-blocking
+    // Initial DS18B20 setup
+    oneWire.reset();
+    oneWire.write(0xCC);
+    oneWire.write(0x44, 1);
 
     preferences.begin("ortus", false);
     loadCredentials();
@@ -588,17 +588,34 @@ void OrtusSystem::updateSensors()
     if (now - lastTempPoll > TEMP_POLL_MS)
     {
         lastTempPoll = now;
-        // Read the previous conversion
-        float t = sensors.getTempCByIndex(0);
-        // Start next conversion in background
-        sensors.requestTemperatures();
+        byte data[2];
+        int16_t result;
 
-        if (t > -50 && t < 150)
+        if (oneWire.reset())
         {
-            if (isnan(currentState.temperatureC) || fabs(t - currentState.temperatureC) > TEMP_DELTA_THRESHOLD)
+            oneWire.write(0xCC);
+            oneWire.write(0xBE);
+
+            for (int i = 0; i < 2; i++)
             {
-                currentState.temperatureC = t;
-                broadcastState();
+                data[i] = oneWire.read();
+            }
+
+            result = (data[1] << 8) | data[0];
+            float t = (float)result * 0.0625;
+
+            // Start next conversion in background
+            oneWire.reset();
+            oneWire.write(0xCC);
+            oneWire.write(0x44, 1);
+
+            if (t > -100 && t < 150)
+            {
+                if (isnan(currentState.temperatureC) || fabs(t - currentState.temperatureC) > TEMP_DELTA_THRESHOLD)
+                {
+                    currentState.temperatureC = t;
+                    broadcastState();
+                }
             }
         }
     }
@@ -606,10 +623,38 @@ void OrtusSystem::updateSensors()
     if (now - lastWaterPoll > WATER_POLL_MS)
     {
         lastWaterPoll = now;
-        bool empty = (digitalRead(PIN_SENSOR_WATER) == LOW);
-        if (empty != currentState.waterEmpty)
+        int rawLiquidRead = digitalRead(PIN_SENSOR_WATER); // LOW = Detected
+
+        if (rawLiquidRead == LOW)
         {
-            currentState.waterEmpty = empty;
+            if (waterDetectionStart == 0)
+            {
+                waterDetectionStart = millis();
+            }
+
+            if (millis() - waterDetectionStart > WATER_SENSITIVITY_MS)
+            {
+                if (!waterConfirmed)
+                {
+                    Serial.println(">>> LIQUID CONFIRMED <<<");
+                    waterConfirmed = true;
+                }
+            }
+        }
+        else
+        {
+            waterDetectionStart = 0;
+            if (waterConfirmed)
+            {
+                Serial.println(">>> NO LIQUID <<<");
+                waterConfirmed = false;
+            }
+        }
+
+        bool waterEmpty = !waterConfirmed;
+        if (waterEmpty != currentState.waterEmpty)
+        {
+            currentState.waterEmpty = waterEmpty;
             broadcastState();
         }
     }
