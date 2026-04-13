@@ -75,9 +75,11 @@ type UseDeviceResult = {
   startLightSchedule: (opts?: ScheduleInput) => Promise<void>;
   pauseLightSchedule: () => Promise<void>;
   skipLightSchedule: () => Promise<void>;
+  restartLightSchedule: () => Promise<void>;
   startIrrigationSchedule: (opts?: ScheduleInput) => Promise<void>;
   pauseIrrigationSchedule: () => Promise<void>;
   skipIrrigationSchedule: () => Promise<void>;
+  restartIrrigationSchedule: () => Promise<void>;
   startFanSchedule: (opts?: ScheduleInput) => Promise<void>;
   pauseFanSchedule: () => Promise<void>;
   skipFanSchedule: () => Promise<void>;
@@ -258,6 +260,11 @@ export function useDevice(deviceId: string): UseDeviceResult {
     await deviceQuery.refetch();
   }, [deviceId, deviceQuery]);
 
+  const restartLightSchedule = useCallback(async () => {
+    await apiFetch(`/api/device/${deviceId}/light/schedule/restart`, { method: "POST" });
+    await deviceQuery.refetch();
+  }, [deviceId, deviceQuery]);
+
   const startIrrigationSchedule = useCallback(async (opts?: ScheduleInput) => {
     await apiFetch(`/api/device/${deviceId}/irrigation/schedule`, {
       method: "POST",
@@ -282,6 +289,11 @@ export function useDevice(deviceId: string): UseDeviceResult {
 
   const skipIrrigationSchedule = useCallback(async () => {
     await apiFetch(`/api/device/${deviceId}/irrigation/schedule/skip`, { method: "POST" });
+    await deviceQuery.refetch();
+  }, [deviceId, deviceQuery]);
+
+  const restartIrrigationSchedule = useCallback(async () => {
+    await apiFetch(`/api/device/${deviceId}/irrigation/schedule/restart`, { method: "POST" });
     await deviceQuery.refetch();
   }, [deviceId, deviceQuery]);
 
@@ -331,9 +343,11 @@ export function useDevice(deviceId: string): UseDeviceResult {
     startLightSchedule,
     pauseLightSchedule,
     skipLightSchedule,
+    restartLightSchedule,
     startIrrigationSchedule,
     pauseIrrigationSchedule,
     skipIrrigationSchedule,
+    restartIrrigationSchedule,
     startFanSchedule,
     pauseFanSchedule,
     skipFanSchedule,

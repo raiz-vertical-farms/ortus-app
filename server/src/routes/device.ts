@@ -379,6 +379,40 @@ app
     }
   )
 
+  .post(
+    ":id/light/schedule/restart",
+    describeRoute({ operationId: "restartLightSchedule", summary: "Restart the light schedule (starts ON phase immediately)", tags: ["Devices"] }),
+    async (c) => {
+      const user = c.get("user");
+      const id = Number(c.req.param("id"));
+      if (isNaN(id)) throw new HTTPException(400, { res: c.json({ message: "Invalid device id" }, 400) });
+
+      const mac = await getDeviceMac(id, user.id);
+      if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
+
+      const existing = await db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      if (!existing) throw new HTTPException(400, { res: c.json({ message: "No light schedule to restart" }, 400) });
+
+      const now = Date.now();
+      const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
+
+      await db.updateTable("light_schedules").where("device_id", "=", id)
+        .set({ active: 1, start_at: now, start_off: 0 })
+        .execute();
+
+      await dispatchSchedule(mac, "setLightSchedule",
+        { type: "setLightSchedule", active: true, minutes_on: existing.minutes_on, minutes_off: existing.minutes_off, start_off: false, start_at: Math.floor(now / 1000) },
+        async () => {
+          await db.updateTable("light_schedules").where("device_id", "=", id)
+            .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
+            .execute();
+        }
+      );
+
+      return c.json({ message: "Light schedule restarted" });
+    }
+  )
+
   // --- Irrigation ---
 
   .post(
@@ -465,6 +499,41 @@ app
       );
 
       return c.json({ message: "Irrigation schedule skipped" });
+    }
+  )
+
+  .post(
+    ":id/irrigation/schedule/restart",
+    describeRoute({ operationId: "restartIrrigationSchedule", summary: "Restart the irrigation schedule (starts watering immediately)", tags: ["Devices"] }),
+    async (c) => {
+      const user = c.get("user");
+      const id = Number(c.req.param("id"));
+      if (isNaN(id)) throw new HTTPException(400, { res: c.json({ message: "Invalid device id" }, 400) });
+
+      const mac = await getDeviceMac(id, user.id);
+      if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
+
+      const existing = await db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      if (!existing) throw new HTTPException(400, { res: c.json({ message: "No irrigation schedule to restart" }, 400) });
+
+      const now = Date.now();
+      const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
+
+      // Restarting always resets to starting now and starting ON (watering)
+      await db.updateTable("irrigation_schedules").where("device_id", "=", id)
+        .set({ active: 1, start_at: now, start_off: 0 })
+        .execute();
+
+      await dispatchSchedule(mac, "setIrrigationSchedule",
+        { type: "setIrrigationSchedule", active: true, minutes_on: existing.minutes_on, minutes_off: existing.minutes_off, start_off: false, start_at: Math.floor(now / 1000) },
+        async () => {
+          await db.updateTable("irrigation_schedules").where("device_id", "=", id)
+            .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
+            .execute();
+        }
+      );
+
+      return c.json({ message: "Irrigation schedule restarted" });
     }
   )
 

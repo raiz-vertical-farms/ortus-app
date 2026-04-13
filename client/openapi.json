@@ -617,6 +617,26 @@
         ]
       }
     },
+    "/api/device/{id}/light/schedule/restart": {
+      "post": {
+        "operationId": "restartLightSchedule",
+        "summary": "Restart the light schedule (starts ON phase immediately)",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
     "/api/device/{id}/irrigation/schedule": {
       "post": {
         "operationId": "scheduleIrrigation",
@@ -668,6 +688,26 @@
       "post": {
         "operationId": "skipIrrigationSchedule",
         "summary": "Skip the current irrigation phase",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {},
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/irrigation/schedule/restart": {
+      "post": {
+        "operationId": "restartIrrigationSchedule",
+        "summary": "Restart the irrigation schedule (starts watering immediately)",
         "tags": [
           "Devices"
         ],

@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
+import { Group } from "../../primitives/Group/Group";
 import { client } from "../../lib/apiClient";
 import { useState } from "react";
 import Button from "../../primitives/Button/Button";
@@ -117,6 +118,15 @@ function LightCard({
     }
   };
 
+  const handleRestart = async () => {
+    setLoading(true);
+    try {
+      await device.restartLightSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.card}>
       <div className={classNames(styles.cardContent, isPaused && styles.faded)}>
@@ -132,16 +142,23 @@ function LightCard({
           className={styles.slider}
         />
       </div>
-      {isActive && (
-        <Button onClick={handlePause} loading={loading}>
-          Pause
-        </Button>
-      )}
-      {(isPaused || !hasSchedule) && (
-        <Button onClick={handleResumeOrStart} loading={loading}>
-          {isPaused ? "Resume" : "Start schedule"}
-        </Button>
-      )}
+      <Group>
+        {isActive && (
+          <>
+            <Button onClick={handlePause} loading={loading}>
+              Pause
+            </Button>
+            <Button onClick={handleRestart} loading={loading} variant="secondary">
+              Restart
+            </Button>
+          </>
+        )}
+        {(isPaused || !hasSchedule) && (
+          <Button onClick={handleResumeOrStart} loading={loading}>
+            {isPaused ? "Resume" : "Start schedule"}
+          </Button>
+        )}
+      </Group>
     </div>
   );
 }
@@ -190,6 +207,15 @@ function IrrigationCard({
     }
   };
 
+  const handleRestart = async () => {
+    setLoading(true);
+    try {
+      await device.restartIrrigationSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={styles.card}>
       <div className={classNames(styles.cardContent, isPaused && styles.faded)}>
@@ -197,16 +223,23 @@ function IrrigationCard({
           {statusText}
         </Text>
       </div>
-      {isActive && (
-        <Button onClick={handlePause} loading={loading}>
-          Pause
-        </Button>
-      )}
-      {(isPaused || !hasSchedule) && (
-        <Button onClick={handleResumeOrStart} loading={loading}>
-          {isPaused ? "Resume" : "Start schedule"}
-        </Button>
-      )}
+      <Group>
+        {isActive && (
+          <>
+            <Button onClick={handlePause} loading={loading}>
+              Pause
+            </Button>
+            <Button onClick={handleRestart} loading={loading} variant="secondary">
+              Restart
+            </Button>
+          </>
+        )}
+        {(isPaused || !hasSchedule) && (
+          <Button onClick={handleResumeOrStart} loading={loading}>
+            {isPaused ? "Resume" : "Start schedule"}
+          </Button>
+        )}
+      </Group>
     </div>
   );
 }
