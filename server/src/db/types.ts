@@ -63,6 +63,21 @@ export interface LightSchedules {
   on_timestamp: number;
 }
 
+export interface UserWhatsapp {
+  created_at: Generated<number>;
+  id: Generated<number>;
+  phone_number: string;
+  user_id: string;
+}
+
+export interface WhatsappOtps {
+  created_at: Generated<number>;
+  expires_at: number;
+  id: Generated<number>;
+  otp: string;
+  user_id: string;
+}
+
 export interface DB {
   _migrations: _Migrations;
   alert_notifications: AlertNotifications;
@@ -70,4 +85,6 @@ export interface DB {
   devices: Devices;
   irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;
+  user_whatsapp: UserWhatsapp;
+  whatsapp_otps: WhatsappOtps;
 }

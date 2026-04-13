@@ -657,6 +657,79 @@
           }
         ]
       }
+    },
+    "/api/whatsapp/connect": {
+      "post": {
+        "operationId": "connectWhatsapp",
+        "summary": "Generate an OTP to connect WhatsApp",
+        "tags": [
+          "WhatsApp"
+        ],
+        "responses": {
+          "200": {
+            "description": "OTP generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "otp": {
+                      "type": "string"
+                    },
+                    "deeplink": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "otp",
+                    "deeplink"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/whatsapp/status": {
+      "get": {
+        "operationId": "whatsappStatus",
+        "summary": "Check if the user has connected WhatsApp",
+        "tags": [
+          "WhatsApp"
+        ],
+        "responses": {
+          "200": {
+            "description": "WhatsApp connection status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "connected": {
+                      "type": "boolean"
+                    },
+                    "phone_number": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "connected",
+                    "phone_number"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {}

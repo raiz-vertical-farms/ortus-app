@@ -202,6 +202,63 @@ function WaterView({
   );
 }
 
+function WhatsAppConnect() {
+  // stores the otp and deeplink returned from the server after generating
+  const [otp, setOtp] = useState<string | null>(null);
+  const [deeplink, setDeeplink] = useState<string | null>(null);
+
+  // check if the user already has whatsapp connected
+  const { data: statusData } = client.api.whatsappStatus.useQuery();
+
+  const connected = statusData?.connected ?? false;
+  const phoneNumber = statusData?.phone_number ?? null;
+
+  // mutation that calls POST /api/whatsapp/connect to generate an otp
+  const { mutate: generateOtp, isPending: loading } =
+    client.api.connectWhatsapp.useMutation(undefined, {
+      onSuccess: (result) => {
+        // save the otp and deeplink so we can display them to the user
+        setOtp(result.otp);
+        setDeeplink(result.deeplink);
+      },
+    });
+
+  if (connected) {
+    return (
+      <Box pt="xl">
+        <Text size="lg">WhatsApp alerts</Text>
+        <Text size="sm">Connected to {phoneNumber}</Text>
+        <Text size="sm">You will receive a message when your water is low.</Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Box pt="xl">
+      <Text size="lg">WhatsApp alerts</Text>
+      <Text size="sm">Connect WhatsApp to get notified when your water is low.</Text>
+
+      {/* step 1: user clicks to generate an otp */}
+      {!otp && (
+        <Button onClick={() => generateOtp({})} disabled={loading}>
+          {loading ? "Generating..." : "Connect WhatsApp"}
+        </Button>
+      )}
+
+      {/* step 2: show the otp and a button that opens whatsapp pre-filled */}
+      {otp && deeplink && (
+        <>
+          <Text size="sm">Your code: <strong>{otp}</strong></Text>
+          <Text size="sm">Tap the button below to open WhatsApp — the code will be pre-filled. Just hit send.</Text>
+          <Button onClick={() => window.open(deeplink, "_blank")}>
+            Open WhatsApp
+          </Button>
+        </>
+      )}
+    </Box>
+  );
+}
+
 function SettingsView({
   deviceId,
   macAddress,
@@ -219,6 +276,9 @@ function SettingsView({
 
   return (
     <>
+      {/* whatsapp alert connection section */}
+      <WhatsAppConnect />
+
       <Box pt="5xl">
         <Text>Danger zone (careful!)</Text>
         <Button onClick={() => mutate({ path: { id: deviceId } })}>

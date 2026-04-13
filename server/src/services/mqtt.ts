@@ -1,6 +1,10 @@
 import mqtt, { MqttClient } from "mqtt";
 import { z } from "zod";
 import { db } from "../db";
+import { twilio } from "./twilio";
+
+// the twilio sandbox whatsapp number — override via env in production
+const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER ?? "+14155238886";
 
 const MQTT_CONFIG = {
   url: `mqtts://${process.env.MQTT_BROKER_HOST}:8883`,
@@ -112,14 +116,43 @@ mqttClient.on("message", async (topic, payload) => {
       if (data.irrigationActive !== undefined) {
         inserts.push({ mac_address: mac, metric: "irrigation/active", value_text: String(data.irrigationActive), value_type: "boolean" });
       }
-      // Fan is now part of irrigation, but if we still receive it (or for legacy), we can log it or ignore it.
-      // Since we are removing fan logic from firmware, we probably won't receive it.
-      
+      // fan is now part of irrigation, but if we still receive it (or for legacy), we can log it or ignore it.
+      // since we are removing fan logic from firmware, we probably won't receive it.
+
       if (inserts.length > 0) {
         // @ts-ignore - complex insert type matching
         await db.insertInto("device_timeseries").values(inserts).execute();
       }
-      
+
+      // if the water tank is empty, send a whatsapp alert to the device owner
+      if (data.waterEmpty === true) {
+        // find the user who owns this device
+        const device = await db
+          .selectFrom("devices")
+          .select("user_id")
+          .where("mac_address", "=", mac)
+          .executeTakeFirst();
+
+        if (device) {
+          // check if that user has connected their whatsapp
+          const wa = await db
+            .selectFrom("user_whatsapp")
+            .select("phone_number")
+            .where("user_id", "=", device.user_id)
+            .executeTakeFirst();
+
+          if (wa) {
+            // send them a whatsapp message via twilio
+            await twilio.messages.create({
+              from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
+              to: `whatsapp:${wa.phone_number}`,
+              body: "Your Ortus device is running low on water. Please refill soon.",
+            });
+            console.log(`[Alert] Sent water empty alert to ${wa.phone_number}`);
+          }
+        }
+      }
+
       console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
     }
   } catch (err) {

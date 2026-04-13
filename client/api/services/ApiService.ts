@@ -1819,6 +1819,365 @@ export interface ApiService {
             error: LocalDevicesError;
         };
     };
+    /** @summary Generate an OTP to connect WhatsApp */
+    connectWhatsapp: {
+        /** @summary Generate an OTP to connect WhatsApp */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ConnectWhatsappBody, ConnectWhatsappParameters, TMeta, TSignal>, client?: (schema: ConnectWhatsappSchema, options: ServiceOperationMutationFnOptions<ConnectWhatsappBody, ConnectWhatsappParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ConnectWhatsappData, ConnectWhatsappError>>): Promise<RequestFnResponse<ConnectWhatsappData, ConnectWhatsappError>>;
+        /** @summary Generate an OTP to connect WhatsApp */
+        getMutationKey(parameters: DeepReadonly<ConnectWhatsappParameters> | void): ServiceOperationMutationKey<ConnectWhatsappSchema, ConnectWhatsappParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Generate an OTP to connect WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.connectWhatsapp.useMutation({})
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.connectWhatsapp.useMutation()
+         * mutate({
+         *     body: bodyPayload
+         * });
+         * ```
+         */
+        useMutation<TVariables extends ConnectWhatsappBody, TContext = unknown>(parameters: DeepReadonly<ConnectWhatsappParameters>, options?: ServiceOperationUseMutationOptions<ConnectWhatsappSchema, ConnectWhatsappData, ConnectWhatsappParameters, TVariables, OperationError<ConnectWhatsappError>, TContext>): UseMutationResult<ConnectWhatsappData, OperationError<ConnectWhatsappError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Generate an OTP to connect WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.connectWhatsapp.useMutation({})
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.connectWhatsapp.useMutation()
+         * mutate({
+         *     body: bodyPayload
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<ConnectWhatsappBody, ConnectWhatsappParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<ConnectWhatsappSchema, ConnectWhatsappData, ConnectWhatsappParameters, TVariables, OperationError<ConnectWhatsappError>, TContext>): UseMutationResult<ConnectWhatsappData, OperationError<ConnectWhatsappError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Generate an OTP to connect WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const connectWhatsappTotal = qraft.apiService.connectWhatsapp.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const connectWhatsappTotal = qraft.apiService.connectWhatsapp.useIsMutating({
+         *     parameters: {}
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext> | MutationFiltersByMutationKey<ConnectWhatsappSchema, ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Generate an OTP to connect WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const connectWhatsappPendingMutationVariables = qraft.apiService.connectWhatsapp.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const connectWhatsappMutationData = qraft.apiService.connectWhatsapp.useMutationState({
+         *     filters: {
+         *         parameters: {}
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<ConnectWhatsappData, OperationError<ConnectWhatsappError>, MutationVariables<ConnectWhatsappBody, ConnectWhatsappParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext> | MutationFiltersByMutationKey<ConnectWhatsappSchema, ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext>;
+            select?: (mutation: Mutation<ConnectWhatsappData, OperationError<ConnectWhatsappError>, MutationVariables<ConnectWhatsappBody, ConnectWhatsappParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Generate an OTP to connect WhatsApp */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext> | MutationFiltersByMutationKey<ConnectWhatsappSchema, ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Generate an OTP to connect WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.connectWhatsapp.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {}
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.connectWhatsapp.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext> | MutationFiltersByMutationKey<ConnectWhatsappSchema, ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext>): Mutation<ConnectWhatsappData, ConnectWhatsappError, MutationVariables<ConnectWhatsappBody, ConnectWhatsappParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext> | MutationFiltersByMutationKey<ConnectWhatsappSchema, ConnectWhatsappBody, ConnectWhatsappData, ConnectWhatsappParameters, OperationError<ConnectWhatsappError>, TContext>): Array<Mutation<ConnectWhatsappData, ConnectWhatsappError, MutationVariables<ConnectWhatsappBody, ConnectWhatsappParameters>, TContext>>;
+        };
+        schema: ConnectWhatsappSchema;
+        types: {
+            parameters: ConnectWhatsappParameters;
+            data: ConnectWhatsappData;
+            error: ConnectWhatsappError;
+            body: ConnectWhatsappBody;
+        };
+    };
+    /** @summary Check if the user has connected WhatsApp */
+    whatsappStatus: {
+        /** @summary Check if the user has connected WhatsApp */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<WhatsappStatusSchema, WhatsappStatusParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<WhatsappStatusParameters, TMeta, TSignal> | void), client?: (schema: WhatsappStatusSchema, options: {
+            parameters: WhatsappStatusParameters;
+            signal?: TSignal;
+            meta?: TMeta;
+        }) => Promise<RequestFnResponse<WhatsappStatusData, WhatsappStatusError>>): Promise<RequestFnResponse<WhatsappStatusData, WhatsappStatusError>>;
+        /** @summary Check if the user has connected WhatsApp */
+        getQueryKey(parameters: DeepReadonly<WhatsappStatusParameters> | void): ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query without parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.whatsappStatus.useQuery()
+         * ```
+         */
+        useQuery<TData = WhatsappStatusData>(parameters: ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void), options?: Omit<UndefinedInitialDataOptions<WhatsappStatusData, WhatsappStatusError, TData, ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>>, "queryKey">): UseQueryResult<TData, OperationError<WhatsappStatusError>>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query without parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.whatsappStatus.useQuery()
+         * ```
+         */
+        useQuery<TData = WhatsappStatusData>(parameters: ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void), options: Omit<DefinedInitialDataOptions<WhatsappStatusData, WhatsappStatusError, TData, ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<WhatsappStatusError>>;
+        /** @summary Check if the user has connected WhatsApp */
+        getInfiniteQueryKey(parameters: DeepReadonly<WhatsappStatusParameters> | void): ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.whatsappStatus.useInfiniteQuery({}, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends WhatsappStatusParameters, TQueryFnData = WhatsappStatusData, TData = OperationInfiniteData<TQueryFnData, WhatsappStatusParameters>>(parameters: ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, WhatsappStatusError, TData, ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<WhatsappStatusError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.whatsappStatus.useInfiniteQuery({}, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends WhatsappStatusParameters, TQueryFnData = WhatsappStatusData, TData = OperationInfiniteData<TQueryFnData, WhatsappStatusParameters>>(parameters: ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, WhatsappStatusError, TData, ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<WhatsappStatusData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<WhatsappStatusError>>;
+        /**
+         * Monitors the number of queries currently fetching, matching the provided filters.
+         * Useful for creating loading indicators or performing actions based on active requests.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsFetching|`useIsFetching(...)` documentation}
+         * @example Checks the total number of queries fetching from the specified service method,
+         * both normal and infinite. If no parameters are provided, no filtering is applied.
+         * ```ts
+         * const whatsappStatusTotal = qraft.apiService.whatsappStatus.useIsFetching()
+         * ```
+         */
+        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>): number;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently. This is especially useful for managing complex data dependencies in parallel.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQueries|`useQueries(...)` documentation}
+         * @example Multiple queries. Returns `data`, `error`, `isSuccess` and other properties.
+         * ```ts
+         * const whatsappStatusResults = qraft.apiService.whatsappStatus.useQueries({
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
+         * });
+         * whatsappStatusResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example Combined results. Only the data will be returned.
+         * ```ts
+         * const whatsappStatusCombinedResults = qraft.apiService.whatsappStatus.useQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
+         * });
+         * whatsappStatusCombinedResults.forEach(data => console.log({ data }));
+         * ```
+         */
+        useQueries<T extends Array<UseQueryOptionsForUseQueries<WhatsappStatusSchema, WhatsappStatusParameters, WhatsappStatusData, WhatsappStatusError>>, TCombinedResult = Array<UseQueryResult<WhatsappStatusData, WhatsappStatusError>>>(options: {
+            queries: T;
+            combine?: (results: Array<UseQueryResult<WhatsappStatusData, WhatsappStatusError>>) => TCombinedResult;
+        }): TCombinedResult;
+        /**
+         * Performs asynchronous data fetching with Suspense support.
+         * Similar to useQuery but integrates with React Suspense for loading states.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQuery|`useSuspenseQuery(...)` documentation}
+         * @example Suspense Query without parameters
+         * ```ts
+         * const data = qraft.apiService.whatsappStatus.useSuspenseQuery()
+         * ```
+         */
+        useSuspenseQuery<TData = WhatsappStatusData>(parameters: ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void), options?: Omit<UseSuspenseQueryOptions<WhatsappStatusData, WhatsappStatusError, TData, ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<WhatsappStatusError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         * It functions similarly to `useInfiniteQuery`, but with added support for React Suspense.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseInfiniteQuery|`useSuspenseInfiniteQuery(...)` documentation}
+         *
+         * @example Suspense Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.whatsappStatus.useSuspenseInfiniteQuery({}, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useSuspenseInfiniteQuery<TPageParam extends WhatsappStatusParameters, TData = WhatsappStatusData>(parameters: ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void), options: Omit<UseSuspenseInfiniteQueryOptions<WhatsappStatusData, WhatsappStatusError, OperationInfiniteData<TData, WhatsappStatusParameters>, ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<WhatsappStatusData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, WhatsappStatusParameters>, OperationError<WhatsappStatusError>>;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently with Suspense support.
+         * Similar to useQueries but integrates with React Suspense for loading states.
+         *
+         * @summary Check if the user has connected WhatsApp
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQueries|`useSuspenseQueries(...)` documentation}
+         * @example Basic usage with Suspense
+         * ```ts
+         * const whatsappStatusData = qraft.apiService.whatsappStatus.useSuspenseQueries({
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
+         * });
+         * whatsappStatusResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example With data transformation using combine
+         * ```ts
+         * const whatsappStatusCombinedData = qraft.apiService.whatsappStatus.useSuspenseQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {},
+         *         {}
+         *     ]
+         * });
+         * whatsappStatusCombinedData.forEach(data => console.log({ data }));
+         * ```
+         */
+        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<WhatsappStatusSchema, WhatsappStatusParameters, WhatsappStatusData, WhatsappStatusError>>, TCombinedResult = Array<UseSuspenseQueryResult<WhatsappStatusData, WhatsappStatusError>>>(options: {
+            queries: T;
+            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<WhatsappStatusData, WhatsappStatusError>, "data">>) => TCombinedResult;
+        }): TCombinedResult;
+        /** @summary Check if the user has connected WhatsApp */
+        fetchQuery(options: ServiceOperationFetchQueryOptions<WhatsappStatusSchema, WhatsappStatusData, WhatsappStatusParameters, WhatsappStatusError> | void): Promise<WhatsappStatusData>;
+        /** @summary Check if the user has connected WhatsApp */
+        prefetchQuery(options: ServiceOperationFetchQueryOptions<WhatsappStatusSchema, WhatsappStatusData, WhatsappStatusParameters, WhatsappStatusError> | void): Promise<void>;
+        /** @summary Check if the user has connected WhatsApp */
+        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<WhatsappStatusSchema, WhatsappStatusData, WhatsappStatusParameters, WhatsappStatusError> | void): Promise<WhatsappStatusData>;
+        /** @summary Check if the user has connected WhatsApp */
+        fetchInfiniteQuery<TPageParam extends WhatsappStatusParameters>(options: ServiceOperationFetchInfiniteQueryOptions<WhatsappStatusSchema, WhatsappStatusData, WhatsappStatusParameters, DeepReadonly<TPageParam>, WhatsappStatusError> | void): Promise<OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters>>;
+        /** @summary Check if the user has connected WhatsApp */
+        prefetchInfiniteQuery<TPageParam extends WhatsappStatusParameters>(options: ServiceOperationFetchInfiniteQueryOptions<WhatsappStatusSchema, WhatsappStatusData, WhatsappStatusParameters, DeepReadonly<TPageParam>, WhatsappStatusError> | void): Promise<void>;
+        /** @summary Check if the user has connected WhatsApp */
+        ensureInfiniteQueryData<TPageParam extends WhatsappStatusParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<WhatsappStatusSchema, WhatsappStatusData, WhatsappStatusParameters, DeepReadonly<TPageParam>, WhatsappStatusError> | void): Promise<OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters>>;
+        /** @summary Check if the user has connected WhatsApp */
+        getQueryData(parameters: ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void)): WhatsappStatusData | undefined;
+        /** @summary Check if the user has connected WhatsApp */
+        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void)): OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters> | undefined;
+        /** @summary Check if the user has connected WhatsApp */
+        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>): TInfinite extends true ? Array<[
+            queryKey: ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>,
+            data: NoInfer<OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters>> | undefined
+        ]> : Array<[
+            queryKey: ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>,
+            data: WhatsappStatusData | undefined
+        ]>;
+        /** @summary Check if the user has connected WhatsApp */
+        getQueryState(parameters: ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | (DeepReadonly<WhatsappStatusParameters> | void)): QueryState<WhatsappStatusData, WhatsappStatusError> | undefined;
+        /** @summary Check if the user has connected WhatsApp */
+        getInfiniteQueryState(parameters: DeepReadonly<WhatsappStatusParameters> | ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters> | void): QueryState<OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters>, WhatsappStatusError> | undefined;
+        /** @summary Check if the user has connected WhatsApp */
+        setQueryData(parameters: (DeepReadonly<WhatsappStatusParameters> | undefined) | ServiceOperationQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>, updater: Updater<NoInfer<WhatsappStatusData> | undefined, NoInfer<DeepReadonly<WhatsappStatusData>> | undefined>, options?: SetDataOptions): WhatsappStatusData | undefined;
+        /** @summary Check if the user has connected WhatsApp */
+        setInfiniteQueryData(parameters: (DeepReadonly<WhatsappStatusParameters> | undefined) | ServiceOperationInfiniteQueryKey<WhatsappStatusSchema, WhatsappStatusParameters>, updater: Updater<NoInfer<OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<WhatsappStatusData, WhatsappStatusParameters> | undefined;
+        /** @summary Check if the user has connected WhatsApp */
+        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>, updater: Updater<NoInfer<WhatsappStatusData> | undefined, NoInfer<WhatsappStatusData> | undefined>, options?: SetDataOptions): Array<WhatsappStatusData | undefined>;
+        /** @summary Check if the user has connected WhatsApp */
+        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>, options?: InvalidateOptions): Promise<void>;
+        /** @summary Check if the user has connected WhatsApp */
+        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>, options?: RefetchOptions): Promise<void>;
+        /** @summary Check if the user has connected WhatsApp */
+        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>, options?: CancelOptions): Promise<void>;
+        /** @summary Check if the user has connected WhatsApp */
+        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>): void;
+        /** @summary Check if the user has connected WhatsApp */
+        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>, options?: ResetOptions): Promise<void>;
+        /** @summary Check if the user has connected WhatsApp */
+        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError> | QueryFiltersByQueryKey<WhatsappStatusSchema, WhatsappStatusData, TInfinite, WhatsappStatusParameters, WhatsappStatusError>): number;
+        schema: WhatsappStatusSchema;
+        types: {
+            parameters: WhatsappStatusParameters;
+            data: WhatsappStatusData;
+            error: WhatsappStatusError;
+        };
+    };
 }
 /** @summary Register a new device */
 export const createDevice = {
@@ -1914,6 +2273,26 @@ export const localDevices = {
     schema: LocalDevicesSchema;
     [QraftServiceOperationsToken]: ApiService["localDevices"];
 };
+/** @summary Generate an OTP to connect WhatsApp */
+export const connectWhatsapp = {
+    schema: {
+        method: "post",
+        url: "/api/whatsapp/connect"
+    }
+} as {
+    schema: ConnectWhatsappSchema;
+    [QraftServiceOperationsToken]: ApiService["connectWhatsapp"];
+};
+/** @summary Check if the user has connected WhatsApp */
+export const whatsappStatus = {
+    schema: {
+        method: "get",
+        url: "/api/whatsapp/status"
+    }
+} as {
+    schema: WhatsappStatusSchema;
+    [QraftServiceOperationsToken]: ApiService["whatsappStatus"];
+};
 export const apiService = {
     createDevice,
     deleteDevice,
@@ -1923,7 +2302,9 @@ export const apiService = {
     scheduleLight,
     scheduleIrrigation,
     myIp,
-    localDevices
+    localDevices,
+    connectWhatsapp,
+    whatsappStatus
 } as const;
 type CreateDeviceSchema = {
     method: "post";
@@ -2009,3 +2390,22 @@ type LocalDevicesSchema = {
 type LocalDevicesParameters = paths["/api/network/local-devices"]["get"]["parameters"];
 type LocalDevicesData = paths["/api/network/local-devices"]["get"]["responses"]["200"]["content"]["application/json"];
 type LocalDevicesError = unknown;
+type ConnectWhatsappSchema = {
+    method: "post";
+    url: "/api/whatsapp/connect";
+};
+type ConnectWhatsappParameters = {
+    query?: never;
+    header?: never;
+    path?: never;
+};
+type ConnectWhatsappData = paths["/api/whatsapp/connect"]["post"]["responses"]["200"]["content"]["application/json"];
+type ConnectWhatsappError = unknown;
+type ConnectWhatsappBody = undefined;
+type WhatsappStatusSchema = {
+    method: "get";
+    url: "/api/whatsapp/status";
+};
+type WhatsappStatusParameters = undefined;
+type WhatsappStatusData = paths["/api/whatsapp/status"]["get"]["responses"]["200"]["content"]["application/json"];
+type WhatsappStatusError = unknown;
