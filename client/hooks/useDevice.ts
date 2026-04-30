@@ -137,7 +137,12 @@ export function useDevice(deviceId: string): UseDeviceResult {
     return `ws://${deviceQuery.data.state.lan_ip}:${port}`;
   }, [deviceQuery.data?.state?.lan_ip, deviceQuery.data?.state?.lan_ws_port]);
 
+  // WebSocket disabled: page is served over HTTPS but device only exposes ws://,
+  // which Chrome blocks as mixed content. Re-enable once the device serves wss://.
+  const wsDisabled = true;
+
   useEffect(() => {
+    if (wsDisabled) return;
     if (typeof window === "undefined" || !wsUrl) return;
 
     let isMounted = true;
