@@ -50,17 +50,15 @@ const deviceStateSchema = z.object({
   temperature: z.number().nullable(),
   water_empty: z.boolean().nullable(),
   irrigation_on: z.boolean().nullable(),
-  fan_on: z.boolean().nullable(),
   light_schedule: intervalScheduleSchema.nullable(),
   irrigation_schedule: intervalScheduleSchema.nullable(),
-  fan_schedule: intervalScheduleSchema.nullable(),
   lan_ip: z.string().nullable(),
   lan_ws_port: z.number().nullable(),
 });
 
 const deviceStateResponseSchema = z.object({ state: deviceStateSchema });
 
-const deviceListItemSchema = deviceStateSchema.omit({ brightness: true, light_on: true, light_schedule: true, irrigation_schedule: true, fan_schedule: true });
+const deviceListItemSchema = deviceStateSchema.omit({ brightness: true, light_on: true, light_schedule: true, irrigation_schedule: true });
 const deviceListResponseSchema = z.object({ devices: z.array(deviceListItemSchema) });
 
 type DeviceStateResponse = z.infer<typeof deviceStateResponseSchema>;
@@ -205,12 +203,11 @@ app
         .where("id", "=", id)
         .executeTakeFirstOrThrow();
 
-      const [state, lightSchedule, irrigationSchedule, fanSchedule] =
+      const [state, lightSchedule, irrigationSchedule] =
         await Promise.all([
           db.selectFrom("device_state").selectAll().where("device_id", "=", id).executeTakeFirst(),
           db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
           db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
-          db.selectFrom("fan_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
         ]);
 
       return c.json({
@@ -222,15 +219,11 @@ app
           temperature: state?.temperature ?? null,
           water_empty: state ? Boolean(state.water_empty) : null,
           irrigation_on: state ? Boolean(state.irrigation_on) : null,
-          fan_on: state ? Boolean(state.fan_on) : null,
           light_schedule: lightSchedule
             ? { active: Boolean(lightSchedule.active), start_at: lightSchedule.start_at, start_off: Boolean(lightSchedule.start_off), minutes_on: lightSchedule.minutes_on, minutes_off: lightSchedule.minutes_off }
             : null,
           irrigation_schedule: irrigationSchedule
             ? { active: Boolean(irrigationSchedule.active), start_at: irrigationSchedule.start_at, start_off: Boolean(irrigationSchedule.start_off), minutes_on: irrigationSchedule.minutes_on, minutes_off: irrigationSchedule.minutes_off }
-            : null,
-          fan_schedule: fanSchedule
-            ? { active: Boolean(fanSchedule.active), start_at: fanSchedule.start_at, start_off: Boolean(fanSchedule.start_off), minutes_on: fanSchedule.minutes_on, minutes_off: fanSchedule.minutes_off }
             : null,
         },
       } satisfies DeviceStateResponse);
@@ -256,7 +249,7 @@ app
       const states = await Promise.all(
         devices.map((d) =>
           db.selectFrom("device_state")
-            .select(["water_empty", "irrigation_on", "fan_on", "temperature"])
+            .select(["water_empty", "irrigation_on", "temperature"])
             .where("device_id", "=", d.id)
             .executeTakeFirst()
         )
@@ -268,7 +261,6 @@ app
           online: Boolean(d.online),
           water_empty: states[i] ? Boolean(states[i].water_empty) : null,
           irrigation_on: states[i] ? Boolean(states[i].irrigation_on) : null,
-          fan_on: states[i] ? Boolean(states[i].fan_on) : null,
           temperature: states[i]?.temperature ?? null,
         })),
       });
@@ -534,93 +526,6 @@ app
       );
 
       return c.json({ message: "Irrigation schedule restarted" });
-    }
-  )
-
-  // --- Fan ---
-
-  .post(
-    ":id/fan/schedule",
-    describeRoute({ operationId: "scheduleFan", summary: "Start or pause the fan schedule", tags: ["Devices"] }),
-    zValidator("json", scheduleSchema),
-    async (c) => {
-      const user = c.get("user");
-      const id = Number(c.req.param("id"));
-      if (isNaN(id)) throw new HTTPException(400, { res: c.json({ message: "Invalid device id" }, 400) });
-
-      const mac = await getDeviceMac(id, user.id);
-      if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
-
-      const { active, minutes_on, minutes_off } = c.req.valid("json");
-      const existing = await db.selectFrom("fan_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
-
-      const resolvedOn = minutes_on ?? existing?.minutes_on ?? SCHEDULE_DEFAULTS.fan.minutes_on;
-      const resolvedOff = minutes_off ?? existing?.minutes_off ?? SCHEDULE_DEFAULTS.fan.minutes_off;
-      const now = Date.now();
-
-      if (existing) {
-        const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
-        await db.updateTable("fan_schedules").where("device_id", "=", id)
-          .set({ active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
-          .execute();
-        await dispatchSchedule(mac, "setFanSchedule",
-          { type: "setFanSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
-          async () => {
-            await db.updateTable("fan_schedules").where("device_id", "=", id)
-              .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
-              .execute();
-          }
-        );
-      } else {
-        await db.insertInto("fan_schedules")
-          .values({ device_id: id, active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
-          .execute();
-        await dispatchSchedule(mac, "setFanSchedule",
-          { type: "setFanSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
-          async () => {
-            await db.deleteFrom("fan_schedules").where("device_id", "=", id).execute();
-          }
-        );
-      }
-
-      return c.json({ message: "Fan schedule updated" });
-    }
-  )
-
-  .post(
-    ":id/fan/schedule/skip",
-    describeRoute({ operationId: "skipFanSchedule", summary: "Skip the current fan phase", tags: ["Devices"] }),
-    async (c) => {
-      const user = c.get("user");
-      const id = Number(c.req.param("id"));
-      if (isNaN(id)) throw new HTTPException(400, { res: c.json({ message: "Invalid device id" }, 400) });
-
-      const mac = await getDeviceMac(id, user.id);
-      if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
-
-      const schedule = await db.selectFrom("fan_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
-      if (!schedule || !schedule.active) throw new HTTPException(400, { res: c.json({ message: "No active fan schedule" }, 400) });
-
-      const { isOn } = computePhase(schedule.start_at, Boolean(schedule.start_off), schedule.minutes_on, schedule.minutes_off);
-      const newStartOff = isOn ? 1 : 0;
-      const prevStartAt = schedule.start_at;
-      const prevStartOff = schedule.start_off;
-      const now = Date.now();
-
-      await db.updateTable("fan_schedules").where("device_id", "=", id)
-        .set({ start_at: now, start_off: newStartOff })
-        .execute();
-
-      await dispatchSchedule(mac, "setFanSchedule",
-        { type: "setFanSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff), start_at: Math.floor(now / 1000) },
-        async () => {
-          await db.updateTable("fan_schedules").where("device_id", "=", id)
-            .set({ start_at: prevStartAt, start_off: prevStartOff })
-            .execute();
-        }
-      );
-
-      return c.json({ message: "Fan schedule skipped" });
     }
   );
 

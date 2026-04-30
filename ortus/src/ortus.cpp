@@ -24,11 +24,9 @@ void OrtusSystem::begin()
 
     // Hardware Setup
     pinMode(PIN_RELAY_IRRIGATION, OUTPUT);
-    pinMode(PIN_RELAY_FAN, OUTPUT);
     pinMode(PIN_SENSOR_WATER, INPUT_PULLUP);
 
     digitalWrite(PIN_RELAY_IRRIGATION, LOW);
-    digitalWrite(PIN_RELAY_FAN, LOW);
 
     // Setup LEDC PWM for light dimming
     ledc_timer_config_t timer = {
@@ -248,30 +246,6 @@ void OrtusSystem::recoverSchedules()
         }
     }
 
-    // Fan Schedule Recovery
-    if (currentState.fanScheduleActive && currentState.fanScheduleStartEpoch > 0)
-    {
-        unsigned long totalCycle = currentState.fanScheduleOnSeconds + currentState.fanScheduleOffSeconds;
-        if (totalCycle > 0)
-        {
-            unsigned long elapsed = currentEpoch - currentState.fanScheduleStartEpoch;
-            unsigned long position = elapsed % totalCycle;
-
-            if (position < currentState.fanScheduleOnSeconds)
-            {
-                fanIsOnPhase = true;
-                fanPhaseStartMillis = millis() - (position * 1000);
-            }
-            else
-            {
-                fanIsOnPhase = false;
-                fanPhaseStartMillis = millis() - ((position - currentState.fanScheduleOnSeconds) * 1000);
-            }
-            currentState.fanOn = fanIsOnPhase;
-            Serial.println("[Schedule] Fan schedule recovered");
-        }
-    }
-
     broadcastState(true);
 }
 
@@ -363,14 +337,12 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
             return;
         cmd.brightness = doc["value"];
     }
-    else if (type == "setLightSchedule" || type == "setIrrigationSchedule" || type == "setFanSchedule")
+    else if (type == "setLightSchedule" || type == "setIrrigationSchedule")
     {
         if (type == "setLightSchedule")
             cmd.type = CommandType::SetLightSchedule;
-        else if (type == "setIrrigationSchedule")
-            cmd.type = CommandType::SetIrrigationSchedule;
         else
-            cmd.type = CommandType::SetFanSchedule;
+            cmd.type = CommandType::SetIrrigationSchedule;
 
         cmd.scheduleActive = doc["active"] | false;
         cmd.cycleOnSeconds = (unsigned long)(doc["minutes_on"] | 0) * 60;
@@ -484,33 +456,6 @@ void OrtusSystem::handleCommand(const DeviceCommand &cmd)
             publishAck("setIrrigationSchedule");
         }
     }
-    else if (cmd.type == CommandType::SetFanSchedule)
-    {
-        if (currentState.fanScheduleActive != cmd.scheduleActive ||
-            currentState.fanScheduleOnSeconds != cmd.cycleOnSeconds ||
-            currentState.fanScheduleOffSeconds != cmd.cycleOffSeconds ||
-            currentState.fanScheduleStartEpoch != cmd.start_at_epoch)
-        {
-            currentState.fanScheduleActive = cmd.scheduleActive;
-            if (cmd.scheduleActive)
-            {
-                currentState.fanScheduleOnSeconds = cmd.cycleOnSeconds;
-                currentState.fanScheduleOffSeconds = cmd.cycleOffSeconds;
-                currentState.fanScheduleStartEpoch = cmd.start_at_epoch;
-                fanIsOnPhase = !cmd.startOff;
-                fanPhaseStartMillis = millis();
-                currentState.fanOn = fanIsOnPhase;
-            }
-            else
-            {
-                currentState.fanOn = false;
-            }
-            changed = true;
-            updateActuators();
-            broadcastState();
-            publishAck("setFanSchedule");
-        }
-    }
     else if (cmd.type == CommandType::OtaUpdate)
     {
         performOtaUpdate(cmd.otaUrl);
@@ -563,20 +508,6 @@ void OrtusSystem::updateActuators()
         }
     }
     digitalWrite(PIN_RELAY_IRRIGATION, currentState.irrigationOn ? HIGH : LOW);
-
-    // Fan schedule
-    if (currentState.fanScheduleActive)
-    {
-        unsigned long duration = fanIsOnPhase ? currentState.fanScheduleOnSeconds : currentState.fanScheduleOffSeconds;
-        if (millis() - fanPhaseStartMillis >= (duration * 1000))
-        {
-            fanIsOnPhase = !fanIsOnPhase;
-            fanPhaseStartMillis = millis();
-            currentState.fanOn = fanIsOnPhase;
-            broadcastState();
-        }
-    }
-    digitalWrite(PIN_RELAY_FAN, currentState.fanOn ? HIGH : LOW);
 }
 
 // --- Sensors ---
@@ -606,11 +537,28 @@ void OrtusSystem::updateSensors()
     if (now - lastWaterPoll > WATER_POLL_MS)
     {
         lastWaterPoll = now;
-        bool empty = (digitalRead(PIN_SENSOR_WATER) == LOW);
-        if (empty != currentState.waterEmpty)
+        // SEN0485 with INPUT_PULLUP: LOW = liquid present, HIGH = empty.
+        // Empty transitions immediately; "present" requires a stable window
+        // to avoid false-positives from droplets/splashes.
+        bool rawPresent = (digitalRead(PIN_SENSOR_WATER) == LOW);
+        if (rawPresent)
         {
-            currentState.waterEmpty = empty;
-            broadcastState();
+            if (waterPresentSince == 0)
+                waterPresentSince = now;
+            if (now - waterPresentSince > WATER_SENSITIVITY_MS && currentState.waterEmpty)
+            {
+                currentState.waterEmpty = false;
+                broadcastState();
+            }
+        }
+        else
+        {
+            waterPresentSince = 0;
+            if (!currentState.waterEmpty)
+            {
+                currentState.waterEmpty = true;
+                broadcastState();
+            }
         }
     }
 }
@@ -629,8 +577,6 @@ void OrtusSystem::broadcastState(bool force)
     doc["lightScheduleActive"] = currentState.lightScheduleActive;
     doc["irrigationOn"] = currentState.irrigationOn;
     doc["irrigationScheduleActive"] = currentState.irrigationScheduleActive;
-    doc["fanOn"] = currentState.fanOn;
-    doc["fanScheduleActive"] = currentState.fanScheduleActive;
     doc["temperature"] = currentState.temperatureC;
     doc["waterEmpty"] = currentState.waterEmpty;
 
@@ -693,11 +639,6 @@ void OrtusSystem::loadState()
     currentState.irrigationScheduleOffSeconds = preferences.getULong("iCycleOff", 0);
     currentState.irrigationScheduleStartEpoch = preferences.getULong("iCycleStart", 0);
 
-    currentState.fanScheduleActive = preferences.getBool("fCycleActive", false);
-    currentState.fanScheduleOnSeconds = preferences.getULong("fCycleOn", 0);
-    currentState.fanScheduleOffSeconds = preferences.getULong("fCycleOff", 0);
-    currentState.fanScheduleStartEpoch = preferences.getULong("fCycleStart", 0);
-
     // Initial phase setup (will be refined by recoverSchedules if NTP is available)
     if (currentState.lightScheduleActive)
     {
@@ -711,12 +652,6 @@ void OrtusSystem::loadState()
         irrigationIsOnPhase = true;
         currentState.irrigationOn = true;
         irrigationPhaseStartMillis = millis();
-    }
-    if (currentState.fanScheduleActive)
-    {
-        fanIsOnPhase = true;
-        currentState.fanOn = true;
-        fanPhaseStartMillis = millis();
     }
 }
 
@@ -733,11 +668,6 @@ void OrtusSystem::saveState()
     preferences.putULong("iCycleOn", currentState.irrigationScheduleOnSeconds);
     preferences.putULong("iCycleOff", currentState.irrigationScheduleOffSeconds);
     preferences.putULong("iCycleStart", currentState.irrigationScheduleStartEpoch);
-
-    preferences.putBool("fCycleActive", currentState.fanScheduleActive);
-    preferences.putULong("fCycleOn", currentState.fanScheduleOnSeconds);
-    preferences.putULong("fCycleOff", currentState.fanScheduleOffSeconds);
-    preferences.putULong("fCycleStart", currentState.fanScheduleStartEpoch);
 
     Serial.println("[System] State saved to NVS.");
 }

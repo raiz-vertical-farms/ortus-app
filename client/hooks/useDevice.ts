@@ -25,10 +25,8 @@ export type DeviceState = {
   temperature: number | null;
   water_empty: boolean | null;
   irrigation_on: boolean | null;
-  fan_on: boolean | null;
   light_schedule: IntervalSchedule | null;
   irrigation_schedule: IntervalSchedule | null;
-  fan_schedule: IntervalSchedule | null;
   lan_ip: string | null;
   lan_ws_port: number | null;
 };
@@ -80,9 +78,6 @@ type UseDeviceResult = {
   pauseIrrigationSchedule: () => Promise<void>;
   skipIrrigationSchedule: () => Promise<void>;
   restartIrrigationSchedule: () => Promise<void>;
-  startFanSchedule: (opts?: ScheduleInput) => Promise<void>;
-  pauseFanSchedule: () => Promise<void>;
-  skipFanSchedule: () => Promise<void>;
   refresh: () => Promise<DeviceState | undefined>;
 };
 
@@ -92,8 +87,6 @@ type WsStateMessage = {
   lightScheduleActive?: boolean;
   irrigationOn?: boolean;
   irrigationScheduleActive?: boolean;
-  fanOn?: boolean;
-  fanScheduleActive?: boolean;
   temperature?: number | null;
   waterEmpty?: boolean;
 };
@@ -182,7 +175,6 @@ export function useDevice(deviceId: string): UseDeviceResult {
             brightness: typeof parsed.brightness === "number" ? parsed.brightness : base.brightness,
             light_on: typeof parsed.lightOn === "boolean" ? parsed.lightOn : base.light_on,
             irrigation_on: typeof parsed.irrigationOn === "boolean" ? parsed.irrigationOn : base.irrigation_on,
-            fan_on: typeof parsed.fanOn === "boolean" ? parsed.fanOn : base.fan_on,
             temperature: parsed.temperature !== undefined ? parsed.temperature : base.temperature,
             water_empty: typeof parsed.waterEmpty === "boolean" ? parsed.waterEmpty : base.water_empty,
           };
@@ -297,33 +289,6 @@ export function useDevice(deviceId: string): UseDeviceResult {
     await deviceQuery.refetch();
   }, [deviceId, deviceQuery]);
 
-  const startFanSchedule = useCallback(async (opts?: ScheduleInput) => {
-    await apiFetch(`/api/device/${deviceId}/fan/schedule`, {
-      method: "POST",
-      body: JSON.stringify({ active: true, ...opts }),
-    });
-    setLiveState((prev) =>
-      prev?.fan_schedule ? { ...prev, fan_schedule: { ...prev.fan_schedule, active: true } } : prev
-    );
-    await deviceQuery.refetch();
-  }, [deviceId, deviceQuery]);
-
-  const pauseFanSchedule = useCallback(async () => {
-    await apiFetch(`/api/device/${deviceId}/fan/schedule`, {
-      method: "POST",
-      body: JSON.stringify({ active: false }),
-    });
-    setLiveState((prev) =>
-      prev?.fan_schedule ? { ...prev, fan_schedule: { ...prev.fan_schedule, active: false } } : prev
-    );
-    await deviceQuery.refetch();
-  }, [deviceId, deviceQuery]);
-
-  const skipFanSchedule = useCallback(async () => {
-    await apiFetch(`/api/device/${deviceId}/fan/schedule/skip`, { method: "POST" });
-    await deviceQuery.refetch();
-  }, [deviceId, deviceQuery]);
-
   const refresh = useCallback(async () => {
     const result = await deviceQuery.refetch();
     if (result.data?.state) {
@@ -348,9 +313,6 @@ export function useDevice(deviceId: string): UseDeviceResult {
     pauseIrrigationSchedule,
     skipIrrigationSchedule,
     restartIrrigationSchedule,
-    startFanSchedule,
-    pauseFanSchedule,
-    skipFanSchedule,
     refresh,
   };
 }

@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/device/{id}/light/schedule/restart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restart the light schedule (starts ON phase immediately) */
+        post: operations["restartLightSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/device/{id}/irrigation/schedule": {
         parameters: {
             query?: never;
@@ -157,7 +174,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/device/{id}/fan/schedule": {
+    "/api/device/{id}/irrigation/schedule/restart": {
         parameters: {
             query?: never;
             header?: never;
@@ -166,25 +183,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start or pause the fan schedule */
-        post: operations["scheduleFan"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/device/{id}/fan/schedule/skip": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Skip the current fan phase */
-        post: operations["skipFanSchedule"];
+        /** Restart the irrigation schedule (starts watering immediately) */
+        post: operations["restartIrrigationSchedule"];
         delete?: never;
         options?: never;
         head?: never;
@@ -330,7 +330,6 @@ export interface operations {
                             temperature: number | null;
                             water_empty: boolean | null;
                             irrigation_on: boolean | null;
-                            fan_on: boolean | null;
                             light_schedule: {
                                 active: boolean;
                                 start_at: number;
@@ -339,13 +338,6 @@ export interface operations {
                                 minutes_off: number;
                             } | null;
                             irrigation_schedule: {
-                                active: boolean;
-                                start_at: number;
-                                start_off: boolean;
-                                minutes_on: number;
-                                minutes_off: number;
-                            } | null;
-                            fan_schedule: {
                                 active: boolean;
                                 start_at: number;
                                 start_off: boolean;
@@ -386,7 +378,6 @@ export interface operations {
                             temperature: number | null;
                             water_empty: boolean | null;
                             irrigation_on: boolean | null;
-                            fan_on: boolean | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         }[];
@@ -445,6 +436,18 @@ export interface operations {
         requestBody?: never;
         responses: never;
     };
+    restartLightSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: never;
+    };
     scheduleIrrigation: {
         parameters: {
             query?: never;
@@ -477,27 +480,7 @@ export interface operations {
         requestBody?: never;
         responses: never;
     };
-    scheduleFan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    active: boolean;
-                    minutes_on?: number;
-                    minutes_off?: number;
-                };
-            };
-        };
-        responses: never;
-    };
-    skipFanSchedule: {
+    restartIrrigationSchedule: {
         parameters: {
             query?: never;
             header?: never;

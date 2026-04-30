@@ -8,7 +8,6 @@ enum class CommandType
   SetBrightness,
   SetLightSchedule,
   SetIrrigationSchedule,
-  SetFanSchedule,
   OtaUpdate
 };
 
@@ -23,19 +22,12 @@ struct DeviceState
   unsigned long lightScheduleStartEpoch = 0;
   bool lightOn = false;
 
-  // Irrigation
+  // Irrigation (single relay drives pump + fan)
   bool irrigationScheduleActive = false;
   unsigned long irrigationScheduleOnSeconds = 0;
   unsigned long irrigationScheduleOffSeconds = 0;
   unsigned long irrigationScheduleStartEpoch = 0;
   bool irrigationOn = false;
-
-  // Fan
-  bool fanScheduleActive = false;
-  unsigned long fanScheduleOnSeconds = 0;
-  unsigned long fanScheduleOffSeconds = 0;
-  unsigned long fanScheduleStartEpoch = 0;
-  bool fanOn = false;
 
   float temperatureC = NAN;
   bool waterEmpty = false;
@@ -71,11 +63,6 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
          lhs.irrigationScheduleOnSeconds == rhs.irrigationScheduleOnSeconds &&
          lhs.irrigationScheduleOffSeconds == rhs.irrigationScheduleOffSeconds &&
          lhs.irrigationScheduleStartEpoch == rhs.irrigationScheduleStartEpoch &&
-         lhs.fanOn == rhs.fanOn &&
-         lhs.fanScheduleActive == rhs.fanScheduleActive &&
-         lhs.fanScheduleOnSeconds == rhs.fanScheduleOnSeconds &&
-         lhs.fanScheduleOffSeconds == rhs.fanScheduleOffSeconds &&
-         lhs.fanScheduleStartEpoch == rhs.fanScheduleStartEpoch &&
          lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;
 }

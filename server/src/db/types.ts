@@ -39,24 +39,12 @@ export interface Devices {
 export interface DeviceState {
   brightness: Generated<number>;
   device_id: number;
-  fan_on: Generated<number>;
   id: Generated<number>;
   irrigation_on: Generated<number>;
   light_on: Generated<number>;
   temperature: number | null;
   updated_at: Generated<number>;
   water_empty: Generated<number>;
-}
-
-export interface FanSchedules {
-  active: Generated<number>;
-  created_at: Generated<number>;
-  device_id: number;
-  id: Generated<number>;
-  minutes_off: Generated<number>;
-  minutes_on: Generated<number>;
-  start_at: Generated<number>;
-  start_off: Generated<number>;
 }
 
 export interface IrrigationSchedules {
@@ -87,7 +75,6 @@ export interface DB {
   alert_notifications: AlertNotifications;
   device_state: DeviceState;
   devices: Devices;
-  fan_schedules: FanSchedules;
   irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;
 }

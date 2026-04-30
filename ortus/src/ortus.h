@@ -78,6 +78,9 @@ private:
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
 
+    // Water sensor debounce: 0 means no candidate transition pending
+    unsigned long waterPresentSince = 0;
+
     // Light schedule timing
     unsigned long lightPhaseStartMillis = 0;
     bool lightIsOnPhase = false;
@@ -85,10 +88,6 @@ private:
     // Irrigation schedule timing
     unsigned long irrigationPhaseStartMillis = 0;
     bool irrigationIsOnPhase = false;
-
-    // Fan schedule timing
-    unsigned long fanPhaseStartMillis = 0;
-    bool fanIsOnPhase = false;
 
     bool timeSynced = false;
     int appliedBrightness = -1;
