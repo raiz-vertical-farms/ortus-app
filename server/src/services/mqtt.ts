@@ -2,6 +2,12 @@ import mqtt, { MqttClient } from "mqtt";
 import { z } from "zod";
 import { db } from "../db";
 import { ACK_TIMEOUT_MS } from "../config/schedules";
+import { twilio } from "./twilio";
+
+const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER ?? "+14155238886";
+
+// suppress repeat water-empty alerts: device must stay quiet this long before re-alerting
+const MIN_DURATION_BETWEEN_ALERTS_MS = 6 * 60 * 60 * 1000;
 
 const MQTT_CONFIG = {
   url: `mqtts://${process.env.MQTT_BROKER_HOST}:8883`,
@@ -59,6 +65,50 @@ export function sendWithAck(
     pendingAcks.set(key, { resolve, reject, timer });
     mqttClient.publish(`ortus/${mac}/command`, payload);
   });
+}
+
+// --- Water alerts ---
+
+async function maybeSendWaterAlert(deviceId: number, mac: string) {
+  const now = Date.now();
+
+  // claim the alert slot atomically: only proceed if the previous alert was long enough ago.
+  // returning a row from the update means we won the race; an empty result means we skip.
+  const claimed = await db
+    .updateTable("device_state")
+    .set({ last_water_alert_at: now })
+    .where("device_id", "=", deviceId)
+    .where((eb) =>
+      eb.or([
+        eb("last_water_alert_at", "is", null),
+        eb("last_water_alert_at", "<", now - MIN_DURATION_BETWEEN_ALERTS_MS),
+      ])
+    )
+    .returning("device_id")
+    .executeTakeFirst();
+
+  if (!claimed) return;
+
+  const device = await db
+    .selectFrom("devices")
+    .select("user_id")
+    .where("id", "=", deviceId)
+    .executeTakeFirst();
+  if (!device) return;
+
+  const wa = await db
+    .selectFrom("user_whatsapp")
+    .select("phone_number")
+    .where("user_id", "=", device.user_id)
+    .executeTakeFirst();
+  if (!wa) return;
+
+  await twilio.messages.create({
+    from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
+    to: `whatsapp:${wa.phone_number}`,
+    body: "Your Ortus device is running low on water. Please refill soon.",
+  });
+  console.log(`[Alert] Sent water empty alert for ${mac} to ${wa.phone_number}`);
 }
 
 // --- Message schemas ---
@@ -152,6 +202,10 @@ mqttClient.on("message", async (topic, payload) => {
           })
         )
         .execute();
+
+      if (data.waterEmpty === true) {
+        await maybeSendWaterAlert(device.id, mac);
+      }
 
       console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
     } else if (type === "ack") {

@@ -41,6 +41,7 @@ export interface DeviceState {
   device_id: number;
   id: Generated<number>;
   irrigation_on: Generated<number>;
+  last_water_alert_at: number | null;
   light_on: Generated<number>;
   temperature: number | null;
   updated_at: Generated<number>;
@@ -70,6 +71,21 @@ export interface LightSchedules {
   start_off: Generated<number>;
 }
 
+export interface UserWhatsapp {
+  created_at: Generated<number>;
+  id: Generated<number>;
+  phone_number: string;
+  user_id: string;
+}
+
+export interface WhatsappOtps {
+  created_at: Generated<number>;
+  expires_at: number;
+  id: Generated<number>;
+  otp: string;
+  user_id: string;
+}
+
 export interface DB {
   _migrations: _Migrations;
   alert_notifications: AlertNotifications;
@@ -77,4 +93,6 @@ export interface DB {
   devices: Devices;
   irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;
+  user_whatsapp: UserWhatsapp;
+  whatsapp_otps: WhatsappOtps;
 }

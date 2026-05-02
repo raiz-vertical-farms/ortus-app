@@ -1,6 +1,7 @@
-import { Twilio } from "twilio";
+import Twilio from "twilio";
 
-const accountSid = "AC5b4c200f537972de749097d134328857";
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-export const twilio = new Twilio(accountSid, authToken);
+// create the twilio client using our account credentials
+export const twilio = Twilio(accountSid, authToken);

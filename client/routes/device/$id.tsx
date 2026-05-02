@@ -327,6 +327,15 @@ function SettingsCard({
 
           <div className={styles.settingsSection}>
             <Text size="sm" color="muted" className={styles.sectionLabel}>
+              WhatsApp alerts
+            </Text>
+            <WhatsAppConnect />
+          </div>
+
+          <hr className={styles.settingsDivider} />
+
+          <div className={styles.settingsSection}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
               Danger zone
             </Text>
             <Button
@@ -339,6 +348,58 @@ function SettingsCard({
           </div>
         </div>
       </Modal>
+    </>
+  );
+}
+
+// --- WhatsApp Connect ---
+
+function WhatsAppConnect() {
+  const [otp, setOtp] = useState<string | null>(null);
+  const [deeplink, setDeeplink] = useState<string | null>(null);
+
+  const { data: statusData } = client.api.whatsappStatus.useQuery();
+  const connected = statusData?.connected ?? false;
+  const phoneNumber = statusData?.phone_number ?? null;
+
+  const { mutate: generateOtp, isPending: loading } =
+    client.api.connectWhatsapp.useMutation(undefined, {
+      onSuccess: (result) => {
+        setOtp(result.otp);
+        setDeeplink(result.deeplink);
+      },
+    });
+
+  if (connected) {
+    return (
+      <Text size="sm" color="muted">
+        Connected to {phoneNumber}. You'll get a message when your water is low.
+      </Text>
+    );
+  }
+
+  if (otp && deeplink) {
+    return (
+      <>
+        <Text size="sm" color="muted">
+          Your code: <strong>{otp}</strong>. Tap below to open WhatsApp — the
+          code will be pre-filled. Just hit send.
+        </Text>
+        <Button full onClick={() => window.open(deeplink, "_blank")}>
+          Open WhatsApp
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Text size="sm" color="muted">
+        Connect WhatsApp to get notified when your water is low.
+      </Text>
+      <Button full loading={loading} onClick={() => generateOtp({})}>
+        Connect WhatsApp
+      </Button>
     </>
   );
 }
