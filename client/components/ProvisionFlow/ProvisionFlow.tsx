@@ -11,9 +11,11 @@ import { match } from "ts-pattern";
 export default function ProvisionFlow({
   onConnected = () => {},
   onProvisionSucceeded = () => {},
+  mode = "setup",
 }: {
   onConnected?: (mac: string) => void;
   onProvisionSucceeded?: (mac: string) => void;
+  mode?: "setup" | "reconnect";
 }) {
   const [hasScanned, setHasScanned] = useState(false);
   const [ssid, setSsid] = useState("");
@@ -33,10 +35,12 @@ export default function ProvisionFlow({
     status,
   } = useBluetooth();
 
-  const scanButtonLabel =
-    implementation === "web" ? "Select Ortus" : "Scan for Ortus";
-  const idleCopy =
-    implementation === "web"
+  const scanButtonLabel = mode === "reconnect"
+    ? "Reconnect device"
+    : implementation === "web" ? "Select Ortus" : "Scan for Ortus";
+  const idleCopy = mode === "reconnect"
+    ? "Reconnect over Bluetooth to update the Wi-Fi network this Ortus uses."
+    : implementation === "web"
       ? "Use Web Bluetooth to find your Ortus, then share Wi-Fi so it can start growing."
       : "Scan for your Ortus over Bluetooth, then share your Wi-Fi so it can start growing.";
 

@@ -75,3 +75,38 @@
   margin: 0 auto var(--spacing-sm);
   color: var(--color-text-muted);
 }
+
+/* --- Settings modal --- */
+
+.settingsModal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.settingsMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-md);
+  background: var(--color-card-background-hover);
+  border-radius: var(--radius-md);
+}
+
+.settingsDivider {
+  border: 0;
+  border-top: var(--border-width) solid var(--color-card-border);
+  margin: 0;
+}
+
+.sectionLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

@@ -305,13 +305,39 @@ function SettingsCard({
         onClose={() => setShowSettings(false)}
         title="Settings"
       >
-        <Button
-          variant="destructive"
-          onClick={() => mutate({ path: { id: deviceId } })}
-        >
-          Remove this Ortus
-        </Button>
-        <ProvisionFlow onProvisionSucceeded={() => setShowSettings(false)} />
+        <div className={styles.settingsModal}>
+          <div className={styles.settingsMeta}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              MAC address
+            </Text>
+            <Text size="sm">{macAddress}</Text>
+          </div>
+
+          <div className={styles.settingsSection}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              Wi-Fi
+            </Text>
+            <ProvisionFlow
+              mode="reconnect"
+              onProvisionSucceeded={() => setShowSettings(false)}
+            />
+          </div>
+
+          <hr className={styles.settingsDivider} />
+
+          <div className={styles.settingsSection}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              Danger zone
+            </Text>
+            <Button
+              variant="destructive"
+              full
+              onClick={() => mutate({ path: { id: deviceId } })}
+            >
+              Remove this Ortus
+            </Button>
+          </div>
+        </div>
       </Modal>
     </>
   );
