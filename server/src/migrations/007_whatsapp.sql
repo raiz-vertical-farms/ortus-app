@@ -12,3 +12,6 @@ CREATE TABLE user_whatsapp (
     phone_number TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 );
+
+-- last time we sent a water-empty WhatsApp alert for this device (epoch ms)
+ALTER TABLE device_state ADD COLUMN last_water_alert_at INTEGER;

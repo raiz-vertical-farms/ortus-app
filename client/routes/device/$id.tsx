@@ -1,265 +1,280 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
-import Box from "../../primitives/Box/Box";
-import { client } from "../../lib/apiClient";
-import { useEffect, useState } from "react";
-import { match } from "ts-pattern";
 import { Group } from "../../primitives/Group/Group";
-import Tabs from "../../primitives/Tabs/Tabs";
-import Toggle from "../../primitives/Toggle/Toggle";
+import { client } from "../../lib/apiClient";
+import { useState } from "react";
 import Button from "../../primitives/Button/Button";
-import LightSwitch from "../../components/LightSwitch/LightSwitch";
 import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import PageLayout from "../../layout/PageLayout/PageLayout";
 import Modal from "../../primitives/Modal/Modal";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
-import { useDevice } from "../../hooks/useDevice";
-import { getHoursAndMinutesByTimestamp } from "../../utils/time";
+import { useDevice, computePhase } from "../../hooks/useDevice";
+import { classNames } from "../../utils/classnames";
+import { Drop } from "@phosphor-icons/react";
+import styles from "./$id.module.css";
 
 export const Route = createFileRoute("/device/$id")({
   component: RouteComponent,
 });
 
+function formatTime(ts: number) {
+  return new Date(ts).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function RouteComponent() {
   const { id } = Route.useParams();
-
-  const [view, setView] = useState<
-    "lights" | "temperature" | "water" | "settings"
-  >("lights");
-
   const device = useDevice(id);
 
   if (device.isLoading || device.state === null) {
     return "Loading your garden...";
   }
 
-  const state = device.state;
-
-  if (state === null) {
-    return "Device not found";
-  }
-
   if (device.error) {
     return getErrorMessage(device.error);
   }
 
+  const state = device.state;
+
   return (
     <PageLayout layout={{ pageTitle: state.name, backButton: true }}>
-      <Box pt="xl">
-        <Group spacing="xl" justify="center">
-          <Tabs
-            value={state.online ? view : "settings"}
-            onChange={setView}
-            options={[
-              {
-                value: "lights",
-                label: "Lights",
-                disabled: !state.online,
-              },
-              {
-                value: "water",
-                label: "Water",
-                disabled: !state.online,
-              },
-              {
-                value: "temperature",
-                label: "Temperature",
-                disabled: !state.online,
-              },
-              { value: "settings", label: "Settings" },
-            ]}
-          />
-        </Group>
-        {match({
-          view: state.online ? view : "settings",
-          online: state.online ? true : false,
-        })
-          .with({ view: "lights" }, () => (
-            <LightView deviceId={id} device={device} />
-          ))
-          .with({ view: "temperature" }, () => (
-            <Text>Temperature level {device.state?.temperature} .</Text>
-          ))
-          .with({ view: "water" }, () => (
-            <WaterView deviceId={id} device={device} />
-          ))
-          .with({ view: "settings" }, () => (
-            <SettingsView macAddress={state.mac_address!} deviceId={id} />
-          ))
-          .exhaustive()}
-      </Box>
+      <div className={styles.layout}>
+        {state.water_empty && <WaterEmptyCard />}
+        <LightCard deviceId={id} device={device} />
+        <IrrigationCard deviceId={id} device={device} />
+        <div className={styles.halfGrid}>
+          <TemperatureCard temperature={state.temperature} />
+          <SettingsCard deviceId={id} macAddress={state.mac_address!} />
+        </div>
+      </div>
     </PageLayout>
   );
 }
 
-function WaterView({
+// --- Light Card ---
+
+function LightCard({
   device,
 }: {
   deviceId: string;
   device: ReturnType<typeof useDevice>;
 }) {
-  const scheduleActive = device.state?.irrigation_schedule?.active ?? false;
+  const [pendingBrightness, setPendingBrightness] = useState<number | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(false);
 
-  const { hours: startHours, minutes: startMinutes } =
-    getHoursAndMinutesByTimestamp(device.state?.irrigation_schedule?.start_time ?? 0);
-
-  const timesPerDay = Math.max(
-    1,
-    device.state?.irrigation_schedule?.times_per_day ?? 1
+  const debouncedSetLight = useDebouncedCallback(
+    (brightness: number) => {
+      device
+        .setBrightness(brightness)
+        .catch((err) => console.error("Failed to set brightness", err));
+    },
+    device.isWebSocketConnected ? 0 : 1000,
   );
 
-  const scheduleState = { startHours, startMinutes, timesPerDay };
+  const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    setPendingBrightness(value);
+    debouncedSetLight(value);
+  };
 
-  const minuteOptions = Array.from(Array(60)).map((_, i) => i);
-  //const minuteOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-  const timesPerDayOptions = [1, 2, 3, 4, 6, 8, 12];
+  const schedule = device.state?.light_schedule;
+  const currentBrightness = pendingBrightness ?? device.state?.brightness ?? 0;
+  const phaseInfo = schedule?.active ? computePhase(schedule) : null;
+
+  const hasSchedule = schedule != null;
+  const isPaused = hasSchedule && !schedule.active;
+  const isActive = hasSchedule && schedule.active;
+
+  const statusText = (() => {
+    if (!hasSchedule) return "No light schedule";
+    if (isPaused) return "Light schedule paused";
+    if (phaseInfo?.isOn)
+      return `Lights are on, will turn off at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    if (phaseInfo)
+      return `Lights are off, will turn on at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    return "Light schedule active";
+  })();
+
+  const handlePause = async () => {
+    setLoading(true);
+    try {
+      await device.pauseLightSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResumeOrStart = async () => {
+    setLoading(true);
+    try {
+      await device.startLightSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    setLoading(true);
+    try {
+      await device.restartLightSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
-        <Text variant="heading" size="xl">
-          Water level: {device.state?.water_level}
+    <div className={styles.card}>
+      <div className={classNames(styles.cardContent, isPaused && styles.faded)}>
+        <Text variant="heading" size="lg" mb="md">
+          {statusText}
         </Text>
-
-        <Text align="center" size="lg">
-          Irrigation schedule
-        </Text>
-        <Toggle
-          onLabel="Schedule on"
-          offLabel="Manual control"
-          checked={scheduleActive}
-          onChange={(e) => {
-            const enabled = e.target.checked;
-            if (enabled) {
-              device.scheduleIrrigation(scheduleState);
-            } else {
-              device.toggleIrrigationSchedule(false);
-            }
-          }}
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={currentBrightness}
+          onChange={handleBrightnessChange}
+          className={styles.slider}
         />
-        {scheduleActive && (
+      </div>
+      <Group>
+        {isActive && (
           <>
-            <Group direction="row" align="center" justify="center" spacing="xl">
-              <Text align="left" size="lg">
-                First watering
-              </Text>
-              <select
-                onChange={(e) =>
-                  device.scheduleIrrigation({
-                    ...scheduleState,
-                    startHours: parseInt(e.target.value, 10),
-                  })
-                }
-                value={scheduleState.startHours}
-              >
-                {new Array(24).fill(null).map((_, i) => (
-                  <option key={i} value={i}>
-                    {i}
-                  </option>
-                ))}
-              </select>
-              <select
-                onChange={(e) =>
-                  device.scheduleIrrigation({
-                    ...scheduleState,
-                    startMinutes: parseInt(e.target.value, 10),
-                  })
-                }
-                value={scheduleState.startMinutes}
-              >
-                {minuteOptions.map((label) => (
-                  <option key={label} value={parseInt(label, 10)}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Group>
-            <Group direction="row" align="center" justify="center" spacing="xl">
-              <Text align="left" size="lg">
-                Times per day
-              </Text>
-              <select
-                onChange={(e) =>
-                  device.scheduleIrrigation({
-                    ...scheduleState,
-                    timesPerDay: parseInt(e.target.value, 10),
-                  })
-                }
-                value={scheduleState.timesPerDay}
-              >
-                {timesPerDayOptions.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </Group>
+            <Button onClick={handlePause} loading={loading}>
+              Pause
+            </Button>
+            <Button onClick={handleRestart} loading={loading} variant="secondary">
+              Restart
+            </Button>
           </>
         )}
+        {(isPaused || !hasSchedule) && (
+          <Button onClick={handleResumeOrStart} loading={loading}>
+            {isPaused ? "Resume" : "Start schedule"}
+          </Button>
+        )}
       </Group>
-    </Box>
+    </div>
   );
 }
 
-function WhatsAppConnect() {
-  // stores the otp and deeplink returned from the server after generating
-  const [otp, setOtp] = useState<string | null>(null);
-  const [deeplink, setDeeplink] = useState<string | null>(null);
+// --- Irrigation Card ---
 
-  // check if the user already has whatsapp connected
-  const { data: statusData } = client.api.whatsappStatus.useQuery();
+function IrrigationCard({
+  device,
+}: {
+  deviceId: string;
+  device: ReturnType<typeof useDevice>;
+}) {
+  const [loading, setLoading] = useState(false);
 
-  const connected = statusData?.connected ?? false;
-  const phoneNumber = statusData?.phone_number ?? null;
+  const schedule = device.state?.irrigation_schedule;
+  const phaseInfo = schedule?.active ? computePhase(schedule) : null;
 
-  // mutation that calls POST /api/whatsapp/connect to generate an otp
-  const { mutate: generateOtp, isPending: loading } =
-    client.api.connectWhatsapp.useMutation(undefined, {
-      onSuccess: (result) => {
-        // save the otp and deeplink so we can display them to the user
-        setOtp(result.otp);
-        setDeeplink(result.deeplink);
-      },
-    });
+  const hasSchedule = schedule != null;
+  const isPaused = hasSchedule && !schedule.active;
+  const isActive = hasSchedule && schedule.active;
 
-  if (connected) {
-    return (
-      <Box pt="xl">
-        <Text size="lg">WhatsApp alerts</Text>
-        <Text size="sm">Connected to {phoneNumber}</Text>
-        <Text size="sm">You will receive a message when your water is low.</Text>
-      </Box>
-    );
-  }
+  const statusText = (() => {
+    if (!hasSchedule) return "No irrigation schedule";
+    if (isPaused) return "Irrigation paused";
+    if (phaseInfo?.isOn)
+      return `Irrigation is running, watering until ${formatTime(phaseInfo.phaseEndsAt)}`;
+    if (phaseInfo) return `Next watering at ${formatTime(phaseInfo.phaseEndsAt)}`;
+    return "Irrigation schedule active";
+  })();
+
+  const handlePause = async () => {
+    setLoading(true);
+    try {
+      await device.pauseIrrigationSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResumeOrStart = async () => {
+    setLoading(true);
+    try {
+      await device.startIrrigationSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    setLoading(true);
+    try {
+      await device.restartIrrigationSchedule();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Box pt="xl">
-      <Text size="lg">WhatsApp alerts</Text>
-      <Text size="sm">Connect WhatsApp to get notified when your water is low.</Text>
-
-      {/* step 1: user clicks to generate an otp */}
-      {!otp && (
-        <Button onClick={() => generateOtp({})} disabled={loading}>
-          {loading ? "Generating..." : "Connect WhatsApp"}
-        </Button>
-      )}
-
-      {/* step 2: show the otp and a button that opens whatsapp pre-filled */}
-      {otp && deeplink && (
-        <>
-          <Text size="sm">Your code: <strong>{otp}</strong></Text>
-          <Text size="sm">Tap the button below to open WhatsApp — the code will be pre-filled. Just hit send.</Text>
-          <Button onClick={() => window.open(deeplink, "_blank")}>
-            Open WhatsApp
+    <div className={styles.card}>
+      <div className={classNames(styles.cardContent, isPaused && styles.faded)}>
+        <Text variant="heading" size="lg" mb="md">
+          {statusText}
+        </Text>
+      </div>
+      <Group>
+        {isActive && (
+          <>
+            <Button onClick={handlePause} loading={loading}>
+              Pause
+            </Button>
+            <Button onClick={handleRestart} loading={loading} variant="secondary">
+              Restart
+            </Button>
+          </>
+        )}
+        {(isPaused || !hasSchedule) && (
+          <Button onClick={handleResumeOrStart} loading={loading}>
+            {isPaused ? "Resume" : "Start schedule"}
           </Button>
-        </>
-      )}
-    </Box>
+        )}
+      </Group>
+    </div>
   );
 }
 
-function SettingsView({
+// --- Water Empty Card ---
+
+function WaterEmptyCard() {
+  return (
+    <div className={classNames(styles.card, styles.waterEmptyCard)}>
+      <Drop size={32} weight="fill" />
+      <Text variant="heading" size="lg">
+        Water tank is empty
+      </Text>
+    </div>
+  );
+}
+
+// --- Temperature Card ---
+
+function TemperatureCard({ temperature }: { temperature: number | null }) {
+  return (
+    <div className={classNames(styles.card, styles.temperatureCard)}>
+      <Text variant="heading" size="4xl">
+        {temperature != null ? `${Math.round(temperature)}°` : "—"}
+      </Text>
+      <Text color="muted" size="sm">
+        temperature
+      </Text>
+    </div>
+  );
+}
+
+// --- Settings Card ---
+
+function SettingsCard({
   deviceId,
   macAddress,
 }: {
@@ -267,7 +282,7 @@ function SettingsView({
   macAddress: string;
 }) {
   const router = useRouter();
-  const [showReconnect, setShowReconnect] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { mutate } = client.api.deleteDevice.useMutation(undefined, {
     onSuccess: () => {
       router.navigate({ to: "/" });
@@ -276,195 +291,134 @@ function SettingsView({
 
   return (
     <>
-      {/* whatsapp alert connection section */}
-      <WhatsAppConnect />
-
-      <Box pt="5xl">
-        <Text>Danger zone (careful!)</Text>
-        <Button onClick={() => mutate({ path: { id: deviceId } })}>
-          Remove this Ortus
-        </Button>
-        <Text>Reconnect to a device</Text>
-        <Button onClick={() => setShowReconnect(true)}>
-          Reconnect to device
-        </Button>
-      </Box>
-      <Modal
-        open={showReconnect}
-        onClose={() => setShowReconnect(false)}
-        title="Reconnect to Ortus"
+      <div
+        className={classNames(styles.card, styles.settingsCard)}
+        onClick={() => setShowSettings(true)}
       >
-        <ProvisionFlow
-          onProvisionSucceeded={(mac) => {
-            setShowReconnect(false);
-          }}
-        />
+        <GearIcon />
+        <Text color="muted" size="sm">
+          settings
+        </Text>
+      </div>
+      <Modal
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+        title="Settings"
+      >
+        <div className={styles.settingsModal}>
+          <div className={styles.settingsMeta}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              MAC address
+            </Text>
+            <Text size="sm">{macAddress}</Text>
+          </div>
+
+          <div className={styles.settingsSection}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              Wi-Fi
+            </Text>
+            <ProvisionFlow
+              mode="reconnect"
+              onProvisionSucceeded={() => setShowSettings(false)}
+            />
+          </div>
+
+          <hr className={styles.settingsDivider} />
+
+          <div className={styles.settingsSection}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              WhatsApp alerts
+            </Text>
+            <WhatsAppConnect />
+          </div>
+
+          <hr className={styles.settingsDivider} />
+
+          <div className={styles.settingsSection}>
+            <Text size="sm" color="muted" className={styles.sectionLabel}>
+              Danger zone
+            </Text>
+            <Button
+              variant="destructive"
+              full
+              onClick={() => mutate({ path: { id: deviceId } })}
+            >
+              Remove this Ortus
+            </Button>
+          </div>
+        </div>
       </Modal>
     </>
   );
 }
 
-type ScheduleState = {
-  fromHours: number;
-  fromMinutes: number;
-  toHours: number;
-  toMinutes: number;
-};
+// --- WhatsApp Connect ---
 
-function LightView({
-  deviceId,
-  device,
-}: {
-  deviceId: string;
-  device: ReturnType<typeof useDevice>;
-}) {
-  const [pendingBrightness, setPendingBrightness] = useState<number | null>(
-    null
-  );
+function WhatsAppConnect() {
+  const [otp, setOtp] = useState<string | null>(null);
+  const [deeplink, setDeeplink] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (pendingBrightness === null) {
-      return;
-    }
+  const { data: statusData } = client.api.whatsappStatus.useQuery();
+  const connected = statusData?.connected ?? false;
+  const phoneNumber = statusData?.phone_number ?? null;
 
-    if (device.state && device.state.brightness === pendingBrightness) {
-      const timeout = setTimeout(() => setPendingBrightness(null), 150);
-      return () => clearTimeout(timeout);
-    }
-  }, [pendingBrightness, device.state?.brightness]);
+  const { mutate: generateOtp, isPending: loading } =
+    client.api.connectWhatsapp.useMutation(undefined, {
+      onSuccess: (result) => {
+        setOtp(result.otp);
+        setDeeplink(result.deeplink);
+      },
+    });
 
-  const debouncedSetLight = useDebouncedCallback(
-    (brightness: number) => {
-      device
-        .setBrightness(brightness)
-        .catch((error) => console.error("Failed to set brightness", error));
-    },
-    device.isWebSocketConnected ? 0 : 1000
-  );
+  if (connected) {
+    return (
+      <Text size="sm" color="muted">
+        Connected to {phoneNumber}. You'll get a message when your water is low.
+      </Text>
+    );
+  }
 
-  const handleBrightnessChange = (value: number) => {
-    setPendingBrightness(value);
-    debouncedSetLight(value);
-  };
-
-  const currentBrightness = pendingBrightness ?? device.state?.brightness ?? 0;
-  const scheduleActive = device.state?.light_schedule?.active ?? false;
-
-  const { hours: fromHours, minutes: fromMinutes } =
-    getHoursAndMinutesByTimestamp(device.state?.light_schedule?.on ?? 0);
-
-  const { hours: toHours, minutes: toMinutes } = getHoursAndMinutesByTimestamp(
-    device.state?.light_schedule?.off ?? 0
-  );
-
-  const scheduleState = { fromHours, fromMinutes, toHours, toMinutes };
+  if (otp && deeplink) {
+    return (
+      <>
+        <Text size="sm" color="muted">
+          Your code: <strong>{otp}</strong>. Tap below to open WhatsApp — the
+          code will be pre-filled. Just hit send.
+        </Text>
+        <Button full onClick={() => window.open(deeplink, "_blank")}>
+          Open WhatsApp
+        </Button>
+      </>
+    );
+  }
 
   return (
-    <Box pt="5xl">
-      <Group direction="column" align="center" justify="center" spacing="xl">
-        <LightSwitch
-          brightness={currentBrightness}
-          onChange={handleBrightnessChange}
-        />
-        <Text size="sm">
-          {device.isWebSocketConnected
-            ? "LAN control active"
-            : "Using cloud fallback"}
-        </Text>
-      </Group>
-      <Box pt="5xl">
-        <Group direction="column" align="center" justify="center" spacing="xl">
-          <Text align="center" size="lg">
-            Light schedule
-          </Text>
-          <Toggle
-            onLabel="Schedule on"
-            offLabel="Manual control"
-            checked={scheduleActive}
-            onChange={(e) => device.toggleLightSchedule(e.target.checked)}
-          />
-          {scheduleActive && (
-            <>
-              <Group
-                direction="row"
-                align="center"
-                justify="center"
-                spacing="xl"
-              >
-                <Text align="left" size="lg">
-                  Lights on
-                </Text>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      fromHours: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.fromHours}
-                >
-                  {new Array(24).fill(null).map((_, i) => (
-                    <option key={i}>{i}</option>
-                  ))}
-                </select>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      fromMinutes: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.fromMinutes}
-                >
-                  {["00", "15", "30", "45"].map((label) => (
-                    <option key={label} value={parseInt(label)}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Group>
-              <Group
-                direction="row"
-                align="center"
-                justify="center"
-                spacing="xl"
-              >
-                <Text align="left" size="lg">
-                  Lights off
-                </Text>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      toHours: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.toHours}
-                >
-                  {new Array(24).fill(null).map((_, i) => (
-                    <option key={i}>{i}</option>
-                  ))}
-                </select>
-                <select
-                  onChange={(e) =>
-                    device.scheduleLights({
-                      ...scheduleState,
-                      toMinutes: parseInt(e.target.value),
-                    })
-                  }
-                  value={scheduleState.toMinutes}
-                >
-                  {["00", "15", "30", "36", "45"].map((label) => (
-                    <option key={label} value={parseInt(label)}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </Group>
-            </>
-          )}
-        </Group>
-      </Box>
-    </Box>
+    <>
+      <Text size="sm" color="muted">
+        Connect WhatsApp to get notified when your water is low.
+      </Text>
+      <Button full loading={loading} onClick={() => generateOtp({})}>
+        Connect WhatsApp
+      </Button>
+    </>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg
+      width="48"
+      height="48"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={styles.gearIcon}
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
   );
 }

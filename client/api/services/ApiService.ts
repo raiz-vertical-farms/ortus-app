@@ -818,17 +818,17 @@ export interface ApiService {
             error: AllDevicesError;
         };
     };
-    /** @summary Adjust the the brightness of the light */
+    /** @summary Adjust the brightness of the light */
     setBrightness: {
-        /** @summary Adjust the the brightness of the light */
+        /** @summary Adjust the brightness of the light */
         <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SetBrightnessBody, SetBrightnessParameters, TMeta, TSignal>, client?: (schema: SetBrightnessSchema, options: ServiceOperationMutationFnOptions<SetBrightnessBody, SetBrightnessParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SetBrightnessData, SetBrightnessError>>): Promise<RequestFnResponse<SetBrightnessData, SetBrightnessError>>;
-        /** @summary Adjust the the brightness of the light */
+        /** @summary Adjust the brightness of the light */
         getMutationKey(parameters: DeepReadonly<SetBrightnessParameters> | void): ServiceOperationMutationKey<SetBrightnessSchema, SetBrightnessParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Adjust the the brightness of the light
+         * @summary Adjust the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
@@ -855,7 +855,7 @@ export interface ApiService {
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Adjust the the brightness of the light
+         * @summary Adjust the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
@@ -881,7 +881,7 @@ export interface ApiService {
         /**
          * Returns the count of currently in-progress mutations.
          *
-         * @summary Adjust the the brightness of the light
+         * @summary Adjust the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
@@ -902,7 +902,7 @@ export interface ApiService {
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
-         * @summary Adjust the the brightness of the light
+         * @summary Adjust the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
@@ -931,13 +931,13 @@ export interface ApiService {
             filters?: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>;
             select?: (mutation: Mutation<SetBrightnessData, OperationError<SetBrightnessError>, MutationVariables<SetBrightnessBody, SetBrightnessParameters>, TContext>) => TResult;
         }): Array<TResult>;
-        /** @summary Adjust the the brightness of the light */
+        /** @summary Adjust the brightness of the light */
         isMutating<TContext>(filters?: MutationFiltersByParameters<SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext> | MutationFiltersByMutationKey<SetBrightnessSchema, SetBrightnessBody, SetBrightnessData, SetBrightnessParameters, OperationError<SetBrightnessError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
          *
-         * @summary Adjust the the brightness of the light
+         * @summary Adjust the brightness of the light
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
          *
          * @example Find a mutation with specific parameters
@@ -970,17 +970,17 @@ export interface ApiService {
             body: SetBrightnessBody;
         };
     };
-    /** @summary Set a schedule for the light */
+    /** @summary Start or pause the light schedule */
     scheduleLight: {
-        /** @summary Set a schedule for the light */
+        /** @summary Start or pause the light schedule */
         <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleLightBody, ScheduleLightParameters, TMeta, TSignal>, client?: (schema: ScheduleLightSchema, options: ServiceOperationMutationFnOptions<ScheduleLightBody, ScheduleLightParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleLightData, ScheduleLightError>>): Promise<RequestFnResponse<ScheduleLightData, ScheduleLightError>>;
-        /** @summary Set a schedule for the light */
+        /** @summary Start or pause the light schedule */
         getMutationKey(parameters: DeepReadonly<ScheduleLightParameters> | void): ServiceOperationMutationKey<ScheduleLightSchema, ScheduleLightParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Set a schedule for the light
+         * @summary Start or pause the light schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
@@ -1007,7 +1007,7 @@ export interface ApiService {
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Set a schedule for the light
+         * @summary Start or pause the light schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
@@ -1033,7 +1033,7 @@ export interface ApiService {
         /**
          * Returns the count of currently in-progress mutations.
          *
-         * @summary Set a schedule for the light
+         * @summary Start or pause the light schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
@@ -1054,7 +1054,7 @@ export interface ApiService {
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
-         * @summary Set a schedule for the light
+         * @summary Start or pause the light schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
@@ -1083,13 +1083,13 @@ export interface ApiService {
             filters?: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>;
             select?: (mutation: Mutation<ScheduleLightData, OperationError<ScheduleLightError>, MutationVariables<ScheduleLightBody, ScheduleLightParameters>, TContext>) => TResult;
         }): Array<TResult>;
-        /** @summary Set a schedule for the light */
+        /** @summary Start or pause the light schedule */
         isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext> | MutationFiltersByMutationKey<ScheduleLightSchema, ScheduleLightBody, ScheduleLightData, ScheduleLightParameters, OperationError<ScheduleLightError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
          *
-         * @summary Set a schedule for the light
+         * @summary Start or pause the light schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
          *
          * @example Find a mutation with specific parameters
@@ -1122,17 +1122,321 @@ export interface ApiService {
             body: ScheduleLightBody;
         };
     };
-    /** @summary Set a schedule for the irrigation */
+    /** @summary Skip the current light phase */
+    skipLightSchedule: {
+        /** @summary Skip the current light phase */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SkipLightScheduleBody, SkipLightScheduleParameters, TMeta, TSignal>, client?: (schema: SkipLightScheduleSchema, options: ServiceOperationMutationFnOptions<SkipLightScheduleBody, SkipLightScheduleParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SkipLightScheduleData, SkipLightScheduleError>>): Promise<RequestFnResponse<SkipLightScheduleData, SkipLightScheduleError>>;
+        /** @summary Skip the current light phase */
+        getMutationKey(parameters: DeepReadonly<SkipLightScheduleParameters> | void): ServiceOperationMutationKey<SkipLightScheduleSchema, SkipLightScheduleParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Skip the current light phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipLightSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipLightSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends SkipLightScheduleBody, TContext = unknown>(parameters: DeepReadonly<SkipLightScheduleParameters>, options?: ServiceOperationUseMutationOptions<SkipLightScheduleSchema, SkipLightScheduleData, SkipLightScheduleParameters, TVariables, OperationError<SkipLightScheduleError>, TContext>): UseMutationResult<SkipLightScheduleData, OperationError<SkipLightScheduleError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Skip the current light phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipLightSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipLightSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<SkipLightScheduleBody, SkipLightScheduleParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<SkipLightScheduleSchema, SkipLightScheduleData, SkipLightScheduleParameters, TVariables, OperationError<SkipLightScheduleError>, TContext>): UseMutationResult<SkipLightScheduleData, OperationError<SkipLightScheduleError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Skip the current light phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const skipLightScheduleTotal = qraft.apiService.skipLightSchedule.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const skipLightScheduleTotal = qraft.apiService.skipLightSchedule.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext> | MutationFiltersByMutationKey<SkipLightScheduleSchema, SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Skip the current light phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const skipLightSchedulePendingMutationVariables = qraft.apiService.skipLightSchedule.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const skipLightScheduleMutationData = qraft.apiService.skipLightSchedule.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<SkipLightScheduleData, OperationError<SkipLightScheduleError>, MutationVariables<SkipLightScheduleBody, SkipLightScheduleParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext> | MutationFiltersByMutationKey<SkipLightScheduleSchema, SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext>;
+            select?: (mutation: Mutation<SkipLightScheduleData, OperationError<SkipLightScheduleError>, MutationVariables<SkipLightScheduleBody, SkipLightScheduleParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Skip the current light phase */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext> | MutationFiltersByMutationKey<SkipLightScheduleSchema, SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Skip the current light phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.skipLightSchedule.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.skipLightSchedule.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext> | MutationFiltersByMutationKey<SkipLightScheduleSchema, SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext>): Mutation<SkipLightScheduleData, SkipLightScheduleError, MutationVariables<SkipLightScheduleBody, SkipLightScheduleParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext> | MutationFiltersByMutationKey<SkipLightScheduleSchema, SkipLightScheduleBody, SkipLightScheduleData, SkipLightScheduleParameters, OperationError<SkipLightScheduleError>, TContext>): Array<Mutation<SkipLightScheduleData, SkipLightScheduleError, MutationVariables<SkipLightScheduleBody, SkipLightScheduleParameters>, TContext>>;
+        };
+        schema: SkipLightScheduleSchema;
+        types: {
+            parameters: SkipLightScheduleParameters;
+            data: SkipLightScheduleData;
+            error: SkipLightScheduleError;
+            body: SkipLightScheduleBody;
+        };
+    };
+    /** @summary Restart the light schedule (starts ON phase immediately) */
+    restartLightSchedule: {
+        /** @summary Restart the light schedule (starts ON phase immediately) */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<RestartLightScheduleBody, RestartLightScheduleParameters, TMeta, TSignal>, client?: (schema: RestartLightScheduleSchema, options: ServiceOperationMutationFnOptions<RestartLightScheduleBody, RestartLightScheduleParameters, TMeta, TSignal>) => Promise<RequestFnResponse<RestartLightScheduleData, RestartLightScheduleError>>): Promise<RequestFnResponse<RestartLightScheduleData, RestartLightScheduleError>>;
+        /** @summary Restart the light schedule (starts ON phase immediately) */
+        getMutationKey(parameters: DeepReadonly<RestartLightScheduleParameters> | void): ServiceOperationMutationKey<RestartLightScheduleSchema, RestartLightScheduleParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Restart the light schedule (starts ON phase immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartLightSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartLightSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends RestartLightScheduleBody, TContext = unknown>(parameters: DeepReadonly<RestartLightScheduleParameters>, options?: ServiceOperationUseMutationOptions<RestartLightScheduleSchema, RestartLightScheduleData, RestartLightScheduleParameters, TVariables, OperationError<RestartLightScheduleError>, TContext>): UseMutationResult<RestartLightScheduleData, OperationError<RestartLightScheduleError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Restart the light schedule (starts ON phase immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartLightSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartLightSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<RestartLightScheduleBody, RestartLightScheduleParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<RestartLightScheduleSchema, RestartLightScheduleData, RestartLightScheduleParameters, TVariables, OperationError<RestartLightScheduleError>, TContext>): UseMutationResult<RestartLightScheduleData, OperationError<RestartLightScheduleError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Restart the light schedule (starts ON phase immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const restartLightScheduleTotal = qraft.apiService.restartLightSchedule.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const restartLightScheduleTotal = qraft.apiService.restartLightSchedule.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext> | MutationFiltersByMutationKey<RestartLightScheduleSchema, RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Restart the light schedule (starts ON phase immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const restartLightSchedulePendingMutationVariables = qraft.apiService.restartLightSchedule.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const restartLightScheduleMutationData = qraft.apiService.restartLightSchedule.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<RestartLightScheduleData, OperationError<RestartLightScheduleError>, MutationVariables<RestartLightScheduleBody, RestartLightScheduleParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext> | MutationFiltersByMutationKey<RestartLightScheduleSchema, RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext>;
+            select?: (mutation: Mutation<RestartLightScheduleData, OperationError<RestartLightScheduleError>, MutationVariables<RestartLightScheduleBody, RestartLightScheduleParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Restart the light schedule (starts ON phase immediately) */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext> | MutationFiltersByMutationKey<RestartLightScheduleSchema, RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Restart the light schedule (starts ON phase immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.restartLightSchedule.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.restartLightSchedule.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext> | MutationFiltersByMutationKey<RestartLightScheduleSchema, RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext>): Mutation<RestartLightScheduleData, RestartLightScheduleError, MutationVariables<RestartLightScheduleBody, RestartLightScheduleParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext> | MutationFiltersByMutationKey<RestartLightScheduleSchema, RestartLightScheduleBody, RestartLightScheduleData, RestartLightScheduleParameters, OperationError<RestartLightScheduleError>, TContext>): Array<Mutation<RestartLightScheduleData, RestartLightScheduleError, MutationVariables<RestartLightScheduleBody, RestartLightScheduleParameters>, TContext>>;
+        };
+        schema: RestartLightScheduleSchema;
+        types: {
+            parameters: RestartLightScheduleParameters;
+            data: RestartLightScheduleData;
+            error: RestartLightScheduleError;
+            body: RestartLightScheduleBody;
+        };
+    };
+    /** @summary Start or pause the irrigation schedule */
     scheduleIrrigation: {
-        /** @summary Set a schedule for the irrigation */
+        /** @summary Start or pause the irrigation schedule */
         <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<ScheduleIrrigationBody, ScheduleIrrigationParameters, TMeta, TSignal>, client?: (schema: ScheduleIrrigationSchema, options: ServiceOperationMutationFnOptions<ScheduleIrrigationBody, ScheduleIrrigationParameters, TMeta, TSignal>) => Promise<RequestFnResponse<ScheduleIrrigationData, ScheduleIrrigationError>>): Promise<RequestFnResponse<ScheduleIrrigationData, ScheduleIrrigationError>>;
-        /** @summary Set a schedule for the irrigation */
+        /** @summary Start or pause the irrigation schedule */
         getMutationKey(parameters: DeepReadonly<ScheduleIrrigationParameters> | void): ServiceOperationMutationKey<ScheduleIrrigationSchema, ScheduleIrrigationParameters>;
         /**
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Set a schedule for the irrigation
+         * @summary Start or pause the irrigation schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
@@ -1159,7 +1463,7 @@ export interface ApiService {
          * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
          * Handles loading state, optimistic updates, and error handling.
          *
-         * @summary Set a schedule for the irrigation
+         * @summary Start or pause the irrigation schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
          * @example Mutation with predefined parameters, e.g., for updating
          * ```ts
@@ -1185,7 +1489,7 @@ export interface ApiService {
         /**
          * Returns the count of currently in-progress mutations.
          *
-         * @summary Set a schedule for the irrigation
+         * @summary Start or pause the irrigation schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
          * @example Check how many mutations are currently in progress for the specified service method.
          * ```ts
@@ -1206,7 +1510,7 @@ export interface ApiService {
         /**
          * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
          *
-         * @summary Set a schedule for the irrigation
+         * @summary Start or pause the irrigation schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
          * @example Get all variables of all running mutations.
          * ```ts
@@ -1235,13 +1539,13 @@ export interface ApiService {
             filters?: MutationFiltersByParameters<ScheduleIrrigationBody, ScheduleIrrigationData, ScheduleIrrigationParameters, OperationError<ScheduleIrrigationError>, TContext> | MutationFiltersByMutationKey<ScheduleIrrigationSchema, ScheduleIrrigationBody, ScheduleIrrigationData, ScheduleIrrigationParameters, OperationError<ScheduleIrrigationError>, TContext>;
             select?: (mutation: Mutation<ScheduleIrrigationData, OperationError<ScheduleIrrigationError>, MutationVariables<ScheduleIrrigationBody, ScheduleIrrigationParameters>, TContext>) => TResult;
         }): Array<TResult>;
-        /** @summary Set a schedule for the irrigation */
+        /** @summary Start or pause the irrigation schedule */
         isMutating<TContext>(filters?: MutationFiltersByParameters<ScheduleIrrigationBody, ScheduleIrrigationData, ScheduleIrrigationParameters, OperationError<ScheduleIrrigationError>, TContext> | MutationFiltersByMutationKey<ScheduleIrrigationSchema, ScheduleIrrigationBody, ScheduleIrrigationData, ScheduleIrrigationParameters, OperationError<ScheduleIrrigationError>, TContext>): number;
         /**
          * Returns a `MutationCache` object that provides access to mutation cache operations
          * for the specific endpoint.
          *
-         * @summary Set a schedule for the irrigation
+         * @summary Start or pause the irrigation schedule
          * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
          *
          * @example Find a mutation with specific parameters
@@ -1272,6 +1576,310 @@ export interface ApiService {
             data: ScheduleIrrigationData;
             error: ScheduleIrrigationError;
             body: ScheduleIrrigationBody;
+        };
+    };
+    /** @summary Skip the current irrigation phase */
+    skipIrrigationSchedule: {
+        /** @summary Skip the current irrigation phase */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters, TMeta, TSignal>, client?: (schema: SkipIrrigationScheduleSchema, options: ServiceOperationMutationFnOptions<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters, TMeta, TSignal>) => Promise<RequestFnResponse<SkipIrrigationScheduleData, SkipIrrigationScheduleError>>): Promise<RequestFnResponse<SkipIrrigationScheduleData, SkipIrrigationScheduleError>>;
+        /** @summary Skip the current irrigation phase */
+        getMutationKey(parameters: DeepReadonly<SkipIrrigationScheduleParameters> | void): ServiceOperationMutationKey<SkipIrrigationScheduleSchema, SkipIrrigationScheduleParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Skip the current irrigation phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipIrrigationSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipIrrigationSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends SkipIrrigationScheduleBody, TContext = unknown>(parameters: DeepReadonly<SkipIrrigationScheduleParameters>, options?: ServiceOperationUseMutationOptions<SkipIrrigationScheduleSchema, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, TVariables, OperationError<SkipIrrigationScheduleError>, TContext>): UseMutationResult<SkipIrrigationScheduleData, OperationError<SkipIrrigationScheduleError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Skip the current irrigation phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipIrrigationSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.skipIrrigationSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<SkipIrrigationScheduleSchema, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, TVariables, OperationError<SkipIrrigationScheduleError>, TContext>): UseMutationResult<SkipIrrigationScheduleData, OperationError<SkipIrrigationScheduleError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Skip the current irrigation phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const skipIrrigationScheduleTotal = qraft.apiService.skipIrrigationSchedule.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const skipIrrigationScheduleTotal = qraft.apiService.skipIrrigationSchedule.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<SkipIrrigationScheduleSchema, SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Skip the current irrigation phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const skipIrrigationSchedulePendingMutationVariables = qraft.apiService.skipIrrigationSchedule.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const skipIrrigationScheduleMutationData = qraft.apiService.skipIrrigationSchedule.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<SkipIrrigationScheduleData, OperationError<SkipIrrigationScheduleError>, MutationVariables<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<SkipIrrigationScheduleSchema, SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext>;
+            select?: (mutation: Mutation<SkipIrrigationScheduleData, OperationError<SkipIrrigationScheduleError>, MutationVariables<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Skip the current irrigation phase */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<SkipIrrigationScheduleSchema, SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Skip the current irrigation phase
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.skipIrrigationSchedule.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.skipIrrigationSchedule.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<SkipIrrigationScheduleSchema, SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext>): Mutation<SkipIrrigationScheduleData, SkipIrrigationScheduleError, MutationVariables<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<SkipIrrigationScheduleSchema, SkipIrrigationScheduleBody, SkipIrrigationScheduleData, SkipIrrigationScheduleParameters, OperationError<SkipIrrigationScheduleError>, TContext>): Array<Mutation<SkipIrrigationScheduleData, SkipIrrigationScheduleError, MutationVariables<SkipIrrigationScheduleBody, SkipIrrigationScheduleParameters>, TContext>>;
+        };
+        schema: SkipIrrigationScheduleSchema;
+        types: {
+            parameters: SkipIrrigationScheduleParameters;
+            data: SkipIrrigationScheduleData;
+            error: SkipIrrigationScheduleError;
+            body: SkipIrrigationScheduleBody;
+        };
+    };
+    /** @summary Restart the irrigation schedule (starts watering immediately) */
+    restartIrrigationSchedule: {
+        /** @summary Restart the irrigation schedule (starts watering immediately) */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: ServiceOperationMutationFnOptions<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters, TMeta, TSignal>, client?: (schema: RestartIrrigationScheduleSchema, options: ServiceOperationMutationFnOptions<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters, TMeta, TSignal>) => Promise<RequestFnResponse<RestartIrrigationScheduleData, RestartIrrigationScheduleError>>): Promise<RequestFnResponse<RestartIrrigationScheduleData, RestartIrrigationScheduleError>>;
+        /** @summary Restart the irrigation schedule (starts watering immediately) */
+        getMutationKey(parameters: DeepReadonly<RestartIrrigationScheduleParameters> | void): ServiceOperationMutationKey<RestartIrrigationScheduleSchema, RestartIrrigationScheduleParameters>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Restart the irrigation schedule (starts watering immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartIrrigationSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartIrrigationSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends RestartIrrigationScheduleBody, TContext = unknown>(parameters: DeepReadonly<RestartIrrigationScheduleParameters>, options?: ServiceOperationUseMutationOptions<RestartIrrigationScheduleSchema, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, TVariables, OperationError<RestartIrrigationScheduleError>, TContext>): UseMutationResult<RestartIrrigationScheduleData, OperationError<RestartIrrigationScheduleError>, TVariables | void, TContext>;
+        /**
+         * Enables performing asynchronous data mutation operations such as POST, PUT, PATCH, or DELETE requests.
+         * Handles loading state, optimistic updates, and error handling.
+         *
+         * @summary Restart the irrigation schedule (starts watering immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutation|`useMutation(...)` documentation}
+         * @example Mutation with predefined parameters, e.g., for updating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartIrrigationSchedule.useMutation({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * mutate(body);
+         * ```
+         * @example Mutation without predefined parameters, e.g., for creating
+         * ```ts
+         * const { mutate, isPending } = qraft.apiService.restartIrrigationSchedule.useMutation()
+         * mutate({
+         *     body: bodyPayload,
+         *     path: {
+         *         id: id
+         *     }
+         * });
+         * ```
+         */
+        useMutation<TVariables extends MutationVariables<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters>, TContext = unknown>(parameters: void, options?: ServiceOperationUseMutationOptions<RestartIrrigationScheduleSchema, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, TVariables, OperationError<RestartIrrigationScheduleError>, TContext>): UseMutationResult<RestartIrrigationScheduleData, OperationError<RestartIrrigationScheduleError>, TVariables, TContext>;
+        /**
+         * Returns the count of currently in-progress mutations.
+         *
+         * @summary Restart the irrigation schedule (starts watering immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsMutating|`useIsMutating(...)` documentation}
+         * @example Check how many mutations are currently in progress for the specified service method.
+         * ```ts
+         * const restartIrrigationScheduleTotal = qraft.apiService.restartIrrigationSchedule.useIsMutating()
+         * ```
+         * @example Check how many mutations are currently in progress with the specified parameters.
+         * ```ts
+         * const restartIrrigationScheduleTotal = qraft.apiService.restartIrrigationSchedule.useIsMutating({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsMutating<TContext = unknown>(filters?: MutationFiltersByParameters<RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<RestartIrrigationScheduleSchema, RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext>): number;
+        /**
+         * Provides access to the current state of a mutation, including its status, any resulting data, and associated errors.
+         *
+         * @summary Restart the irrigation schedule (starts watering immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useMutationState|`useMutationState(...)` documentation}
+         * @example Get all variables of all running mutations.
+         * ```ts
+         * const restartIrrigationSchedulePendingMutationVariables = qraft.apiService.restartIrrigationSchedule.useMutationState({
+         *     filters: {
+         *         status: "pending"
+         *     },
+         *     select: mutation => mutation.state.variables
+         * })
+         * ```
+         * @example Get all data for specific mutations via the `parameters`.
+         * ```ts
+         * const restartIrrigationScheduleMutationData = qraft.apiService.restartIrrigationSchedule.useMutationState({
+         *     filters: {
+         *         parameters: {
+         *             path: {
+         *                 id: id
+         *             }
+         *         }
+         *     },
+         *     select: mutation => mutation.state.data
+         * })
+         * ```
+         */
+        useMutationState<TContext = unknown, TResult = MutationState<RestartIrrigationScheduleData, OperationError<RestartIrrigationScheduleError>, MutationVariables<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters>, TContext>>(options?: {
+            filters?: MutationFiltersByParameters<RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<RestartIrrigationScheduleSchema, RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext>;
+            select?: (mutation: Mutation<RestartIrrigationScheduleData, OperationError<RestartIrrigationScheduleError>, MutationVariables<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters>, TContext>) => TResult;
+        }): Array<TResult>;
+        /** @summary Restart the irrigation schedule (starts watering immediately) */
+        isMutating<TContext>(filters?: MutationFiltersByParameters<RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<RestartIrrigationScheduleSchema, RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext>): number;
+        /**
+         * Returns a `MutationCache` object that provides access to mutation cache operations
+         * for the specific endpoint.
+         *
+         * @summary Restart the irrigation schedule (starts watering immediately)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/query-client/getMutationCache|`getMutationCache(...)` documentation}
+         *
+         * @example Find a mutation with specific parameters
+         * ```ts
+         * const mutationCache = qraft.apiService.restartIrrigationSchedule.getMutationCache();
+         * const mutation = mutationCache.find({
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * });
+         * ```
+         *
+         * @example Find all mutations for the endpoint
+         * ```ts
+         * const mutationCache = qraft.apiService.restartIrrigationSchedule.getMutationCache();
+         * const mutations = mutationCache.findAll();
+         * ```
+         */
+        getMutationCache(): Omit<MutationCache, "find" | "findAll"> & {
+            find<TContext = unknown>(filters: MutationFiltersByParameters<RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<RestartIrrigationScheduleSchema, RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext>): Mutation<RestartIrrigationScheduleData, RestartIrrigationScheduleError, MutationVariables<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters>, TContext> | undefined;
+            findAll<TContext = unknown>(filters?: MutationFiltersByParameters<RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext> | MutationFiltersByMutationKey<RestartIrrigationScheduleSchema, RestartIrrigationScheduleBody, RestartIrrigationScheduleData, RestartIrrigationScheduleParameters, OperationError<RestartIrrigationScheduleError>, TContext>): Array<Mutation<RestartIrrigationScheduleData, RestartIrrigationScheduleError, MutationVariables<RestartIrrigationScheduleBody, RestartIrrigationScheduleParameters>, TContext>>;
+        };
+        schema: RestartIrrigationScheduleSchema;
+        types: {
+            parameters: RestartIrrigationScheduleParameters;
+            data: RestartIrrigationScheduleData;
+            error: RestartIrrigationScheduleError;
+            body: RestartIrrigationScheduleBody;
         };
     };
     /** @summary Get my IP address */
@@ -2220,7 +2828,7 @@ export const allDevices = {
     schema: AllDevicesSchema;
     [QraftServiceOperationsToken]: ApiService["allDevices"];
 };
-/** @summary Adjust the the brightness of the light */
+/** @summary Adjust the brightness of the light */
 export const setBrightness = {
     schema: {
         method: "post",
@@ -2231,7 +2839,7 @@ export const setBrightness = {
     schema: SetBrightnessSchema;
     [QraftServiceOperationsToken]: ApiService["setBrightness"];
 };
-/** @summary Set a schedule for the light */
+/** @summary Start or pause the light schedule */
 export const scheduleLight = {
     schema: {
         method: "post",
@@ -2242,7 +2850,27 @@ export const scheduleLight = {
     schema: ScheduleLightSchema;
     [QraftServiceOperationsToken]: ApiService["scheduleLight"];
 };
-/** @summary Set a schedule for the irrigation */
+/** @summary Skip the current light phase */
+export const skipLightSchedule = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/light/schedule/skip"
+    }
+} as {
+    schema: SkipLightScheduleSchema;
+    [QraftServiceOperationsToken]: ApiService["skipLightSchedule"];
+};
+/** @summary Restart the light schedule (starts ON phase immediately) */
+export const restartLightSchedule = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/light/schedule/restart"
+    }
+} as {
+    schema: RestartLightScheduleSchema;
+    [QraftServiceOperationsToken]: ApiService["restartLightSchedule"];
+};
+/** @summary Start or pause the irrigation schedule */
 export const scheduleIrrigation = {
     schema: {
         method: "post",
@@ -2252,6 +2880,26 @@ export const scheduleIrrigation = {
 } as {
     schema: ScheduleIrrigationSchema;
     [QraftServiceOperationsToken]: ApiService["scheduleIrrigation"];
+};
+/** @summary Skip the current irrigation phase */
+export const skipIrrigationSchedule = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/irrigation/schedule/skip"
+    }
+} as {
+    schema: SkipIrrigationScheduleSchema;
+    [QraftServiceOperationsToken]: ApiService["skipIrrigationSchedule"];
+};
+/** @summary Restart the irrigation schedule (starts watering immediately) */
+export const restartIrrigationSchedule = {
+    schema: {
+        method: "post",
+        url: "/api/device/{id}/irrigation/schedule/restart"
+    }
+} as {
+    schema: RestartIrrigationScheduleSchema;
+    [QraftServiceOperationsToken]: ApiService["restartIrrigationSchedule"];
 };
 /** @summary Get my IP address */
 export const myIp = {
@@ -2300,7 +2948,11 @@ export const apiService = {
     allDevices,
     setBrightness,
     scheduleLight,
+    skipLightSchedule,
+    restartLightSchedule,
     scheduleIrrigation,
+    skipIrrigationSchedule,
+    restartIrrigationSchedule,
     myIp,
     localDevices,
     connectWhatsapp,
@@ -2365,6 +3017,22 @@ type ScheduleLightParameters = paths["/api/device/{id}/light/schedule"]["post"][
 type ScheduleLightData = unknown;
 type ScheduleLightError = unknown;
 type ScheduleLightBody = NonNullable<paths["/api/device/{id}/light/schedule"]["post"]["requestBody"]>["content"]["application/json"];
+type SkipLightScheduleSchema = {
+    method: "post";
+    url: "/api/device/{id}/light/schedule/skip";
+};
+type SkipLightScheduleParameters = paths["/api/device/{id}/light/schedule/skip"]["post"]["parameters"];
+type SkipLightScheduleData = unknown;
+type SkipLightScheduleError = unknown;
+type SkipLightScheduleBody = undefined;
+type RestartLightScheduleSchema = {
+    method: "post";
+    url: "/api/device/{id}/light/schedule/restart";
+};
+type RestartLightScheduleParameters = paths["/api/device/{id}/light/schedule/restart"]["post"]["parameters"];
+type RestartLightScheduleData = unknown;
+type RestartLightScheduleError = unknown;
+type RestartLightScheduleBody = undefined;
 type ScheduleIrrigationSchema = {
     method: "post";
     url: "/api/device/{id}/irrigation/schedule";
@@ -2376,6 +3044,22 @@ type ScheduleIrrigationParameters = paths["/api/device/{id}/irrigation/schedule"
 type ScheduleIrrigationData = unknown;
 type ScheduleIrrigationError = unknown;
 type ScheduleIrrigationBody = NonNullable<paths["/api/device/{id}/irrigation/schedule"]["post"]["requestBody"]>["content"]["application/json"];
+type SkipIrrigationScheduleSchema = {
+    method: "post";
+    url: "/api/device/{id}/irrigation/schedule/skip";
+};
+type SkipIrrigationScheduleParameters = paths["/api/device/{id}/irrigation/schedule/skip"]["post"]["parameters"];
+type SkipIrrigationScheduleData = unknown;
+type SkipIrrigationScheduleError = unknown;
+type SkipIrrigationScheduleBody = undefined;
+type RestartIrrigationScheduleSchema = {
+    method: "post";
+    url: "/api/device/{id}/irrigation/schedule/restart";
+};
+type RestartIrrigationScheduleParameters = paths["/api/device/{id}/irrigation/schedule/restart"]["post"]["parameters"];
+type RestartIrrigationScheduleData = unknown;
+type RestartIrrigationScheduleError = unknown;
+type RestartIrrigationScheduleBody = undefined;
 type MyIpSchema = {
     method: "get";
     url: "/api/network/my-ip";

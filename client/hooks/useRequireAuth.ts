@@ -7,9 +7,9 @@ export function useRequireAuth(redirectTo = "/signup") {
   const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
-    console.log({ isLoaded, isSignedIn, redirectTo });
-    if (isLoaded && !isSignedIn) {
+    const isInAuthFlow = router.state.location.pathname.startsWith(redirectTo);
+    if (isLoaded && !isSignedIn && !isInAuthFlow) {
       router.navigate({ to: redirectTo });
     }
-  }, [router.latestLocation, redirectTo, isLoaded, isSignedIn]);
+  }, [router.state.location.pathname, redirectTo, isLoaded, isSignedIn]);
 }

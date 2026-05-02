@@ -25,7 +25,7 @@ declare global {
   }
 }
 
-async function getClerkToken() {
+export async function getClerkToken() {
   if (typeof window === "undefined") {
     return null;
   }

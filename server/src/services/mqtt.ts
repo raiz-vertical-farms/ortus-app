@@ -1,10 +1,13 @@
 import mqtt, { MqttClient } from "mqtt";
 import { z } from "zod";
 import { db } from "../db";
+import { ACK_TIMEOUT_MS } from "../config/schedules";
 import { twilio } from "./twilio";
 
-// the twilio sandbox whatsapp number — override via env in production
 const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER ?? "+14155238886";
+
+// suppress repeat water-empty alerts: device must stay quiet this long before re-alerting
+const MIN_DURATION_BETWEEN_ALERTS_MS = 6 * 60 * 60 * 1000;
 
 const MQTT_CONFIG = {
   url: `mqtts://${process.env.MQTT_BROKER_HOST}:8883`,
@@ -12,8 +15,7 @@ const MQTT_CONFIG = {
     username: process.env.MQTT_USERNAME!,
     password: process.env.MQTT_PASSWORD!,
   },
-  // Unified Subscription
-  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status"],
+  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status", "ortus/+/ack"],
 };
 
 export const mqttClient: MqttClient = mqtt.connect(
@@ -34,15 +36,83 @@ mqttClient.on("connect", () => {
   );
 });
 
-function safeJSON<T>(str: string): T | undefined {
-  try {
-    return JSON.parse(str) as T;
-  } catch {
-    return undefined;
-  }
+// --- ACK pattern ---
+
+type PendingAck = {
+  resolve: () => void;
+  reject: (err: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+};
+
+const pendingAcks = new Map<string, PendingAck>();
+
+/**
+ * Publishes an MQTT command and waits for an ACK from the device.
+ * If no ACK is received within `timeoutMs`, rejects with an error.
+ */
+export function sendWithAck(
+  mac: string,
+  cmdType: string,
+  payload: string,
+  timeoutMs = ACK_TIMEOUT_MS
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const key = `${mac}:${cmdType}`;
+    const timer = setTimeout(() => {
+      pendingAcks.delete(key);
+      reject(new Error(`ACK timeout for ${cmdType} on ${mac}`));
+    }, timeoutMs);
+    pendingAcks.set(key, { resolve, reject, timer });
+    mqttClient.publish(`ortus/${mac}/command`, payload);
+  });
 }
 
-// Schemas
+// --- Water alerts ---
+
+async function maybeSendWaterAlert(deviceId: number, mac: string) {
+  const now = Date.now();
+
+  // claim the alert slot atomically: only proceed if the previous alert was long enough ago.
+  // returning a row from the update means we won the race; an empty result means we skip.
+  const claimed = await db
+    .updateTable("device_state")
+    .set({ last_water_alert_at: now })
+    .where("device_id", "=", deviceId)
+    .where((eb) =>
+      eb.or([
+        eb("last_water_alert_at", "is", null),
+        eb("last_water_alert_at", "<", now - MIN_DURATION_BETWEEN_ALERTS_MS),
+      ])
+    )
+    .returning("device_id")
+    .executeTakeFirst();
+
+  if (!claimed) return;
+
+  const device = await db
+    .selectFrom("devices")
+    .select("user_id")
+    .where("id", "=", deviceId)
+    .executeTakeFirst();
+  if (!device) return;
+
+  const wa = await db
+    .selectFrom("user_whatsapp")
+    .select("phone_number")
+    .where("user_id", "=", device.user_id)
+    .executeTakeFirst();
+  if (!wa) return;
+
+  await twilio.messages.create({
+    from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
+    to: `whatsapp:${wa.phone_number}`,
+    body: "Your Ortus device is running low on water. Please refill soon.",
+  });
+  console.log(`[Alert] Sent water empty alert for ${mac} to ${wa.phone_number}`);
+}
+
+// --- Message schemas ---
+
 const presenceSchema = z.object({
   ip: z.string().optional(),
   mac: z.string(),
@@ -51,8 +121,10 @@ const presenceSchema = z.object({
 
 const stateSchema = z.object({
   brightness: z.number().optional(),
-  irrigationActive: z.boolean().optional(),
-  fanActive: z.boolean().optional(),
+  lightOn: z.boolean().optional(),
+  lightScheduleActive: z.boolean().optional(),
+  irrigationOn: z.boolean().optional(),
+  irrigationScheduleActive: z.boolean().optional(),
   temperature: z.number().nullable().optional(),
   waterEmpty: z.boolean().optional(),
 });
@@ -60,11 +132,18 @@ const stateSchema = z.object({
 type PresencePayload = z.infer<typeof presenceSchema>;
 type StatePayload = z.infer<typeof stateSchema>;
 
+function safeJSON<T>(str: string): T | undefined {
+  try {
+    return JSON.parse(str) as T;
+  } catch {
+    return undefined;
+  }
+}
+
 mqttClient.on("message", async (topic, payload) => {
   try {
     const raw = payload.toString();
     const parts = topic.split("/");
-    // Expected topic: ortus/{mac}/{type}
     if (parts.length !== 3 || parts[0] !== "ortus") return;
 
     const mac = parts[1];
@@ -72,88 +151,74 @@ mqttClient.on("message", async (topic, payload) => {
 
     if (type === "status") {
       const isOnline = raw === "online";
-      await db.updateTable("devices")
+      await db
+        .updateTable("devices")
         .set({
           online: isOnline ? 1 : 0,
           ...(isOnline ? {} : { last_seen: Math.floor(Date.now() / 1000) }),
         })
         .where("mac_address", "=", mac)
         .execute();
-
       console.log(`[Status] ${mac} is ${raw}`);
-    }
-    else if (type === "presence") {
+    } else if (type === "presence") {
       const data = safeJSON<PresencePayload>(raw);
       if (!data) return;
-      
-      await db.updateTable("devices")
-        .set({
-          online: 1,
-          last_seen: Math.floor(Date.now() / 1000),
-          lan_ip: data.ip
-        })
+      await db
+        .updateTable("devices")
+        .set({ online: 1, last_seen: Math.floor(Date.now() / 1000), lan_ip: data.ip })
         .where("mac_address", "=", mac)
         .execute();
-        
       console.log(`[Presence] ${mac} is online at ${data.ip}`);
-    } 
-    else if (type === "state") {
+    } else if (type === "state") {
       const data = safeJSON<StatePayload>(raw);
       if (!data) return;
 
-      // Update Timeseries & Notifications
-      const inserts = [];
+      const device = await db
+        .selectFrom("devices")
+        .select(["id"])
+        .where("mac_address", "=", mac)
+        .executeTakeFirst();
+      if (!device) return;
 
-      if (data.brightness !== undefined) {
-        inserts.push({ mac_address: mac, metric: "light/brightness", value_text: String(data.brightness), value_type: "int" });
-      }
-      if (data.temperature !== undefined && data.temperature !== null) {
-        inserts.push({ mac_address: mac, metric: "temperature", value_text: String(data.temperature), value_type: "float" });
-      }
-      if (data.waterEmpty !== undefined) {
-        inserts.push({ mac_address: mac, metric: "water/empty", value_text: String(data.waterEmpty), value_type: "boolean" });
-      }
-      if (data.irrigationActive !== undefined) {
-        inserts.push({ mac_address: mac, metric: "irrigation/active", value_text: String(data.irrigationActive), value_type: "boolean" });
-      }
-      // fan is now part of irrigation, but if we still receive it (or for legacy), we can log it or ignore it.
-      // since we are removing fan logic from firmware, we probably won't receive it.
+      await db
+        .insertInto("device_state")
+        .values({
+          device_id: device.id,
+          brightness: data.brightness ?? 0,
+          light_on: data.lightOn ? 1 : 0,
+          irrigation_on: data.irrigationOn ? 1 : 0,
+          temperature: data.temperature ?? null,
+          water_empty: data.waterEmpty ? 1 : 0,
+          updated_at: Date.now(),
+        })
+        .onConflict((oc) =>
+          oc.column("device_id").doUpdateSet({
+            brightness: data.brightness ?? 0,
+            light_on: data.lightOn ? 1 : 0,
+            irrigation_on: data.irrigationOn ? 1 : 0,
+            temperature: data.temperature ?? null,
+            water_empty: data.waterEmpty ? 1 : 0,
+            updated_at: Date.now(),
+          })
+        )
+        .execute();
 
-      if (inserts.length > 0) {
-        // @ts-ignore - complex insert type matching
-        await db.insertInto("device_timeseries").values(inserts).execute();
-      }
-
-      // if the water tank is empty, send a whatsapp alert to the device owner
       if (data.waterEmpty === true) {
-        // find the user who owns this device
-        const device = await db
-          .selectFrom("devices")
-          .select("user_id")
-          .where("mac_address", "=", mac)
-          .executeTakeFirst();
-
-        if (device) {
-          // check if that user has connected their whatsapp
-          const wa = await db
-            .selectFrom("user_whatsapp")
-            .select("phone_number")
-            .where("user_id", "=", device.user_id)
-            .executeTakeFirst();
-
-          if (wa) {
-            // send them a whatsapp message via twilio
-            await twilio.messages.create({
-              from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
-              to: `whatsapp:${wa.phone_number}`,
-              body: "Your Ortus device is running low on water. Please refill soon.",
-            });
-            console.log(`[Alert] Sent water empty alert to ${wa.phone_number}`);
-          }
-        }
+        await maybeSendWaterAlert(device.id, mac);
       }
 
       console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
+    } else if (type === "ack") {
+      const data = safeJSON<{ type: string }>(raw);
+      if (!data?.type) return;
+      const key = `${mac}:${data.type}`;
+      const pending = pendingAcks.get(key);
+      if (pending) {
+        clearTimeout(pending.timer);
+        pendingAcks.delete(key);
+        pending.resolve();
+        console.log(`[ACK] ${mac} acknowledged ${data.type}`);
+      }
     }
   } catch (err) {
     console.error("MQTT Message Error:", err);

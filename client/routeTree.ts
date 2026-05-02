@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignupSsoCallbackRouteImport } from './routes/signup_.sso-callback'
 import { Route as DeviceConnectRouteImport } from './routes/device/connect'
 import { Route as DeviceIdRouteImport } from './routes/device/$id'
 
@@ -22,6 +23,11 @@ const SignupRoute = SignupRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupSsoCallbackRoute = SignupSsoCallbackRouteImport.update({
+  id: '/signup_/sso-callback',
+  path: '/signup/sso-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeviceConnectRoute = DeviceConnectRouteImport.update({
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/device/$id': typeof DeviceIdRoute
   '/device/connect': typeof DeviceConnectRoute
+  '/signup/sso-callback': typeof SignupSsoCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signup': typeof SignupRoute
   '/device/$id': typeof DeviceIdRoute
   '/device/connect': typeof DeviceConnectRoute
+  '/signup/sso-callback': typeof SignupSsoCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,30 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/device/$id': typeof DeviceIdRoute
   '/device/connect': typeof DeviceConnectRoute
+  '/signup_/sso-callback': typeof SignupSsoCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/signup' | '/device/$id' | '/device/connect'
+  fullPaths:
+    | '/'
+    | '/signup'
+    | '/device/$id'
+    | '/device/connect'
+    | '/signup/sso-callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/signup' | '/device/$id' | '/device/connect'
-  id: '__root__' | '/' | '/signup' | '/device/$id' | '/device/connect'
+  to:
+    | '/'
+    | '/signup'
+    | '/device/$id'
+    | '/device/connect'
+    | '/signup/sso-callback'
+  id:
+    | '__root__'
+    | '/'
+    | '/signup'
+    | '/device/$id'
+    | '/device/connect'
+    | '/signup_/sso-callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +92,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   DeviceIdRoute: typeof DeviceIdRoute
   DeviceConnectRoute: typeof DeviceConnectRoute
+  SignupSsoCallbackRoute: typeof SignupSsoCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -83,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup_/sso-callback': {
+      id: '/signup_/sso-callback'
+      path: '/signup/sso-callback'
+      fullPath: '/signup/sso-callback'
+      preLoaderRoute: typeof SignupSsoCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/device/connect': {
@@ -107,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   DeviceIdRoute: DeviceIdRoute,
   DeviceConnectRoute: DeviceConnectRoute,
+  SignupSsoCallbackRoute: SignupSsoCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

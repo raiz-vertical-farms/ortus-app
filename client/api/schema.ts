@@ -81,7 +81,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Adjust the the brightness of the light */
+        /** Adjust the brightness of the light */
         post: operations["setBrightness"];
         delete?: never;
         options?: never;
@@ -98,8 +98,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set a schedule for the light */
+        /** Start or pause the light schedule */
         post: operations["scheduleLight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/light/schedule/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip the current light phase */
+        post: operations["skipLightSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/light/schedule/restart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restart the light schedule (starts ON phase immediately) */
+        post: operations["restartLightSchedule"];
         delete?: never;
         options?: never;
         head?: never;
@@ -115,8 +149,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Set a schedule for the irrigation */
+        /** Start or pause the irrigation schedule */
         post: operations["scheduleIrrigation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/irrigation/schedule/skip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Skip the current irrigation phase */
+        post: operations["skipIrrigationSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/irrigation/schedule/restart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restart the irrigation schedule (starts watering immediately) */
+        post: operations["restartIrrigationSchedule"];
         delete?: never;
         options?: never;
         head?: never;
@@ -292,21 +360,23 @@ export interface operations {
                             last_seen: number | null;
                             online: boolean;
                             brightness: number | null;
+                            light_on: boolean | null;
                             temperature: number | null;
-                            water_level: number | null;
+                            water_empty: boolean | null;
+                            irrigation_on: boolean | null;
                             light_schedule: {
                                 active: boolean;
-                                /** @description UTC timestamp in milliseconds */
-                                on: number;
-                                /** @description UTC timestamp in milliseconds */
-                                off: number;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
                             } | null;
                             irrigation_schedule: {
                                 active: boolean;
-                                /** @description UTC timestamp in milliseconds */
-                                start_time: number;
-                                /** @description Number of activations per UTC day */
-                                times_per_day: number;
+                                start_at: number;
+                                start_off: boolean;
+                                minutes_on: number;
+                                minutes_off: number;
                             } | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
@@ -340,14 +410,8 @@ export interface operations {
                             last_seen: number | null;
                             online: boolean;
                             temperature: number | null;
-                            water_level: number | null;
-                            irrigation_schedule: {
-                                active: boolean;
-                                /** @description UTC timestamp in milliseconds */
-                                start_time: number;
-                                /** @description Number of activations per UTC day */
-                                times_per_day: number;
-                            } | null;
+                            water_empty: boolean | null;
+                            irrigation_on: boolean | null;
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         }[];
@@ -387,13 +451,35 @@ export interface operations {
             content: {
                 "application/json": {
                     active: boolean;
-                    /** @description UTC timestamp in milliseconds */
-                    on?: number;
-                    /** @description UTC timestamp in milliseconds */
-                    off?: number;
+                    minutes_on?: number;
+                    minutes_off?: number;
                 };
             };
         };
+        responses: never;
+    };
+    skipLightSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: never;
+    };
+    restartLightSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: never;
     };
     scheduleIrrigation: {
@@ -409,13 +495,35 @@ export interface operations {
             content: {
                 "application/json": {
                     active: boolean;
-                    /** @description UTC timestamp in milliseconds */
-                    start_time?: number;
-                    /** @description Number of activations per UTC day */
-                    times_per_day?: number;
+                    minutes_on?: number;
+                    minutes_off?: number;
                 };
             };
         };
+        responses: never;
+    };
+    skipIrrigationSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: never;
+    };
+    restartIrrigationSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: never;
     };
     myIp: {

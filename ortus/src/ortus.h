@@ -8,8 +8,8 @@
 #include <Preferences.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-
 #include <HTTPUpdate.h>
+#include <time.h>
 
 #include "config.h"
 #include "types.h"
@@ -31,14 +31,17 @@ private:
     void connectMQTT();
     void setupSensors();
     void setupActuators();
-    
+
     // --- Logic ---
     void handleCommand(const DeviceCommand &cmd);
     void updateSensors();
     void updateActuators();
     void broadcastState(bool force = false);
     void publishPresence();
-    
+    void publishAck(const String &cmdType);
+    void syncSystemTime();
+    void recoverSchedules();
+
     // --- State & Storage ---
     void loadState();
     void saveState();
@@ -68,19 +71,27 @@ private:
 
     DeviceState currentState;
     DeviceState lastBroadcastState;
-    
+
     unsigned long lastWifiAttempt = 0;
     unsigned long lastPresence = 0;
+    unsigned long lastStateBroadcast = 0;
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
-    unsigned long irrigationStopAt = 0;
-    unsigned long irrigationCycleNextToggle = 0;
-    bool irrigationCycleIsOnPhase = false;
-    unsigned long lightCycleNextToggle = 0;
-    bool lightCycleIsOnPhase = false;
 
+    // Water sensor debounce: 0 means no candidate transition pending
+    unsigned long waterPresentSince = 0;
+
+    // Light schedule timing
+    unsigned long lightPhaseStartMillis = 0;
+    bool lightIsOnPhase = false;
+
+    // Irrigation schedule timing
+    unsigned long irrigationPhaseStartMillis = 0;
+    bool irrigationIsOnPhase = false;
+
+    bool timeSynced = false;
     int appliedBrightness = -1;
     bool wifiConnected = false;
-    
-    static OrtusSystem* instance;
+
+    static OrtusSystem *instance;
 };

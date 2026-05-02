@@ -6,22 +6,29 @@
 enum class CommandType
 {
   SetBrightness,
-  TriggerIrrigation,
-  IrrigationCycle,
-  LightCycle,
+  SetLightSchedule,
+  SetIrrigationSchedule,
   OtaUpdate
 };
 
 struct DeviceState
 {
   int brightness = 0;
-  bool irrigationActive = false;
-  bool irrigationCycleActive = false;
-  unsigned long irrigationCycleOnSeconds = 0;
-  unsigned long irrigationCycleOffSeconds = 0;
-  bool lightCycleActive = false;
-  unsigned long lightCycleOnSeconds = 0;
-  unsigned long lightCycleOffSeconds = 0;
+
+  // Light
+  bool lightScheduleActive = false;
+  unsigned long lightScheduleOnSeconds = 0;
+  unsigned long lightScheduleOffSeconds = 0;
+  unsigned long lightScheduleStartEpoch = 0;
+  bool lightOn = false;
+
+  // Irrigation (single relay drives pump + fan)
+  bool irrigationScheduleActive = false;
+  unsigned long irrigationScheduleOnSeconds = 0;
+  unsigned long irrigationScheduleOffSeconds = 0;
+  unsigned long irrigationScheduleStartEpoch = 0;
+  bool irrigationOn = false;
+
   float temperatureC = NAN;
   bool waterEmpty = false;
 };
@@ -30,11 +37,14 @@ struct DeviceCommand
 {
   CommandType type = CommandType::SetBrightness;
   int brightness = 0;
-  unsigned long irrigationDurationSeconds = 0;
-  unsigned long irrigationCycleOnSeconds = 0;
-  unsigned long irrigationCycleOffSeconds = 0;
-  unsigned long lightCycleOnSeconds = 0;
-  unsigned long lightCycleOffSeconds = 0;
+
+  // Shared interval schedule fields
+  bool scheduleActive = false;
+  unsigned long cycleOnSeconds = 0;
+  unsigned long cycleOffSeconds = 0;
+  bool startOff = false;
+  unsigned long start_at_epoch = 0;
+
   String otaUrl;
 };
 
@@ -43,13 +53,16 @@ inline bool operator==(const DeviceState &lhs, const DeviceState &rhs)
   const bool tempsEqual = isnan(lhs.temperatureC) ? isnan(rhs.temperatureC) : fabs(lhs.temperatureC - rhs.temperatureC) < 0.01f;
 
   return lhs.brightness == rhs.brightness &&
-         lhs.irrigationActive == rhs.irrigationActive &&
-         lhs.irrigationCycleActive == rhs.irrigationCycleActive &&
-         lhs.irrigationCycleOnSeconds == rhs.irrigationCycleOnSeconds &&
-         lhs.irrigationCycleOffSeconds == rhs.irrigationCycleOffSeconds &&
-         lhs.lightCycleActive == rhs.lightCycleActive &&
-         lhs.lightCycleOnSeconds == rhs.lightCycleOnSeconds &&
-         lhs.lightCycleOffSeconds == rhs.lightCycleOffSeconds &&
+         lhs.lightOn == rhs.lightOn &&
+         lhs.lightScheduleActive == rhs.lightScheduleActive &&
+         lhs.lightScheduleOnSeconds == rhs.lightScheduleOnSeconds &&
+         lhs.lightScheduleOffSeconds == rhs.lightScheduleOffSeconds &&
+         lhs.lightScheduleStartEpoch == rhs.lightScheduleStartEpoch &&
+         lhs.irrigationOn == rhs.irrigationOn &&
+         lhs.irrigationScheduleActive == rhs.irrigationScheduleActive &&
+         lhs.irrigationScheduleOnSeconds == rhs.irrigationScheduleOnSeconds &&
+         lhs.irrigationScheduleOffSeconds == rhs.irrigationScheduleOffSeconds &&
+         lhs.irrigationScheduleStartEpoch == rhs.irrigationScheduleStartEpoch &&
          lhs.waterEmpty == rhs.waterEmpty &&
          tempsEqual;
 }

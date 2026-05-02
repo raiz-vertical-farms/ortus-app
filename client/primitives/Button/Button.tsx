@@ -10,6 +10,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
   full?: boolean;
   square?: boolean;
+  loading?: boolean;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -17,7 +18,9 @@ const Button: React.FC<ButtonProps> = ({
   size = "md",
   full = false,
   square = false,
+  loading = false,
   className,
+  children,
   ...props
 }) => {
   return (
@@ -30,10 +33,14 @@ const Button: React.FC<ButtonProps> = ({
         {
           [styles.full]: full && !square,
           [styles.square]: square,
+          [styles.loading]: loading,
         }
       )}
+      disabled={loading || props.disabled}
       {...props}
-    />
+    >
+      {loading ? "..." : children}
+    </button>
   );
 };
 

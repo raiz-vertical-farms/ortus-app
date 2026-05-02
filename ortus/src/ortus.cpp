@@ -16,7 +16,6 @@ OrtusSystem::OrtusSystem()
 void OrtusSystem::begin()
 {
     Serial.begin(115200);
-    // Wait for serial (optional, mainly for dev)
     unsigned long start = millis();
     while (!Serial && millis() - start < 2000)
         delay(10);
@@ -27,8 +26,7 @@ void OrtusSystem::begin()
     pinMode(PIN_RELAY_IRRIGATION, OUTPUT);
     pinMode(PIN_SENSOR_WATER, INPUT_PULLUP);
 
-    // Initial relay state (Active HIGH assumed from original code)
-    digitalWrite(PIN_RELAY_IRRIGATION, HIGH);
+    digitalWrite(PIN_RELAY_IRRIGATION, LOW);
 
     // Setup LEDC PWM for light dimming
     ledc_timer_config_t timer = {
@@ -50,40 +48,34 @@ void OrtusSystem::begin()
 
     sensors.begin();
     sensors.setResolution(12);
+    sensors.setWaitForConversion(false); // Non-blocking
 
-    // Load Data
     preferences.begin("ortus", false);
     loadCredentials();
     loadState();
 
-    // Apply initial state
-    appliedBrightness = -1; // Force update
+    appliedBrightness = -1;
     updateActuators();
 
-    // Network Setup
     setupWiFi();
     setupMQTT();
 
     wsServer.begin();
     wsServer.onEvent(webSocketEvent);
 
-    // BLE Setup
     ble.begin(
-        [this](String s, String p)
-        { saveCredentials(s, p); },
+        [this](String s, String p) { saveCredentials(s, p); },
         [this]()
         {
             Serial.println("[System] Credentials updated via BLE. Reconnecting...");
             WiFi.disconnect(true);
-            lastWifiAttempt = 0; // Force immediate retry
+            lastWifiAttempt = 0;
         });
 
     Serial.println("[System] Boot complete.");
 
     if (WiFi.status() != WL_CONNECTED)
-    {
         ble.updateWiFiState(false);
-    }
 }
 
 void OrtusSystem::loop()
@@ -91,18 +83,24 @@ void OrtusSystem::loop()
     ble.loop();
     wsServer.loop();
 
-    connectWiFi(); // Manage connection
+    connectWiFi();
 
     if (wifiConnected)
     {
+        syncSystemTime();
         connectMQTT();
         mqttClient.loop();
 
-        // Periodic Presence
         if (millis() - lastPresence > PRESENCE_INTERVAL_MS)
         {
             publishPresence();
             lastPresence = millis();
+        }
+
+        if (millis() - lastStateBroadcast > STATE_INTERVAL_MS)
+        {
+            broadcastState(true);
+            lastStateBroadcast = millis();
         }
     }
 
@@ -121,14 +119,18 @@ void OrtusSystem::setupWiFi()
 
 void OrtusSystem::connectWiFi()
 {
-    if (WiFi.status() == WL_CONNECTED)
+    wl_status_t status = WiFi.status();
+
+    if (status == WL_CONNECTED)
     {
         if (!wifiConnected)
         {
             wifiConnected = true;
             Serial.println("[WiFi] Connected! IP: " + WiFi.localIP().toString());
+            Serial.println("[WiFi] RSSI: " + String(WiFi.RSSI()) + " dBm");
+            configTime(0, 0, "pool.ntp.org", "time.google.com");
             ble.updateWiFiState(true);
-            publishPresence(); // Immediate presence on connect
+            publishPresence();
         }
         return;
     }
@@ -136,28 +138,125 @@ void OrtusSystem::connectWiFi()
     if (wifiConnected)
     {
         wifiConnected = false;
+        timeSynced = false;
         ble.updateWiFiState(false);
     }
 
     if (wifiSSID.isEmpty())
-        return; // No credentials
+        return;
 
-    if (millis() - lastWifiAttempt > 10000)
+    // Only call WiFi.begin() on definitive failure or first attempt.
+    // Calling it while a connection is in progress resets the attempt.
+    bool shouldRetry = false;
+
+    if (status == WL_NO_SSID_AVAIL || status == WL_CONNECT_FAILED || status == WL_CONNECTION_LOST)
+        shouldRetry = true;
+    else if (status == WL_DISCONNECTED && millis() - lastWifiAttempt > 30000)
+        shouldRetry = true; // stuck in disconnected state too long
+    else if (lastWifiAttempt == 0)
+        shouldRetry = true; // first attempt
+
+    if (shouldRetry)
     {
         lastWifiAttempt = millis();
-        Serial.println("[WiFi] Connecting to " + wifiSSID + "...");
+        Serial.print("[WiFi] Connecting to '");
+        Serial.print(wifiSSID);
+        Serial.print("' (status=");
+        Serial.print(status);
+        Serial.println(")");
+        // Status codes: 0=IDLE, 1=NO_SSID_AVAIL, 2=SCAN_COMPLETED,
+        //   3=CONNECTED, 4=CONNECT_FAILED, 5=CONNECTION_LOST, 6=DISCONNECTED
         WiFi.begin(wifiSSID.c_str(), wifiPass.c_str());
     }
+}
+
+// --- Time Sync ---
+
+void OrtusSystem::syncSystemTime()
+{
+    if (timeSynced)
+        return;
+
+    time_t now;
+    time(&now);
+    if (now > 1700000000)
+    {
+        timeSynced = true;
+        Serial.println("[Time] System time synchronized");
+        recoverSchedules();
+    }
+}
+
+void OrtusSystem::recoverSchedules()
+{
+    if (!timeSynced)
+        return;
+
+    time_t now;
+    time(&now);
+    unsigned long currentEpoch = (unsigned long)now;
+
+    // Light Schedule Recovery
+    if (currentState.lightScheduleActive && currentState.lightScheduleStartEpoch > 0)
+    {
+        unsigned long totalCycle = currentState.lightScheduleOnSeconds + currentState.lightScheduleOffSeconds;
+        if (totalCycle > 0)
+        {
+            unsigned long elapsed = currentEpoch - currentState.lightScheduleStartEpoch;
+            unsigned long position = elapsed % totalCycle;
+
+            if (position < currentState.lightScheduleOnSeconds)
+            {
+                lightIsOnPhase = true;
+                lightPhaseStartMillis = millis() - (position * 1000);
+            }
+            else
+            {
+                lightIsOnPhase = false;
+                lightPhaseStartMillis = millis() - ((position - currentState.lightScheduleOnSeconds) * 1000);
+            }
+            currentState.brightness = lightIsOnPhase ? 100 : 0;
+            currentState.lightOn = lightIsOnPhase;
+            appliedBrightness = -1;
+            Serial.println("[Schedule] Light schedule recovered");
+        }
+    }
+
+    // Irrigation Schedule Recovery
+    if (currentState.irrigationScheduleActive && currentState.irrigationScheduleStartEpoch > 0)
+    {
+        unsigned long totalCycle = currentState.irrigationScheduleOnSeconds + currentState.irrigationScheduleOffSeconds;
+        if (totalCycle > 0)
+        {
+            unsigned long elapsed = currentEpoch - currentState.irrigationScheduleStartEpoch;
+            unsigned long position = elapsed % totalCycle;
+
+            if (position < currentState.irrigationScheduleOnSeconds)
+            {
+                irrigationIsOnPhase = true;
+                irrigationPhaseStartMillis = millis() - (position * 1000);
+            }
+            else
+            {
+                irrigationIsOnPhase = false;
+                irrigationPhaseStartMillis = millis() - ((position - currentState.irrigationScheduleOnSeconds) * 1000);
+            }
+            currentState.irrigationOn = irrigationIsOnPhase;
+            Serial.println("[Schedule] Irrigation schedule recovered");
+        }
+    }
+
+    broadcastState(true);
 }
 
 // --- MQTT ---
 
 void OrtusSystem::setupMQTT()
 {
-    wifiClient.setInsecure(); // For HiveMQ or similar without cert validation
+    wifiClient.setInsecure();
     mqttClient.setServer(MQTT_BROKER_HOST, MQTT_PORT);
     mqttClient.setCallback(mqttCallback);
-    mqttClient.setBufferSize(1024); // Increase buffer for JSON
+    mqttClient.setBufferSize(1024);
 }
 
 void OrtusSystem::connectMQTT()
@@ -177,14 +276,9 @@ void OrtusSystem::connectMQTT()
     if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, lwtTopic.c_str(), 1, true, "offline"))
     {
         Serial.println("Connected");
-
-        // Publish online status (retained)
         mqttClient.publish(lwtTopic.c_str(), "online", true);
-
-        // Subscribe to unified command topic
         String cmdTopic = "ortus/" + macAddress + "/command";
         mqttClient.subscribe(cmdTopic.c_str());
-
         broadcastState(true);
     }
     else
@@ -202,7 +296,6 @@ void OrtusSystem::mqttCallback(char *topic, uint8_t *payload, unsigned int lengt
 
 void OrtusSystem::onMqttMessage(char *topic, uint8_t *payload, unsigned int length)
 {
-    // MQTT now uses the exact same JSON format as WebSockets
     processRawCommand(payload, length);
 }
 
@@ -217,23 +310,17 @@ void OrtusSystem::webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, s
 void OrtusSystem::onWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 {
     if (type == WStype_TEXT)
-    {
         processRawCommand(payload, length);
-    }
     else if (type == WStype_CONNECTED)
-    {
-        // Send current state on connect
         broadcastState(true);
-    }
 }
 
-// --- Logic ---
+// --- Command parsing ---
 
 void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
 {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, payload, length);
-
     if (error)
     {
         Serial.println("[Command] JSON Error");
@@ -243,57 +330,39 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
     DeviceCommand cmd;
     String type = doc["type"] | "";
 
-    // Unified command parsing
-    // Supports strictly { "type": "...", "value": ... }
     if (type == "setBrightness")
     {
         cmd.type = CommandType::SetBrightness;
-        if (!doc["value"].isNull())
-            cmd.brightness = doc["value"];
+        if (doc["value"].isNull())
+            return;
+        cmd.brightness = doc["value"];
+    }
+    else if (type == "setLightSchedule" || type == "setIrrigationSchedule")
+    {
+        if (type == "setLightSchedule")
+            cmd.type = CommandType::SetLightSchedule;
         else
-            return;
-    }
-    else if (type == "triggerIrrigation")
-    {
-        cmd.type = CommandType::TriggerIrrigation;
-        if (!doc["value"].isNull())
-            cmd.irrigationDurationSeconds = doc["value"];
+            cmd.type = CommandType::SetIrrigationSchedule;
+
+        cmd.scheduleActive = doc["active"] | false;
+        cmd.cycleOnSeconds = (unsigned long)(doc["minutes_on"] | 0) * 60;
+        cmd.cycleOffSeconds = (unsigned long)(doc["minutes_off"] | 0) * 60;
+        cmd.startOff = doc["start_off"] | false;
+
+        if (doc.containsKey("start_at"))
+        {
+            cmd.start_at_epoch = doc["start_at"];
+        }
+        else if (timeSynced)
+        {
+            time_t now;
+            time(&now);
+            cmd.start_at_epoch = (unsigned long)now;
+        }
         else
-            cmd.irrigationDurationSeconds = 60; // Default
-    }
-    else if (type == "irrigationCycle")
-    {
-        cmd.type = CommandType::IrrigationCycle;
-        String value = doc["value"] | "";
-        // Parse format: "on:120,off:600"
-        int onIdx = value.indexOf("on:");
-        int offIdx = value.indexOf("off:");
-        if (onIdx < 0 || offIdx < 0)
-            return;
-        int commaIdx = value.indexOf(',');
-        if (commaIdx < 0)
-            return;
-        cmd.irrigationCycleOnSeconds = value.substring(onIdx + 3, commaIdx).toInt();
-        cmd.irrigationCycleOffSeconds = value.substring(offIdx + 4).toInt();
-        if (cmd.irrigationCycleOnSeconds == 0 || cmd.irrigationCycleOffSeconds == 0)
-            return;
-    }
-    else if (type == "lightCycle")
-    {
-        cmd.type = CommandType::LightCycle;
-        String value = doc["value"] | "";
-        // Parse format: "on:120,off:600"
-        int onIdx = value.indexOf("on:");
-        int offIdx = value.indexOf("off:");
-        if (onIdx < 0 || offIdx < 0)
-            return;
-        int commaIdx = value.indexOf(',');
-        if (commaIdx < 0)
-            return;
-        cmd.lightCycleOnSeconds = value.substring(onIdx + 3, commaIdx).toInt();
-        cmd.lightCycleOffSeconds = value.substring(offIdx + 4).toInt();
-        if (cmd.lightCycleOnSeconds == 0 || cmd.lightCycleOffSeconds == 0)
-            return;
+        {
+            cmd.start_at_epoch = 0;
+        }
     }
     else if (type == "otaUpdate")
     {
@@ -304,82 +373,120 @@ void OrtusSystem::processRawCommand(const uint8_t *payload, size_t length)
     }
     else
     {
-        return; // Unknown command
+        return;
     }
 
     handleCommand(cmd);
 }
 
+// --- Command handling ---
+
 void OrtusSystem::handleCommand(const DeviceCommand &cmd)
 {
+    bool changed = false;
+
     if (cmd.type == CommandType::SetBrightness)
     {
         int b = constrain(cmd.brightness, 0, 100);
-        if (currentState.brightness != b)
+        if (currentState.brightness != b || currentState.lightScheduleActive)
         {
             currentState.brightness = b;
-            saveState();
+            currentState.lightOn = b > 0;
+            currentState.lightScheduleActive = false;
+            changed = true;
             updateActuators();
             broadcastState();
         }
     }
-    else if (cmd.type == CommandType::TriggerIrrigation)
+    else if (cmd.type == CommandType::SetLightSchedule)
     {
-        if (cmd.irrigationDurationSeconds > 0)
+        if (currentState.lightScheduleActive != cmd.scheduleActive ||
+            currentState.lightScheduleOnSeconds != cmd.cycleOnSeconds ||
+            currentState.lightScheduleOffSeconds != cmd.cycleOffSeconds ||
+            currentState.lightScheduleStartEpoch != cmd.start_at_epoch)
         {
-            irrigationStopAt = millis() + (cmd.irrigationDurationSeconds * 1000);
-            currentState.irrigationActive = true;
+            currentState.lightScheduleActive = cmd.scheduleActive;
+            if (cmd.scheduleActive)
+            {
+                currentState.lightScheduleOnSeconds = cmd.cycleOnSeconds;
+                currentState.lightScheduleOffSeconds = cmd.cycleOffSeconds;
+                currentState.lightScheduleStartEpoch = cmd.start_at_epoch;
+                lightIsOnPhase = !cmd.startOff;
+                lightPhaseStartMillis = millis();
+                currentState.brightness = lightIsOnPhase ? 100 : 0;
+                currentState.lightOn = lightIsOnPhase;
+                appliedBrightness = -1;
+            }
+            else
+            {
+                currentState.brightness = 0;
+                currentState.lightOn = false;
+                appliedBrightness = -1;
+            }
+            changed = true;
             updateActuators();
             broadcastState();
+            publishAck("setLightSchedule");
         }
     }
-    else if (cmd.type == CommandType::IrrigationCycle)
+    else if (cmd.type == CommandType::SetIrrigationSchedule)
     {
-        currentState.irrigationCycleActive = true;
-        currentState.irrigationCycleOnSeconds = cmd.irrigationCycleOnSeconds;
-        currentState.irrigationCycleOffSeconds = cmd.irrigationCycleOffSeconds;
-        irrigationCycleIsOnPhase = true;
-        irrigationCycleNextToggle = millis() + (cmd.irrigationCycleOnSeconds * 1000);
-        currentState.irrigationActive = true;
-        saveState();
-        updateActuators();
-        broadcastState();
-    }
-    else if (cmd.type == CommandType::LightCycle)
-    {
-        currentState.lightCycleActive = true;
-        currentState.lightCycleOnSeconds = cmd.lightCycleOnSeconds;
-        currentState.lightCycleOffSeconds = cmd.lightCycleOffSeconds;
-        lightCycleIsOnPhase = true;
-        lightCycleNextToggle = millis() + (cmd.lightCycleOnSeconds * 1000);
-        currentState.brightness = 100;
-        appliedBrightness = -1; // Force PWM update
-        saveState();
-        updateActuators();
-        broadcastState();
+        if (currentState.irrigationScheduleActive != cmd.scheduleActive ||
+            currentState.irrigationScheduleOnSeconds != cmd.cycleOnSeconds ||
+            currentState.irrigationScheduleOffSeconds != cmd.cycleOffSeconds ||
+            currentState.irrigationScheduleStartEpoch != cmd.start_at_epoch)
+        {
+            currentState.irrigationScheduleActive = cmd.scheduleActive;
+            if (cmd.scheduleActive)
+            {
+                currentState.irrigationScheduleOnSeconds = cmd.cycleOnSeconds;
+                currentState.irrigationScheduleOffSeconds = cmd.cycleOffSeconds;
+                currentState.irrigationScheduleStartEpoch = cmd.start_at_epoch;
+                irrigationIsOnPhase = !cmd.startOff;
+                irrigationPhaseStartMillis = millis();
+                currentState.irrigationOn = irrigationIsOnPhase;
+            }
+            else
+            {
+                currentState.irrigationOn = false;
+            }
+            changed = true;
+            updateActuators();
+            broadcastState();
+            publishAck("setIrrigationSchedule");
+        }
     }
     else if (cmd.type == CommandType::OtaUpdate)
     {
         performOtaUpdate(cmd.otaUrl);
     }
+
+    if (changed)
+    {
+        saveState();
+    }
 }
+
+// --- Actuators ---
 
 void OrtusSystem::updateActuators()
 {
-    // Light Cycle
-    if (currentState.lightCycleActive && millis() >= lightCycleNextToggle)
+    // Light schedule
+    if (currentState.lightScheduleActive)
     {
-        lightCycleIsOnPhase = !lightCycleIsOnPhase;
-        currentState.brightness = lightCycleIsOnPhase ? 100 : 0;
-        appliedBrightness = -1; // Force PWM update
-        unsigned long duration = lightCycleIsOnPhase
-            ? currentState.lightCycleOnSeconds
-            : currentState.lightCycleOffSeconds;
-        lightCycleNextToggle = millis() + (duration * 1000);
-        broadcastState();
+        unsigned long duration = lightIsOnPhase ? currentState.lightScheduleOnSeconds : currentState.lightScheduleOffSeconds;
+        if (millis() - lightPhaseStartMillis >= (duration * 1000))
+        {
+            lightIsOnPhase = !lightIsOnPhase;
+            lightPhaseStartMillis = millis();
+            currentState.brightness = lightIsOnPhase ? 100 : 0;
+            currentState.lightOn = lightIsOnPhase;
+            appliedBrightness = -1;
+            broadcastState();
+        }
     }
 
-    // Light (PWM dimming via LEDC)
+    // Light PWM
     if (appliedBrightness != currentState.brightness)
     {
         appliedBrightness = currentState.brightness;
@@ -388,42 +495,36 @@ void OrtusSystem::updateActuators()
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
     }
 
-    // Irrigation Cycle
-    if (currentState.irrigationCycleActive && millis() >= irrigationCycleNextToggle)
+    // Irrigation schedule
+    if (currentState.irrigationScheduleActive)
     {
-        irrigationCycleIsOnPhase = !irrigationCycleIsOnPhase;
-        currentState.irrigationActive = irrigationCycleIsOnPhase;
-        unsigned long duration = irrigationCycleIsOnPhase
-            ? currentState.irrigationCycleOnSeconds
-            : currentState.irrigationCycleOffSeconds;
-        irrigationCycleNextToggle = millis() + (duration * 1000);
-        broadcastState();
-    }
-
-    // Irrigation (one-shot timer)
-    if (!currentState.irrigationCycleActive && currentState.irrigationActive)
-    {
-        if (millis() >= irrigationStopAt)
+        unsigned long duration = irrigationIsOnPhase ? currentState.irrigationScheduleOnSeconds : currentState.irrigationScheduleOffSeconds;
+        if (millis() - irrigationPhaseStartMillis >= (duration * 1000))
         {
-            currentState.irrigationActive = false;
-            irrigationStopAt = 0;
+            irrigationIsOnPhase = !irrigationIsOnPhase;
+            irrigationPhaseStartMillis = millis();
+            currentState.irrigationOn = irrigationIsOnPhase;
             broadcastState();
         }
     }
-    digitalWrite(PIN_RELAY_IRRIGATION, currentState.irrigationActive ? HIGH : LOW);
+    digitalWrite(PIN_RELAY_IRRIGATION, currentState.irrigationOn ? HIGH : LOW);
 }
+
+// --- Sensors ---
 
 void OrtusSystem::updateSensors()
 {
     unsigned long now = millis();
 
-    // Temperature
     if (now - lastTempPoll > TEMP_POLL_MS)
     {
         lastTempPoll = now;
-        sensors.requestTemperatures();
+        // Read the previous conversion
         float t = sensors.getTempCByIndex(0);
-        if (t > -50 && t < 150) // Basic validation
+        // Start next conversion in background
+        sensors.requestTemperatures();
+
+        if (t > -50 && t < 150)
         {
             if (isnan(currentState.temperatureC) || fabs(t - currentState.temperatureC) > TEMP_DELTA_THRESHOLD)
             {
@@ -433,23 +534,36 @@ void OrtusSystem::updateSensors()
         }
     }
 
-    // Water Level
     if (now - lastWaterPoll > WATER_POLL_MS)
     {
         lastWaterPoll = now;
-        int val = digitalRead(PIN_SENSOR_WATER);
-
-        // Previous analog logic: > 1.5V = Not Empty, < 1.5V = Empty.
-        // Mapping to digital: HIGH (Pullup) = Not Empty, LOW (Grounded) = Empty.
-        bool empty = (val == LOW);
-
-        if (empty != currentState.waterEmpty)
+        // SEN0485 with INPUT_PULLUP: LOW = liquid present, HIGH = empty.
+        // Empty transitions immediately; "present" requires a stable window
+        // to avoid false-positives from droplets/splashes.
+        bool rawPresent = (digitalRead(PIN_SENSOR_WATER) == LOW);
+        if (rawPresent)
         {
-            currentState.waterEmpty = empty;
-            broadcastState();
+            if (waterPresentSince == 0)
+                waterPresentSince = now;
+            if (now - waterPresentSince > WATER_SENSITIVITY_MS && currentState.waterEmpty)
+            {
+                currentState.waterEmpty = false;
+                broadcastState();
+            }
+        }
+        else
+        {
+            waterPresentSince = 0;
+            if (!currentState.waterEmpty)
+            {
+                currentState.waterEmpty = true;
+                broadcastState();
+            }
         }
     }
 }
+
+// --- Broadcast & Presence ---
 
 void OrtusSystem::broadcastState(bool force)
 {
@@ -459,33 +573,22 @@ void OrtusSystem::broadcastState(bool force)
 
     JsonDocument doc;
     doc["brightness"] = currentState.brightness;
-    doc["irrigationActive"] = currentState.irrigationActive;
-    doc["irrigationCycleActive"] = currentState.irrigationCycleActive;
-    if (currentState.irrigationCycleActive)
-    {
-        doc["irrigationCycleOnSeconds"] = currentState.irrigationCycleOnSeconds;
-        doc["irrigationCycleOffSeconds"] = currentState.irrigationCycleOffSeconds;
-    }
-    doc["lightCycleActive"] = currentState.lightCycleActive;
-    if (currentState.lightCycleActive)
-    {
-        doc["lightCycleOnSeconds"] = currentState.lightCycleOnSeconds;
-        doc["lightCycleOffSeconds"] = currentState.lightCycleOffSeconds;
-    }
+    doc["lightOn"] = currentState.lightOn;
+    doc["lightScheduleActive"] = currentState.lightScheduleActive;
+    doc["irrigationOn"] = currentState.irrigationOn;
+    doc["irrigationScheduleActive"] = currentState.irrigationScheduleActive;
     doc["temperature"] = currentState.temperatureC;
     doc["waterEmpty"] = currentState.waterEmpty;
 
     String json;
     serializeJson(doc, json);
 
-    // MQTT: Publish full state as JSON
     if (mqttClient.connected())
     {
         String topic = "ortus/" + macAddress + "/state";
         mqttClient.publish(topic.c_str(), json.c_str(), true);
     }
 
-    // WebSocket: Same JSON
     wsServer.broadcastTXT(json);
 }
 
@@ -501,9 +604,23 @@ void OrtusSystem::publishPresence()
 
     String json;
     serializeJson(doc, json);
-
     String topic = "ortus/" + macAddress + "/presence";
     mqttClient.publish(topic.c_str(), json.c_str());
+}
+
+void OrtusSystem::publishAck(const String &cmdType)
+{
+    if (!mqttClient.connected())
+        return;
+
+    JsonDocument doc;
+    doc["type"] = cmdType;
+    String json;
+    serializeJson(doc, json);
+
+    String topic = "ortus/" + macAddress + "/ack";
+    mqttClient.publish(topic.c_str(), json.c_str());
+    Serial.println("[ACK] Published for " + cmdType);
 }
 
 // --- Persistence ---
@@ -511,36 +628,48 @@ void OrtusSystem::publishPresence()
 void OrtusSystem::loadState()
 {
     currentState.brightness = preferences.getInt("brightness", 0);
-    currentState.irrigationCycleActive = preferences.getBool("cycleActive", false);
-    currentState.irrigationCycleOnSeconds = preferences.getULong("cycleOn", 0);
-    currentState.irrigationCycleOffSeconds = preferences.getULong("cycleOff", 0);
-    if (currentState.irrigationCycleActive)
+
+    currentState.lightScheduleActive = preferences.getBool("lCycleActive", false);
+    currentState.lightScheduleOnSeconds = preferences.getULong("lCycleOn", 0);
+    currentState.lightScheduleOffSeconds = preferences.getULong("lCycleOff", 0);
+    currentState.lightScheduleStartEpoch = preferences.getULong("lCycleStart", 0);
+
+    currentState.irrigationScheduleActive = preferences.getBool("iCycleActive", false);
+    currentState.irrigationScheduleOnSeconds = preferences.getULong("iCycleOn", 0);
+    currentState.irrigationScheduleOffSeconds = preferences.getULong("iCycleOff", 0);
+    currentState.irrigationScheduleStartEpoch = preferences.getULong("iCycleStart", 0);
+
+    // Initial phase setup (will be refined by recoverSchedules if NTP is available)
+    if (currentState.lightScheduleActive)
     {
-        irrigationCycleIsOnPhase = true;
-        currentState.irrigationActive = true;
-        irrigationCycleNextToggle = millis() + (currentState.irrigationCycleOnSeconds * 1000);
-    }
-    currentState.lightCycleActive = preferences.getBool("lCycleActive", false);
-    currentState.lightCycleOnSeconds = preferences.getULong("lCycleOn", 0);
-    currentState.lightCycleOffSeconds = preferences.getULong("lCycleOff", 0);
-    if (currentState.lightCycleActive)
-    {
-        lightCycleIsOnPhase = true;
+        lightIsOnPhase = true;
         currentState.brightness = 100;
-        appliedBrightness = -1;
-        lightCycleNextToggle = millis() + (currentState.lightCycleOnSeconds * 1000);
+        currentState.lightOn = true;
+        lightPhaseStartMillis = millis();
+    }
+    if (currentState.irrigationScheduleActive)
+    {
+        irrigationIsOnPhase = true;
+        currentState.irrigationOn = true;
+        irrigationPhaseStartMillis = millis();
     }
 }
 
 void OrtusSystem::saveState()
 {
     preferences.putInt("brightness", currentState.brightness);
-    preferences.putBool("cycleActive", currentState.irrigationCycleActive);
-    preferences.putULong("cycleOn", currentState.irrigationCycleOnSeconds);
-    preferences.putULong("cycleOff", currentState.irrigationCycleOffSeconds);
-    preferences.putBool("lCycleActive", currentState.lightCycleActive);
-    preferences.putULong("lCycleOn", currentState.lightCycleOnSeconds);
-    preferences.putULong("lCycleOff", currentState.lightCycleOffSeconds);
+
+    preferences.putBool("lCycleActive", currentState.lightScheduleActive);
+    preferences.putULong("lCycleOn", currentState.lightScheduleOnSeconds);
+    preferences.putULong("lCycleOff", currentState.lightScheduleOffSeconds);
+    preferences.putULong("lCycleStart", currentState.lightScheduleStartEpoch);
+
+    preferences.putBool("iCycleActive", currentState.irrigationScheduleActive);
+    preferences.putULong("iCycleOn", currentState.irrigationScheduleOnSeconds);
+    preferences.putULong("iCycleOff", currentState.irrigationScheduleOffSeconds);
+    preferences.putULong("iCycleStart", currentState.irrigationScheduleStartEpoch);
+
+    Serial.println("[System] State saved to NVS.");
 }
 
 void OrtusSystem::loadCredentials()
@@ -558,43 +687,35 @@ void OrtusSystem::saveCredentials(String s, String p)
     Serial.println("[System] Credentials saved.");
 }
 
+// --- OTA ---
+
 void OrtusSystem::performOtaUpdate(const String &url)
 {
     Serial.println("[OTA] Starting update from: " + url);
 
-    // Publish status so the app knows we're updating
     if (mqttClient.connected())
-    {
-        String topic = "ortus/" + macAddress + "/ota";
-        mqttClient.publish(topic.c_str(), "started");
-    }
+        mqttClient.publish(("ortus/" + macAddress + "/ota").c_str(), "started");
 
     WiFiClientSecure otaClient;
-    otaClient.setInsecure(); // Skip cert validation (same as your MQTT client)
-
+    otaClient.setInsecure();
     httpUpdate.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     t_httpUpdate_return ret = httpUpdate.update(otaClient, url);
 
-    // If we get here, the update failed (success would reboot automatically)
     String error;
     switch (ret)
     {
     case HTTP_UPDATE_FAILED:
         error = httpUpdate.getLastErrorString();
-        Serial.println("[OTA] Failed: " + error);
         break;
     case HTTP_UPDATE_NO_UPDATES:
         error = "No update available";
-        Serial.println("[OTA] " + error);
         break;
     default:
         error = "Unknown error";
         break;
     }
 
+    Serial.println("[OTA] " + error);
     if (mqttClient.connected())
-    {
-        String topic = "ortus/" + macAddress + "/ota";
-        mqttClient.publish(topic.c_str(), ("failed: " + error).c_str());
-    }
+        mqttClient.publish(("ortus/" + macAddress + "/ota").c_str(), ("failed: " + error).c_str());
 }

@@ -36,13 +36,16 @@ export interface Devices {
   user_id: string;
 }
 
-export interface DeviceTimeseries {
-  created_at: Generated<number>;
+export interface DeviceState {
+  brightness: Generated<number>;
+  device_id: number;
   id: Generated<number>;
-  mac_address: string;
-  metric: string;
-  value_text: string;
-  value_type: string;
+  irrigation_on: Generated<number>;
+  last_water_alert_at: number | null;
+  light_on: Generated<number>;
+  temperature: number | null;
+  updated_at: Generated<number>;
+  water_empty: Generated<number>;
 }
 
 export interface IrrigationSchedules {
@@ -50,8 +53,11 @@ export interface IrrigationSchedules {
   created_at: Generated<number>;
   device_id: number;
   id: Generated<number>;
-  start_time: number;
-  times_per_day: number;
+  minutes_off: Generated<number>;
+  minutes_on: Generated<number>;
+  skipped_at: number | null;
+  start_at: Generated<number>;
+  start_off: Generated<number>;
 }
 
 export interface LightSchedules {
@@ -59,8 +65,10 @@ export interface LightSchedules {
   created_at: Generated<number>;
   device_id: number;
   id: Generated<number>;
-  off_timestamp: number;
-  on_timestamp: number;
+  minutes_off: Generated<number>;
+  minutes_on: Generated<number>;
+  start_at: Generated<number>;
+  start_off: Generated<number>;
 }
 
 export interface UserWhatsapp {
@@ -81,7 +89,7 @@ export interface WhatsappOtps {
 export interface DB {
   _migrations: _Migrations;
   alert_notifications: AlertNotifications;
-  device_timeseries: DeviceTimeseries;
+  device_state: DeviceState;
   devices: Devices;
   irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;

@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { validator as zValidator, resolver, describeRoute } from "hono-openapi";
 import { z } from "zod";
 import { db } from "../db";
-import { sql } from "kysely";
 import { getConnInfo } from "@hono/node-server/conninfo";
 
 const localDevicesSchema = z.object({
@@ -55,12 +54,10 @@ const app = new Hono()
       const { ip } = c.req.valid("query");
 
       const recent = await db
-        .selectFrom("device_timeseries")
-        .select(["mac_address", "created_at"])
-        .distinct()
-        .where("metric", "=", "presence")
-        // .where("value_text", "=", ip) // TODO: Re-implement IP matching if needed
-        .where("created_at", ">=", Date.now() - 60)
+        .selectFrom("devices")
+        .select(["mac_address"])
+        .where("lan_ip", "=", ip)
+        .where("online", "=", 1)
         .execute();
 
       return c.json(recent);
