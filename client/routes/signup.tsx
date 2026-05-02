@@ -1,4 +1,4 @@
-import { createFileRoute, useMatch } from "@tanstack/react-router";
+import { createFileRoute, useMatch, useNavigate } from "@tanstack/react-router";
 import PageLayout from "../layout/PageLayout/PageLayout";
 import { useSignIn, useSignUp } from "@clerk/clerk-react";
 import Container from "../primitives/Container/Container";
@@ -29,6 +29,7 @@ function Signup() {
   } = useSignUp();
   const { staticData } = useMatch({ from: "/signup" });
   const layout = staticData.layout;
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -125,6 +126,7 @@ function Signup() {
 
         if (result.status === "complete") {
           await setSignInActive({ session: result.createdSessionId });
+          navigate({ to: "/" });
         }
       } else if (signUp.status === "missing_requirements") {
         const result = await signUp.attemptEmailAddressVerification({
@@ -133,6 +135,7 @@ function Signup() {
 
         if (result.status === "complete") {
           await setSignUpActive({ session: result.createdSessionId });
+          navigate({ to: "/" });
         }
       }
     } catch (err: any) {
