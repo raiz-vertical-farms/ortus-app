@@ -332,6 +332,153 @@
         ]
       }
     },
+    "/api/device/{id}/history": {
+      "get": {
+        "operationId": "deviceHistory",
+        "summary": "Recent state changes for a device (most recent first)",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "State history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "history": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "brightness": {
+                            "type": "number"
+                          },
+                          "light_on": {
+                            "type": "boolean"
+                          },
+                          "irrigation_on": {
+                            "type": "boolean"
+                          },
+                          "temperature": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "water_empty": {
+                            "type": "boolean"
+                          },
+                          "recorded_at": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "brightness",
+                          "light_on",
+                          "irrigation_on",
+                          "temperature",
+                          "water_empty",
+                          "recorded_at"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "history"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/device/{id}/logs": {
+      "get": {
+        "operationId": "deviceLogs",
+        "summary": "Recent debug logs for a device (most recent first)",
+        "tags": [
+          "Devices"
+        ],
+        "responses": {
+          "200": {
+            "description": "Device logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "logs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number"
+                          },
+                          "level": {
+                            "type": "string"
+                          },
+                          "tag": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "recorded_at": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "level",
+                          "tag",
+                          "message",
+                          "recorded_at"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "logs"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ]
+      }
+    },
     "/api/device/all": {
       "get": {
         "operationId": "allDevices",

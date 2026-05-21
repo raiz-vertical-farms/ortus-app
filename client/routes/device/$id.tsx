@@ -3,15 +3,15 @@ import { getErrorMessage } from "../../utils/error";
 import { Text } from "../../primitives/Text/Text";
 import { Group } from "../../primitives/Group/Group";
 import { client } from "../../lib/apiClient";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Button from "../../primitives/Button/Button";
-import { useDebouncedCallback } from "../../hooks/useDebouncedCallback";
 import PageLayout from "../../layout/PageLayout/PageLayout";
 import Modal from "../../primitives/Modal/Modal";
+import Tabs from "../../primitives/Tabs/Tabs";
 import ProvisionFlow from "../../components/ProvisionFlow/ProvisionFlow";
 import { useDevice, computePhase } from "../../hooks/useDevice";
 import { classNames } from "../../utils/classnames";
-import { Drop } from "@phosphor-icons/react";
+import { Drop, ClockCounterClockwise } from "@phosphor-icons/react";
 import styles from "./$id.module.css";
 
 export const Route = createFileRoute("/device/$id")({
@@ -45,8 +45,9 @@ function RouteComponent() {
         {state.water_empty && <WaterEmptyCard />}
         <LightCard deviceId={id} device={device} />
         <IrrigationCard deviceId={id} device={device} />
-        <div className={styles.halfGrid}>
+        <div className={styles.thirdsGrid}>
           <TemperatureCard temperature={state.temperature} />
+          <HistoryCard deviceId={id} />
           <SettingsCard deviceId={id} macAddress={state.mac_address!} />
         </div>
       </div>
@@ -66,20 +67,26 @@ function LightCard({
     null,
   );
   const [loading, setLoading] = useState(false);
-
-  const debouncedSetLight = useDebouncedCallback(
-    (brightness: number) => {
-      device
-        .setBrightness(brightness)
-        .catch((err) => console.error("Failed to set brightness", err));
-    },
-    device.isWebSocketConnected ? 0 : 1000,
-  );
+  const lastSentBrightnessRef = useRef<number | null>(null);
 
   const handleBrightnessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    setPendingBrightness(value);
-    debouncedSetLight(value);
+    setPendingBrightness(Number(e.target.value));
+  };
+
+  // Commit on release (pointer up / touch end / blur / key release).
+  // Per-frame onChange events stayed local-only above so the slider tracks the
+  // finger without spamming the device with intermediate values.
+  const commitBrightness = () => {
+    if (pendingBrightness === null) return;
+    if (pendingBrightness === lastSentBrightnessRef.current) return;
+    if (pendingBrightness === device.state?.brightness) {
+      lastSentBrightnessRef.current = pendingBrightness;
+      return;
+    }
+    lastSentBrightnessRef.current = pendingBrightness;
+    device
+      .setBrightness(pendingBrightness)
+      .catch((err) => console.error("Failed to set brightness", err));
   };
 
   const schedule = device.state?.light_schedule;
@@ -139,6 +146,10 @@ function LightCard({
           max={100}
           value={currentBrightness}
           onChange={handleBrightnessChange}
+          onPointerUp={commitBrightness}
+          onTouchEnd={commitBrightness}
+          onKeyUp={commitBrightness}
+          onBlur={commitBrightness}
           className={styles.slider}
         />
       </div>
@@ -337,6 +348,126 @@ function SettingsCard({
               Remove this Ortus
             </Button>
           </div>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+// --- History Card ---
+
+function formatRecordedAt(ts: number) {
+  const d = new Date(ts);
+  const today = new Date();
+  const sameDay = d.toDateString() === today.toDateString();
+  if (sameDay) {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+  return d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function HistoryCard({ deviceId }: { deviceId: string }) {
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<"state" | "logs">("state");
+
+  const historyQuery = client.api.deviceHistory.useQuery(
+    { path: { id: deviceId } },
+    { enabled: open && tab === "state" }
+  );
+  const logsQuery = client.api.deviceLogs.useQuery(
+    { path: { id: deviceId } },
+    { enabled: open && tab === "logs" }
+  );
+
+  const activeQuery = tab === "state" ? historyQuery : logsQuery;
+  const history = historyQuery.data?.history ?? [];
+  const logs = logsQuery.data?.logs ?? [];
+
+  return (
+    <>
+      <div
+        className={classNames(styles.card, styles.historyCard)}
+        onClick={() => setOpen(true)}
+      >
+        <ClockCounterClockwise size={48} weight="regular" className={styles.historyIcon} />
+        <Text color="muted" size="sm">
+          history
+        </Text>
+      </div>
+      <Modal open={open} onClose={() => setOpen(false)} title="History">
+        <div className={styles.historyModal}>
+          <Tabs<"state" | "logs">
+            value={tab}
+            onChange={setTab}
+            options={[
+              { value: "state", label: "State updates" },
+              { value: "logs", label: "Debug logs" },
+            ]}
+          />
+
+          {activeQuery.isLoading && (
+            <div className={styles.historyEmpty}>
+              <Text size="sm" color="muted">Loading…</Text>
+            </div>
+          )}
+
+          {activeQuery.error && !activeQuery.isLoading && (
+            <div className={styles.historyEmpty}>
+              <Text size="sm" color="muted">
+                {(activeQuery.error as Error)?.message ?? "Failed to load"}
+              </Text>
+            </div>
+          )}
+
+          {!activeQuery.isLoading && !activeQuery.error && tab === "state" && (
+            history.length > 0 ? (
+              <div className={styles.historyList}>
+                {history.map((row) => (
+                  <div key={row.id} className={styles.historyRow}>
+                    <div className={styles.historyRowHeader}>
+                      <Text size="sm">
+                        {row.light_on ? `💡 ${row.brightness}%` : "💡 off"} ·{" "}
+                        {row.irrigation_on ? "💧 on" : "💧 off"}
+                        {row.water_empty ? " · ⚠ tank empty" : ""}
+                      </Text>
+                      <Text size="xs" color="muted">{formatRecordedAt(row.recorded_at)}</Text>
+                    </div>
+                    {row.temperature != null && (
+                      <Text size="xs" color="muted">
+                        {Math.round(row.temperature * 10) / 10}°C
+                      </Text>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.historyEmpty}>
+                <Text size="sm" color="muted">No state changes recorded yet.</Text>
+              </div>
+            )
+          )}
+
+          {!activeQuery.isLoading && !activeQuery.error && tab === "logs" && (
+            logs.length > 0 ? (
+              <div className={styles.historyList}>
+                {logs.map((row) => (
+                  <div key={row.id} className={styles.historyRow}>
+                    <div className={styles.historyRowHeader}>
+                      <Text size="sm">
+                        [{row.level}] {row.tag}
+                      </Text>
+                      <Text size="xs" color="muted">{formatRecordedAt(row.recorded_at)}</Text>
+                    </div>
+                    <Text size="xs" className={styles.historyMessage}>{row.message}</Text>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.historyEmpty}>
+                <Text size="sm" color="muted">No logs yet.</Text>
+              </div>
+            )
+          )}
         </div>
       </Modal>
     </>

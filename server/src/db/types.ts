@@ -24,6 +24,15 @@ export interface AlertNotifications {
   message: string;
 }
 
+export interface DeviceLogs {
+  device_id: number;
+  id: Generated<number>;
+  level: string;
+  message: string;
+  recorded_at: number;
+  tag: string;
+}
+
 export interface Devices {
   created_at: Generated<number>;
   id: Generated<number>;
@@ -45,6 +54,17 @@ export interface DeviceState {
   temperature: number | null;
   updated_at: Generated<number>;
   water_empty: Generated<number>;
+}
+
+export interface DeviceStateHistory {
+  brightness: number;
+  device_id: number;
+  id: Generated<number>;
+  irrigation_on: number;
+  light_on: number;
+  recorded_at: number;
+  temperature: number | null;
+  water_empty: number;
 }
 
 export interface IrrigationSchedules {
@@ -73,7 +93,9 @@ export interface LightSchedules {
 export interface DB {
   _migrations: _Migrations;
   alert_notifications: AlertNotifications;
+  device_logs: DeviceLogs;
   device_state: DeviceState;
+  device_state_history: DeviceStateHistory;
   devices: Devices;
   irrigation_schedules: IrrigationSchedules;
   light_schedules: LightSchedules;

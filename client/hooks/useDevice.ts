@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { client } from "../lib/apiClient";
-import { getClerkToken } from "../lib/apiClient";
+import { client, apiFetch } from "../lib/apiClient";
 
 const DEFAULT_WS_PORT = 8765;
-const BASE_URL = import.meta.env.VITE_BACKEND_URL ?? "";
 
 export type IntervalSchedule = {
   active: boolean;
@@ -90,24 +88,6 @@ type WsStateMessage = {
   temperature?: number | null;
   waterEmpty?: boolean;
 };
-
-async function apiFetch(path: string, options: RequestInit = {}) {
-  const token = await getClerkToken();
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
-    },
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-  return res;
-}
 
 export function useDevice(deviceId: string): UseDeviceResult {
   const deviceQuery = client.api.deviceState.useQuery(

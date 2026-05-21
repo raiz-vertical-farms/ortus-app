@@ -1,8 +1,19 @@
 #include "ortus.h"
 #include <ArduinoJson.h>
 #include "driver/ledc.h"
+#include "esp_task_wdt.h"
 
 OrtusSystem *OrtusSystem::instance = nullptr;
+
+// Fault-recovery escalation timings.
+// If WiFi or MQTT can't connect for this long, nuke ESP-IDF's cached AP/BSSID
+// (the thing that survives a power cycle) and restart the stack from scratch.
+// If even that doesn't help within the reboot threshold, hard-reboot.
+static const unsigned long WIFI_HARD_RESET_AFTER_MS = 5UL * 60UL * 1000UL;
+static const unsigned long WIFI_REBOOT_AFTER_MS = 10UL * 60UL * 1000UL;
+static const unsigned long MQTT_REBOOT_AFTER_MS = 10UL * 60UL * 1000UL;
+static const unsigned long WIFI_HARD_RESET_COOLDOWN_MS = 2UL * 60UL * 1000UL;
+static const uint32_t WATCHDOG_TIMEOUT_S = 30;
 
 OrtusSystem::OrtusSystem()
     : mqttClient(wifiClient),
@@ -21,6 +32,20 @@ void OrtusSystem::begin()
         delay(10);
 
     Serial.println("\n[System] Ortus Starting...");
+
+    // Software watchdog. Any hang in the main loop (TLS handshake, BLE wedge,
+    // NVS write, etc.) longer than the timeout triggers a panic reset.
+#if ESP_IDF_VERSION_MAJOR >= 5
+    esp_task_wdt_config_t wdtConfig = {
+        .timeout_ms = WATCHDOG_TIMEOUT_S * 1000,
+        .idle_core_mask = 0,
+        .trigger_panic = true,
+    };
+    esp_task_wdt_init(&wdtConfig);
+#else
+    esp_task_wdt_init(WATCHDOG_TIMEOUT_S, true);
+#endif
+    esp_task_wdt_add(NULL);
 
     // Hardware Setup
     pinMode(PIN_RELAY_IRRIGATION, OUTPUT);
@@ -76,10 +101,18 @@ void OrtusSystem::begin()
 
     if (WiFi.status() != WL_CONNECTED)
         ble.updateWiFiState(false);
+
+    // Start the offline-too-long clocks running from boot, so a device that
+    // never manages to connect after power-on still escalates to hard-reset.
+    wifiDisconnectedSinceMs = millis();
+    if (wifiDisconnectedSinceMs == 0)
+        wifiDisconnectedSinceMs = 1;
 }
 
 void OrtusSystem::loop()
 {
+    esp_task_wdt_reset();
+
     ble.loop();
     wsServer.loop();
 
@@ -120,17 +153,21 @@ void OrtusSystem::setupWiFi()
 void OrtusSystem::connectWiFi()
 {
     wl_status_t status = WiFi.status();
+    unsigned long now = millis();
 
     if (status == WL_CONNECTED)
     {
         if (!wifiConnected)
         {
             wifiConnected = true;
+            wifiDisconnectedSinceMs = 0;
+            lastWifiHardResetMs = 0;
             Serial.println("[WiFi] Connected! IP: " + WiFi.localIP().toString());
             Serial.println("[WiFi] RSSI: " + String(WiFi.RSSI()) + " dBm");
             configTime(0, 0, "pool.ntp.org", "time.google.com");
             ble.updateWiFiState(true);
             publishPresence();
+            publishLog("info", "WiFi", "connected ip=" + WiFi.localIP().toString() + " rssi=" + String(WiFi.RSSI()));
         }
         return;
     }
@@ -139,11 +176,51 @@ void OrtusSystem::connectWiFi()
     {
         wifiConnected = false;
         timeSynced = false;
+        wifiDisconnectedSinceMs = now ? now : 1;
+        mqttDisconnectedSinceMs = 0; // restart MQTT clock once WiFi returns
         ble.updateWiFiState(false);
+        // Won't reach the broker (we're offline), but harmless if it does.
+        publishLog("warn", "WiFi", "disconnected status=" + String(status));
     }
 
     if (wifiSSID.isEmpty())
         return;
+
+    // --- Stale-connection escalation ---
+    // After a sustained outage, plain WiFi.begin() retries are often useless:
+    // the WiFi driver keeps targeting a cached BSSID/channel in ESP-IDF NVS
+    // that may no longer exist (AP rebooted, channel changed, mesh failover).
+    // This survives a power cycle. So if we've been offline a while, wipe the
+    // ESP-IDF WiFi config the same way the BLE re-provisioning flow does, and
+    // if that still doesn't help within the reboot window, hard-reset.
+    if (wifiDisconnectedSinceMs > 0)
+    {
+        unsigned long offlineFor = now - wifiDisconnectedSinceMs;
+
+        if (offlineFor > WIFI_REBOOT_AFTER_MS)
+        {
+            Serial.println("[WiFi] Offline > reboot threshold. Restarting.");
+            // Best-effort log before reboot — won't reach broker (WiFi is down).
+            publishLog("error", "WiFi", "offline > reboot threshold, restarting");
+            delay(100);
+            ESP.restart();
+        }
+
+        if (offlineFor > WIFI_HARD_RESET_AFTER_MS &&
+            (lastWifiHardResetMs == 0 || now - lastWifiHardResetMs > WIFI_HARD_RESET_COOLDOWN_MS))
+        {
+            Serial.println("[WiFi] Offline > hard-reset threshold. Wiping cached AP config.");
+            WiFi.disconnect(true);
+            WiFi.mode(WIFI_OFF);
+            delay(100);
+            WiFi.mode(WIFI_STA);
+            WiFi.setAutoReconnect(true);
+            lastWifiHardResetMs = now;
+            lastWifiAttempt = 0; // force a fresh WiFi.begin() below
+            // Will be delivered if we recover — useful breadcrumb in logs.
+            publishLog("warn", "WiFi", "wiped cached AP config after " + String(offlineFor / 1000) + "s offline");
+        }
+    }
 
     // Only call WiFi.begin() on definitive failure or first attempt.
     // Calling it while a connection is in progress resets the attempt.
@@ -151,14 +228,14 @@ void OrtusSystem::connectWiFi()
 
     if (status == WL_NO_SSID_AVAIL || status == WL_CONNECT_FAILED || status == WL_CONNECTION_LOST)
         shouldRetry = true;
-    else if (status == WL_DISCONNECTED && millis() - lastWifiAttempt > 30000)
+    else if (status == WL_DISCONNECTED && now - lastWifiAttempt > 30000)
         shouldRetry = true; // stuck in disconnected state too long
     else if (lastWifiAttempt == 0)
-        shouldRetry = true; // first attempt
+        shouldRetry = true; // first attempt, or just did a hard reset
 
     if (shouldRetry)
     {
-        lastWifiAttempt = millis();
+        lastWifiAttempt = now;
         Serial.print("[WiFi] Connecting to '");
         Serial.print(wifiSSID);
         Serial.print("' (status=");
@@ -219,6 +296,7 @@ void OrtusSystem::recoverSchedules()
             currentState.lightOn = lightIsOnPhase;
             appliedBrightness = -1;
             Serial.println("[Schedule] Light schedule recovered");
+            publishLog("info", "Schedule", "light recovered");
         }
     }
 
@@ -243,6 +321,7 @@ void OrtusSystem::recoverSchedules()
             }
             currentState.irrigationOn = irrigationIsOnPhase;
             Serial.println("[Schedule] Irrigation schedule recovered");
+            publishLog("info", "Schedule", "irrigation recovered");
         }
     }
 
@@ -261,13 +340,31 @@ void OrtusSystem::setupMQTT()
 
 void OrtusSystem::connectMQTT()
 {
+    unsigned long now = millis();
+
     if (mqttClient.connected())
+    {
+        mqttDisconnectedSinceMs = 0;
         return;
+    }
+
+    // Start (or continue) the MQTT-offline clock, but only while WiFi is up —
+    // otherwise this would double-count with the WiFi escalator above.
+    if (mqttDisconnectedSinceMs == 0)
+        mqttDisconnectedSinceMs = now ? now : 1;
+
+    if (now - mqttDisconnectedSinceMs > MQTT_REBOOT_AFTER_MS)
+    {
+        Serial.println("[MQTT] WiFi up but broker unreachable > reboot threshold. Restarting.");
+        // Can't log to MQTT — that's the thing that's broken. Serial only.
+        delay(100);
+        ESP.restart();
+    }
 
     static unsigned long lastMqttAttempt = 0;
-    if (millis() - lastMqttAttempt < 5000)
+    if (now - lastMqttAttempt < 5000)
         return;
-    lastMqttAttempt = millis();
+    lastMqttAttempt = now;
 
     Serial.print("[MQTT] Connecting...");
     String clientId = "Ortus-" + macAddress;
@@ -276,15 +373,26 @@ void OrtusSystem::connectMQTT()
     if (mqttClient.connect(clientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, lwtTopic.c_str(), 1, true, "offline"))
     {
         Serial.println("Connected");
+        mqttDisconnectedSinceMs = 0;
         mqttClient.publish(lwtTopic.c_str(), "online", true);
         String cmdTopic = "ortus/" + macAddress + "/command";
         mqttClient.subscribe(cmdTopic.c_str());
         broadcastState(true);
+        publishLog("info", "MQTT", "connected");
+        if (!bootLogged)
+        {
+            bootLogged = true;
+            publishLog("info", "Boot", "online reset_reason=" + String((int)esp_reset_reason()));
+        }
     }
     else
     {
+        int rc = mqttClient.state();
         Serial.print("Failed, rc=");
-        Serial.println(mqttClient.state());
+        Serial.println(rc);
+        // Can't reach the broker — log won't be delivered. Recorded on next
+        // successful reconnect via the "connected" message, which is enough
+        // to spot a flapping device in the dashboard.
     }
 }
 
@@ -608,6 +716,25 @@ void OrtusSystem::publishPresence()
     mqttClient.publish(topic.c_str(), json.c_str());
 }
 
+void OrtusSystem::publishLog(const char *level, const char *tag, const String &message)
+{
+    // Best-effort: logs are only delivered while MQTT is connected. The most
+    // useful events (reconnect, schedule recovery) fire after connection comes
+    // back, which is exactly when we want them.
+    if (!mqttClient.connected())
+        return;
+
+    JsonDocument doc;
+    doc["level"] = level;
+    doc["tag"] = tag;
+    doc["message"] = message;
+
+    String json;
+    serializeJson(doc, json);
+    String topic = "ortus/" + macAddress + "/log";
+    mqttClient.publish(topic.c_str(), json.c_str());
+}
+
 void OrtusSystem::publishAck(const String &cmdType)
 {
     if (!mqttClient.connected())
@@ -692,6 +819,7 @@ void OrtusSystem::saveCredentials(String s, String p)
 void OrtusSystem::performOtaUpdate(const String &url)
 {
     Serial.println("[OTA] Starting update from: " + url);
+    publishLog("info", "OTA", "starting from " + url);
 
     if (mqttClient.connected())
         mqttClient.publish(("ortus/" + macAddress + "/ota").c_str(), "started");
@@ -716,6 +844,7 @@ void OrtusSystem::performOtaUpdate(const String &url)
     }
 
     Serial.println("[OTA] " + error);
+    publishLog("error", "OTA", "failed: " + error);
     if (mqttClient.connected())
         mqttClient.publish(("ortus/" + macAddress + "/ota").c_str(), ("failed: " + error).c_str());
 }

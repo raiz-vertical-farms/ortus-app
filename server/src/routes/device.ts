@@ -61,7 +61,33 @@ const deviceStateResponseSchema = z.object({ state: deviceStateSchema });
 const deviceListItemSchema = deviceStateSchema.omit({ brightness: true, light_on: true, light_schedule: true, irrigation_schedule: true });
 const deviceListResponseSchema = z.object({ devices: z.array(deviceListItemSchema) });
 
+const stateHistoryItemSchema = z.object({
+  id: z.number(),
+  brightness: z.number(),
+  light_on: z.boolean(),
+  irrigation_on: z.boolean(),
+  temperature: z.number().nullable(),
+  water_empty: z.boolean(),
+  recorded_at: z.number(),
+});
+const stateHistoryResponseSchema = z.object({ history: z.array(stateHistoryItemSchema) });
+
+const deviceLogItemSchema = z.object({
+  id: z.number(),
+  level: z.string(),
+  tag: z.string(),
+  message: z.string(),
+  recorded_at: z.number(),
+});
+const deviceLogsResponseSchema = z.object({ logs: z.array(deviceLogItemSchema) });
+
 type DeviceStateResponse = z.infer<typeof deviceStateResponseSchema>;
+
+function parseLimit(raw: string | undefined, fallback = 20, max = 200) {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return Math.min(Math.floor(n), max);
+}
 
 // --- Helpers ---
 
@@ -177,7 +203,7 @@ app
 
       if (!device) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
-      mqttClient.publish(`${device.mac_address}/device/command`, "delete");
+      mqttClient.publish(`ortus/${device.mac_address}/command`, "delete");
       await db.deleteFrom("devices").where("id", "=", id).execute();
       return c.json({ message: `Device ${id} deleted successfully` });
     }
@@ -227,6 +253,74 @@ app
             : null,
         },
       } satisfies DeviceStateResponse);
+    }
+  )
+
+  .get(
+    ":id/history",
+    describeRoute({
+      operationId: "deviceHistory",
+      summary: "Recent state changes for a device (most recent first)",
+      tags: ["Devices"],
+      responses: { 200: { description: "State history", content: { "application/json": { schema: resolver(stateHistoryResponseSchema) } } } },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      const id = Number(c.req.param("id"));
+      if (isNaN(id)) throw new HTTPException(400, { res: c.json({ message: "Device ID is required" }, 400) });
+
+      const mac = await getDeviceMac(id, user.id);
+      if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
+
+      const limit = parseLimit(c.req.query("limit"));
+      const rows = await db
+        .selectFrom("device_state_history")
+        .select(["id", "brightness", "light_on", "irrigation_on", "temperature", "water_empty", "recorded_at"])
+        .where("device_id", "=", id)
+        .orderBy("recorded_at", "desc")
+        .limit(limit)
+        .execute();
+
+      return c.json({
+        history: rows.map((r) => ({
+          id: r.id,
+          brightness: r.brightness,
+          light_on: Boolean(r.light_on),
+          irrigation_on: Boolean(r.irrigation_on),
+          temperature: r.temperature,
+          water_empty: Boolean(r.water_empty),
+          recorded_at: r.recorded_at,
+        })),
+      });
+    }
+  )
+
+  .get(
+    ":id/logs",
+    describeRoute({
+      operationId: "deviceLogs",
+      summary: "Recent debug logs for a device (most recent first)",
+      tags: ["Devices"],
+      responses: { 200: { description: "Device logs", content: { "application/json": { schema: resolver(deviceLogsResponseSchema) } } } },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      const id = Number(c.req.param("id"));
+      if (isNaN(id)) throw new HTTPException(400, { res: c.json({ message: "Device ID is required" }, 400) });
+
+      const mac = await getDeviceMac(id, user.id);
+      if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
+
+      const limit = parseLimit(c.req.query("limit"));
+      const rows = await db
+        .selectFrom("device_logs")
+        .select(["id", "level", "tag", "message", "recorded_at"])
+        .where("device_id", "=", id)
+        .orderBy("recorded_at", "desc")
+        .limit(limit)
+        .execute();
+
+      return c.json({ logs: rows });
     }
   )
 

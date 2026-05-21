@@ -585,6 +585,606 @@ export interface ApiService {
             error: DeviceStateError;
         };
     };
+    /** @summary Recent state changes for a device (most recent first) */
+    deviceHistory: {
+        /** @summary Recent state changes for a device (most recent first) */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<DeviceHistorySchema, DeviceHistoryParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<DeviceHistoryParameters, TMeta, TSignal>), client?: (schema: DeviceHistorySchema, options: {
+            parameters: DeviceHistoryParameters;
+            signal?: TSignal;
+            meta?: TMeta;
+        }) => Promise<RequestFnResponse<DeviceHistoryData, DeviceHistoryError>>): Promise<RequestFnResponse<DeviceHistoryData, DeviceHistoryError>>;
+        /** @summary Recent state changes for a device (most recent first) */
+        getQueryKey(parameters: DeepReadonly<DeviceHistoryParameters>): ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query with parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.deviceHistory.useQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * ```
+         */
+        useQuery<TData = DeviceHistoryData>(parameters: ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>), options?: Omit<UndefinedInitialDataOptions<DeviceHistoryData, DeviceHistoryError, TData, ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters>>, "queryKey">): UseQueryResult<TData, OperationError<DeviceHistoryError>>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query with parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.deviceHistory.useQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * ```
+         */
+        useQuery<TData = DeviceHistoryData>(parameters: ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>), options: Omit<DefinedInitialDataOptions<DeviceHistoryData, DeviceHistoryError, TData, ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<DeviceHistoryError>>;
+        /** @summary Recent state changes for a device (most recent first) */
+        getInfiniteQueryKey(parameters: DeepReadonly<DeviceHistoryParameters>): ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.deviceHistory.useInfiniteQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * }, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends DeviceHistoryParameters, TQueryFnData = DeviceHistoryData, TData = OperationInfiniteData<TQueryFnData, DeviceHistoryParameters>>(parameters: ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, DeviceHistoryError, TData, ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<DeviceHistoryError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.deviceHistory.useInfiniteQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * }, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends DeviceHistoryParameters, TQueryFnData = DeviceHistoryData, TData = OperationInfiniteData<TQueryFnData, DeviceHistoryParameters>>(parameters: ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, DeviceHistoryError, TData, ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DeviceHistoryData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<DeviceHistoryError>>;
+        /**
+         * Monitors the number of queries currently fetching, matching the provided filters.
+         * Useful for creating loading indicators or performing actions based on active requests.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsFetching|`useIsFetching(...)` documentation}
+         * @example Checks the total number of queries fetching from the specified service method,
+         * both normal and infinite. If no parameters are provided, no filtering is applied.
+         * ```ts
+         * const deviceHistoryTotal = qraft.apiService.deviceHistory.useIsFetching()
+         * ```
+         * @example Checks the number of normal queries fetching with the specified parameters.
+         * ```ts
+         * const deviceHistoryByParametersTotal = qraft.apiService.deviceHistory.useIsFetching({
+         *     infinite: false,
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>): number;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently. This is especially useful for managing complex data dependencies in parallel.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQueries|`useQueries(...)` documentation}
+         * @example Multiple queries. Returns `data`, `error`, `isSuccess` and other properties.
+         * ```ts
+         * const deviceHistoryResults = qraft.apiService.deviceHistory.useQueries({
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceHistoryResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example Combined results. Only the data will be returned.
+         * ```ts
+         * const deviceHistoryCombinedResults = qraft.apiService.deviceHistory.useQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceHistoryCombinedResults.forEach(data => console.log({ data }));
+         * ```
+         */
+        useQueries<T extends Array<UseQueryOptionsForUseQueries<DeviceHistorySchema, DeviceHistoryParameters, DeviceHistoryData, DeviceHistoryError>>, TCombinedResult = Array<UseQueryResult<DeviceHistoryData, DeviceHistoryError>>>(options: {
+            queries: T;
+            combine?: (results: Array<UseQueryResult<DeviceHistoryData, DeviceHistoryError>>) => TCombinedResult;
+        }): TCombinedResult;
+        /**
+         * Performs asynchronous data fetching with Suspense support.
+         * Similar to useQuery but integrates with React Suspense for loading states.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQuery|`useSuspenseQuery(...)` documentation}
+         * @example Suspense Query with parameters
+         * ```ts
+         * const data = qraft.apiService.deviceHistory.useSuspenseQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * ```
+         */
+        useSuspenseQuery<TData = DeviceHistoryData>(parameters: ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>), options?: Omit<UseSuspenseQueryOptions<DeviceHistoryData, DeviceHistoryError, TData, ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<DeviceHistoryError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         * It functions similarly to `useInfiniteQuery`, but with added support for React Suspense.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseInfiniteQuery|`useSuspenseInfiniteQuery(...)` documentation}
+         *
+         * @example Suspense Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.deviceHistory.useSuspenseInfiniteQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * }, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useSuspenseInfiniteQuery<TPageParam extends DeviceHistoryParameters, TData = DeviceHistoryData>(parameters: ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>), options: Omit<UseSuspenseInfiniteQueryOptions<DeviceHistoryData, DeviceHistoryError, OperationInfiniteData<TData, DeviceHistoryParameters>, ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DeviceHistoryData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, DeviceHistoryParameters>, OperationError<DeviceHistoryError>>;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently with Suspense support.
+         * Similar to useQueries but integrates with React Suspense for loading states.
+         *
+         * @summary Recent state changes for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQueries|`useSuspenseQueries(...)` documentation}
+         * @example Basic usage with Suspense
+         * ```ts
+         * const deviceHistoryData = qraft.apiService.deviceHistory.useSuspenseQueries({
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceHistoryResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example With data transformation using combine
+         * ```ts
+         * const deviceHistoryCombinedData = qraft.apiService.deviceHistory.useSuspenseQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceHistoryCombinedData.forEach(data => console.log({ data }));
+         * ```
+         */
+        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<DeviceHistorySchema, DeviceHistoryParameters, DeviceHistoryData, DeviceHistoryError>>, TCombinedResult = Array<UseSuspenseQueryResult<DeviceHistoryData, DeviceHistoryError>>>(options: {
+            queries: T;
+            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<DeviceHistoryData, DeviceHistoryError>, "data">>) => TCombinedResult;
+        }): TCombinedResult;
+        /** @summary Recent state changes for a device (most recent first) */
+        fetchQuery(options: ServiceOperationFetchQueryOptions<DeviceHistorySchema, DeviceHistoryData, DeviceHistoryParameters, DeviceHistoryError>): Promise<DeviceHistoryData>;
+        /** @summary Recent state changes for a device (most recent first) */
+        prefetchQuery(options: ServiceOperationFetchQueryOptions<DeviceHistorySchema, DeviceHistoryData, DeviceHistoryParameters, DeviceHistoryError>): Promise<void>;
+        /** @summary Recent state changes for a device (most recent first) */
+        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<DeviceHistorySchema, DeviceHistoryData, DeviceHistoryParameters, DeviceHistoryError>): Promise<DeviceHistoryData>;
+        /** @summary Recent state changes for a device (most recent first) */
+        fetchInfiniteQuery<TPageParam extends DeviceHistoryParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DeviceHistorySchema, DeviceHistoryData, DeviceHistoryParameters, DeepReadonly<TPageParam>, DeviceHistoryError>): Promise<OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters>>;
+        /** @summary Recent state changes for a device (most recent first) */
+        prefetchInfiniteQuery<TPageParam extends DeviceHistoryParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DeviceHistorySchema, DeviceHistoryData, DeviceHistoryParameters, DeepReadonly<TPageParam>, DeviceHistoryError>): Promise<void>;
+        /** @summary Recent state changes for a device (most recent first) */
+        ensureInfiniteQueryData<TPageParam extends DeviceHistoryParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<DeviceHistorySchema, DeviceHistoryData, DeviceHistoryParameters, DeepReadonly<TPageParam>, DeviceHistoryError>): Promise<OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters>>;
+        /** @summary Recent state changes for a device (most recent first) */
+        getQueryData(parameters: ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>)): DeviceHistoryData | undefined;
+        /** @summary Recent state changes for a device (most recent first) */
+        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>)): OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters> | undefined;
+        /** @summary Recent state changes for a device (most recent first) */
+        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>): TInfinite extends true ? Array<[
+            queryKey: ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>,
+            data: NoInfer<OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters>> | undefined
+        ]> : Array<[
+            queryKey: ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters>,
+            data: DeviceHistoryData | undefined
+        ]>;
+        /** @summary Recent state changes for a device (most recent first) */
+        getQueryState(parameters: ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters> | (DeepReadonly<DeviceHistoryParameters>)): QueryState<DeviceHistoryData, DeviceHistoryError> | undefined;
+        /** @summary Recent state changes for a device (most recent first) */
+        getInfiniteQueryState(parameters: DeepReadonly<DeviceHistoryParameters> | ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>): QueryState<OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters>, DeviceHistoryError> | undefined;
+        /** @summary Recent state changes for a device (most recent first) */
+        setQueryData(parameters: (DeepReadonly<DeviceHistoryParameters>) | ServiceOperationQueryKey<DeviceHistorySchema, DeviceHistoryParameters>, updater: Updater<NoInfer<DeviceHistoryData> | undefined, NoInfer<DeepReadonly<DeviceHistoryData>> | undefined>, options?: SetDataOptions): DeviceHistoryData | undefined;
+        /** @summary Recent state changes for a device (most recent first) */
+        setInfiniteQueryData(parameters: (DeepReadonly<DeviceHistoryParameters>) | ServiceOperationInfiniteQueryKey<DeviceHistorySchema, DeviceHistoryParameters>, updater: Updater<NoInfer<OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<DeviceHistoryData, DeviceHistoryParameters> | undefined;
+        /** @summary Recent state changes for a device (most recent first) */
+        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>, updater: Updater<NoInfer<DeviceHistoryData> | undefined, NoInfer<DeviceHistoryData> | undefined>, options?: SetDataOptions): Array<DeviceHistoryData | undefined>;
+        /** @summary Recent state changes for a device (most recent first) */
+        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>, options?: InvalidateOptions): Promise<void>;
+        /** @summary Recent state changes for a device (most recent first) */
+        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>, options?: RefetchOptions): Promise<void>;
+        /** @summary Recent state changes for a device (most recent first) */
+        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>, options?: CancelOptions): Promise<void>;
+        /** @summary Recent state changes for a device (most recent first) */
+        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>): void;
+        /** @summary Recent state changes for a device (most recent first) */
+        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>, options?: ResetOptions): Promise<void>;
+        /** @summary Recent state changes for a device (most recent first) */
+        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError> | QueryFiltersByQueryKey<DeviceHistorySchema, DeviceHistoryData, TInfinite, DeviceHistoryParameters, DeviceHistoryError>): number;
+        schema: DeviceHistorySchema;
+        types: {
+            parameters: DeviceHistoryParameters;
+            data: DeviceHistoryData;
+            error: DeviceHistoryError;
+        };
+    };
+    /** @summary Recent debug logs for a device (most recent first) */
+    deviceLogs: {
+        /** @summary Recent debug logs for a device (most recent first) */
+        <TMeta extends Record<string, any>, TSignal extends AbortSignal = AbortSignal>(options: QueryFnOptionsByQueryKey<DeviceLogsSchema, DeviceLogsParameters, TMeta, TSignal> | (QueryFnOptionsByParameters<DeviceLogsParameters, TMeta, TSignal>), client?: (schema: DeviceLogsSchema, options: {
+            parameters: DeviceLogsParameters;
+            signal?: TSignal;
+            meta?: TMeta;
+        }) => Promise<RequestFnResponse<DeviceLogsData, DeviceLogsError>>): Promise<RequestFnResponse<DeviceLogsData, DeviceLogsError>>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getQueryKey(parameters: DeepReadonly<DeviceLogsParameters>): ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query with parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.deviceLogs.useQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * ```
+         */
+        useQuery<TData = DeviceLogsData>(parameters: ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>), options?: Omit<UndefinedInitialDataOptions<DeviceLogsData, DeviceLogsError, TData, ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters>>, "queryKey">): UseQueryResult<TData, OperationError<DeviceLogsError>>;
+        /**
+         * Performs asynchronous data fetching, manages loading states and error handling.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQuery|`useQuery(...)` documentation}
+         * @example Query with parameters
+         * ```ts
+         * const { data, isLoading } = qraft.apiService.deviceLogs.useQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * ```
+         */
+        useQuery<TData = DeviceLogsData>(parameters: ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>), options: Omit<DefinedInitialDataOptions<DeviceLogsData, DeviceLogsError, TData, ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters>>, "queryKey">): DefinedUseQueryResult<TData, OperationError<DeviceLogsError>>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getInfiniteQueryKey(parameters: DeepReadonly<DeviceLogsParameters>): ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.deviceLogs.useInfiniteQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * }, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends DeviceLogsParameters, TQueryFnData = DeviceLogsData, TData = OperationInfiniteData<TQueryFnData, DeviceLogsParameters>>(parameters: ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>), options: Omit<UndefinedInitialDataInfiniteOptions<TQueryFnData, DeviceLogsError, TData, ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<TQueryFnData, PartialParameters<DeepReadonly<TPageParam>>>): UseInfiniteQueryResult<TData, OperationError<DeviceLogsError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useInfiniteQuery|`useInfiniteQuery(...)` documentation}
+         *
+         * @example Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.deviceLogs.useInfiniteQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * }, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useInfiniteQuery<TPageParam extends DeviceLogsParameters, TQueryFnData = DeviceLogsData, TData = OperationInfiniteData<TQueryFnData, DeviceLogsParameters>>(parameters: ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>), options: Omit<DefinedInitialDataInfiniteOptions<TQueryFnData, DeviceLogsError, TData, ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DeviceLogsData, PartialParameters<DeepReadonly<TPageParam>>>): DefinedUseInfiniteQueryResult<TData, OperationError<DeviceLogsError>>;
+        /**
+         * Monitors the number of queries currently fetching, matching the provided filters.
+         * Useful for creating loading indicators or performing actions based on active requests.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useIsFetching|`useIsFetching(...)` documentation}
+         * @example Checks the total number of queries fetching from the specified service method,
+         * both normal and infinite. If no parameters are provided, no filtering is applied.
+         * ```ts
+         * const deviceLogsTotal = qraft.apiService.deviceLogs.useIsFetching()
+         * ```
+         * @example Checks the number of normal queries fetching with the specified parameters.
+         * ```ts
+         * const deviceLogsByParametersTotal = qraft.apiService.deviceLogs.useIsFetching({
+         *     infinite: false,
+         *     parameters: {
+         *         path: {
+         *             id: id
+         *         }
+         *     }
+         * })
+         * ```
+         */
+        useIsFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>): number;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently. This is especially useful for managing complex data dependencies in parallel.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useQueries|`useQueries(...)` documentation}
+         * @example Multiple queries. Returns `data`, `error`, `isSuccess` and other properties.
+         * ```ts
+         * const deviceLogsResults = qraft.apiService.deviceLogs.useQueries({
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceLogsResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example Combined results. Only the data will be returned.
+         * ```ts
+         * const deviceLogsCombinedResults = qraft.apiService.deviceLogs.useQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceLogsCombinedResults.forEach(data => console.log({ data }));
+         * ```
+         */
+        useQueries<T extends Array<UseQueryOptionsForUseQueries<DeviceLogsSchema, DeviceLogsParameters, DeviceLogsData, DeviceLogsError>>, TCombinedResult = Array<UseQueryResult<DeviceLogsData, DeviceLogsError>>>(options: {
+            queries: T;
+            combine?: (results: Array<UseQueryResult<DeviceLogsData, DeviceLogsError>>) => TCombinedResult;
+        }): TCombinedResult;
+        /**
+         * Performs asynchronous data fetching with Suspense support.
+         * Similar to useQuery but integrates with React Suspense for loading states.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQuery|`useSuspenseQuery(...)` documentation}
+         * @example Suspense Query with parameters
+         * ```ts
+         * const data = qraft.apiService.deviceLogs.useSuspenseQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * })
+         * ```
+         */
+        useSuspenseQuery<TData = DeviceLogsData>(parameters: ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>), options?: Omit<UseSuspenseQueryOptions<DeviceLogsData, DeviceLogsError, TData, ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters>>, "queryKey">): UseSuspenseQueryResult<TData, OperationError<DeviceLogsError>>;
+        /**
+         * Performs asynchronous data fetching with support for infinite scrolling scenarios.
+         * Manages paginated data and provides utilities for fetching additional pages.
+         * It functions similarly to `useInfiniteQuery`, but with added support for React Suspense.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseInfiniteQuery|`useSuspenseInfiniteQuery(...)` documentation}
+         *
+         * @example Suspense Infinite Query
+         * ```ts
+         * const { data, isLoading, fetchNextPage } = qraft.apiService.deviceLogs.useSuspenseInfiniteQuery({
+         *     path: {
+         *         id: id
+         *     }
+         * }, {
+         *     initialPageParam: {},
+         *     getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => getNextPageParams(lastPage)
+         * })
+         *
+         * console.log(data);
+         * fetchNextPage(); // Fetch the next page
+         * ```
+         */
+        useSuspenseInfiniteQuery<TPageParam extends DeviceLogsParameters, TData = DeviceLogsData>(parameters: ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>), options: Omit<UseSuspenseInfiniteQueryOptions<DeviceLogsData, DeviceLogsError, OperationInfiniteData<TData, DeviceLogsParameters>, ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>, PartialParameters<DeepReadonly<TPageParam>>>, "queryKey" | "getPreviousPageParam" | "getNextPageParam" | "initialPageParam"> & InfiniteQueryPageParamsOptions<DeviceLogsData, PartialParameters<DeepReadonly<TPageParam>>>): UseSuspenseInfiniteQueryResult<OperationInfiniteData<TData, DeviceLogsParameters>, OperationError<DeviceLogsError>>;
+        /**
+         * Allows you to execute multiple asynchronous data fetching operations concurrently with Suspense support.
+         * Similar to useQueries but integrates with React Suspense for loading states.
+         *
+         * @summary Recent debug logs for a device (most recent first)
+         * @see {@link https://openapi-qraft.github.io/openapi-qraft/docs/hooks/useSuspenseQueries|`useSuspenseQueries(...)` documentation}
+         * @example Basic usage with Suspense
+         * ```ts
+         * const deviceLogsData = qraft.apiService.deviceLogs.useSuspenseQueries({
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceLogsResults.forEach(({ isSuccess, data, error }) => console.log({ isSuccess, data, error }));
+         * ```
+         * @example With data transformation using combine
+         * ```ts
+         * const deviceLogsCombinedData = qraft.apiService.deviceLogs.useSuspenseQueries({
+         *     combine: results => results.map(result => result.data),
+         *     queries: [
+         *         {
+         *             path: {
+         *                 id: id1
+         *             }
+         *         },
+         *         {
+         *             path: {
+         *                 id: id2
+         *             }
+         *         }
+         *     ]
+         * });
+         * deviceLogsCombinedData.forEach(data => console.log({ data }));
+         * ```
+         */
+        useSuspenseQueries<T extends Array<UseQueryOptionsForUseSuspenseQuery<DeviceLogsSchema, DeviceLogsParameters, DeviceLogsData, DeviceLogsError>>, TCombinedResult = Array<UseSuspenseQueryResult<DeviceLogsData, DeviceLogsError>>>(options: {
+            queries: T;
+            combine?: (results: Array<WithOptional<UseSuspenseQueryResult<DeviceLogsData, DeviceLogsError>, "data">>) => TCombinedResult;
+        }): TCombinedResult;
+        /** @summary Recent debug logs for a device (most recent first) */
+        fetchQuery(options: ServiceOperationFetchQueryOptions<DeviceLogsSchema, DeviceLogsData, DeviceLogsParameters, DeviceLogsError>): Promise<DeviceLogsData>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        prefetchQuery(options: ServiceOperationFetchQueryOptions<DeviceLogsSchema, DeviceLogsData, DeviceLogsParameters, DeviceLogsError>): Promise<void>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        ensureQueryData(options: ServiceOperationEnsureQueryDataOptions<DeviceLogsSchema, DeviceLogsData, DeviceLogsParameters, DeviceLogsError>): Promise<DeviceLogsData>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        fetchInfiniteQuery<TPageParam extends DeviceLogsParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DeviceLogsSchema, DeviceLogsData, DeviceLogsParameters, DeepReadonly<TPageParam>, DeviceLogsError>): Promise<OperationInfiniteData<DeviceLogsData, DeviceLogsParameters>>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        prefetchInfiniteQuery<TPageParam extends DeviceLogsParameters>(options: ServiceOperationFetchInfiniteQueryOptions<DeviceLogsSchema, DeviceLogsData, DeviceLogsParameters, DeepReadonly<TPageParam>, DeviceLogsError>): Promise<void>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        ensureInfiniteQueryData<TPageParam extends DeviceLogsParameters>(options: ServiceOperationEnsureInfiniteQueryDataOptions<DeviceLogsSchema, DeviceLogsData, DeviceLogsParameters, DeepReadonly<TPageParam>, DeviceLogsError>): Promise<OperationInfiniteData<DeviceLogsData, DeviceLogsParameters>>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getQueryData(parameters: ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>)): DeviceLogsData | undefined;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getInfiniteQueryData(parameters: ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>)): OperationInfiniteData<DeviceLogsData, DeviceLogsParameters> | undefined;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getQueriesData<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>): TInfinite extends true ? Array<[
+            queryKey: ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>,
+            data: NoInfer<OperationInfiniteData<DeviceLogsData, DeviceLogsParameters>> | undefined
+        ]> : Array<[
+            queryKey: ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters>,
+            data: DeviceLogsData | undefined
+        ]>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getQueryState(parameters: ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters> | (DeepReadonly<DeviceLogsParameters>)): QueryState<DeviceLogsData, DeviceLogsError> | undefined;
+        /** @summary Recent debug logs for a device (most recent first) */
+        getInfiniteQueryState(parameters: DeepReadonly<DeviceLogsParameters> | ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>): QueryState<OperationInfiniteData<DeviceLogsData, DeviceLogsParameters>, DeviceLogsError> | undefined;
+        /** @summary Recent debug logs for a device (most recent first) */
+        setQueryData(parameters: (DeepReadonly<DeviceLogsParameters>) | ServiceOperationQueryKey<DeviceLogsSchema, DeviceLogsParameters>, updater: Updater<NoInfer<DeviceLogsData> | undefined, NoInfer<DeepReadonly<DeviceLogsData>> | undefined>, options?: SetDataOptions): DeviceLogsData | undefined;
+        /** @summary Recent debug logs for a device (most recent first) */
+        setInfiniteQueryData(parameters: (DeepReadonly<DeviceLogsParameters>) | ServiceOperationInfiniteQueryKey<DeviceLogsSchema, DeviceLogsParameters>, updater: Updater<NoInfer<OperationInfiniteData<DeviceLogsData, DeviceLogsParameters>> | undefined, NoInfer<DeepReadonly<OperationInfiniteData<DeviceLogsData, DeviceLogsParameters>>> | undefined>, options?: SetDataOptions): OperationInfiniteData<DeviceLogsData, DeviceLogsParameters> | undefined;
+        /** @summary Recent debug logs for a device (most recent first) */
+        setQueriesData<TInfinite extends boolean = false>(filters: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>, updater: Updater<NoInfer<DeviceLogsData> | undefined, NoInfer<DeviceLogsData> | undefined>, options?: SetDataOptions): Array<DeviceLogsData | undefined>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        invalidateQueries<TInfinite extends boolean = false>(filters?: InvalidateQueryFilters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>, options?: InvalidateOptions): Promise<void>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        refetchQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>, options?: RefetchOptions): Promise<void>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        cancelQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>, options?: CancelOptions): Promise<void>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        removeQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>): void;
+        /** @summary Recent debug logs for a device (most recent first) */
+        resetQueries<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>, options?: ResetOptions): Promise<void>;
+        /** @summary Recent debug logs for a device (most recent first) */
+        isFetching<TInfinite extends boolean = false>(filters?: QueryFiltersByParameters<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError> | QueryFiltersByQueryKey<DeviceLogsSchema, DeviceLogsData, TInfinite, DeviceLogsParameters, DeviceLogsError>): number;
+        schema: DeviceLogsSchema;
+        types: {
+            parameters: DeviceLogsParameters;
+            data: DeviceLogsData;
+            error: DeviceLogsError;
+        };
+    };
     /** @summary List devices */
     allDevices: {
         /** @summary List devices */
@@ -2459,6 +3059,26 @@ export const deviceState = {
     schema: DeviceStateSchema;
     [QraftServiceOperationsToken]: ApiService["deviceState"];
 };
+/** @summary Recent state changes for a device (most recent first) */
+export const deviceHistory = {
+    schema: {
+        method: "get",
+        url: "/api/device/{id}/history"
+    }
+} as {
+    schema: DeviceHistorySchema;
+    [QraftServiceOperationsToken]: ApiService["deviceHistory"];
+};
+/** @summary Recent debug logs for a device (most recent first) */
+export const deviceLogs = {
+    schema: {
+        method: "get",
+        url: "/api/device/{id}/logs"
+    }
+} as {
+    schema: DeviceLogsSchema;
+    [QraftServiceOperationsToken]: ApiService["deviceLogs"];
+};
 /** @summary List devices */
 export const allDevices = {
     schema: {
@@ -2566,6 +3186,8 @@ export const apiService = {
     createDevice,
     deleteDevice,
     deviceState,
+    deviceHistory,
+    deviceLogs,
     allDevices,
     setBrightness,
     scheduleLight,
@@ -2607,6 +3229,20 @@ type DeviceStateSchema = {
 type DeviceStateParameters = paths["/api/device/{id}/state"]["get"]["parameters"];
 type DeviceStateData = paths["/api/device/{id}/state"]["get"]["responses"]["200"]["content"]["application/json"];
 type DeviceStateError = unknown;
+type DeviceHistorySchema = {
+    method: "get";
+    url: "/api/device/{id}/history";
+};
+type DeviceHistoryParameters = paths["/api/device/{id}/history"]["get"]["parameters"];
+type DeviceHistoryData = paths["/api/device/{id}/history"]["get"]["responses"]["200"]["content"]["application/json"];
+type DeviceHistoryError = unknown;
+type DeviceLogsSchema = {
+    method: "get";
+    url: "/api/device/{id}/logs";
+};
+type DeviceLogsParameters = paths["/api/device/{id}/logs"]["get"]["parameters"];
+type DeviceLogsData = paths["/api/device/{id}/logs"]["get"]["responses"]["200"]["content"]["application/json"];
+type DeviceLogsError = unknown;
 type AllDevicesSchema = {
     method: "get";
     url: "/api/device/all";

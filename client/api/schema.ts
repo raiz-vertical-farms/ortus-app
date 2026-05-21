@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/device/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent state changes for a device (most recent first) */
+        get: operations["deviceHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/device/{id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent debug logs for a device (most recent first) */
+        get: operations["deviceLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/device/all": {
         parameters: {
             query?: never;
@@ -347,6 +381,68 @@ export interface operations {
                             lan_ip: string | null;
                             lan_ws_port: number | null;
                         };
+                    };
+                };
+            };
+        };
+    };
+    deviceHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description State history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        history: {
+                            id: number;
+                            brightness: number;
+                            light_on: boolean;
+                            irrigation_on: boolean;
+                            temperature: number | null;
+                            water_empty: boolean;
+                            recorded_at: number;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    deviceLogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Device logs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        logs: {
+                            id: number;
+                            level: string;
+                            tag: string;
+                            message: string;
+                            recorded_at: number;
+                        }[];
                     };
                 };
             };

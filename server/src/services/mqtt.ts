@@ -9,7 +9,7 @@ const MQTT_CONFIG = {
     username: process.env.MQTT_USERNAME!,
     password: process.env.MQTT_PASSWORD!,
   },
-  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status", "ortus/+/ack"],
+  subscriptions: ["ortus/+/presence", "ortus/+/state", "ortus/+/status", "ortus/+/ack", "ortus/+/log"],
 };
 
 export const mqttClient: MqttClient = mqtt.connect(
@@ -79,8 +79,15 @@ const stateSchema = z.object({
   waterEmpty: z.boolean().optional(),
 });
 
+const logSchema = z.object({
+  level: z.enum(["info", "warn", "error"]).default("info"),
+  tag: z.string().max(32).default("device"),
+  message: z.string().max(500),
+});
+
 type PresencePayload = z.infer<typeof presenceSchema>;
 type StatePayload = z.infer<typeof stateSchema>;
+type LogPayload = z.infer<typeof logSchema>;
 
 function safeJSON<T>(str: string): T | undefined {
   try {
@@ -130,30 +137,70 @@ mqttClient.on("message", async (topic, payload) => {
         .executeTakeFirst();
       if (!device) return;
 
+      const next = {
+        brightness: data.brightness ?? 0,
+        light_on: data.lightOn ? 1 : 0,
+        irrigation_on: data.irrigationOn ? 1 : 0,
+        temperature: data.temperature ?? null,
+        water_empty: data.waterEmpty ? 1 : 0,
+      };
+
+      const prev = await db
+        .selectFrom("device_state")
+        .select(["brightness", "light_on", "irrigation_on", "temperature", "water_empty"])
+        .where("device_id", "=", device.id)
+        .executeTakeFirst();
+
+      const changed =
+        !prev ||
+        prev.brightness !== next.brightness ||
+        prev.light_on !== next.light_on ||
+        prev.irrigation_on !== next.irrigation_on ||
+        prev.temperature !== next.temperature ||
+        prev.water_empty !== next.water_empty;
+
+      const now = Date.now();
+
       await db
         .insertInto("device_state")
-        .values({
-          device_id: device.id,
-          brightness: data.brightness ?? 0,
-          light_on: data.lightOn ? 1 : 0,
-          irrigation_on: data.irrigationOn ? 1 : 0,
-          temperature: data.temperature ?? null,
-          water_empty: data.waterEmpty ? 1 : 0,
-          updated_at: Date.now(),
-        })
+        .values({ device_id: device.id, ...next, updated_at: now })
         .onConflict((oc) =>
-          oc.column("device_id").doUpdateSet({
-            brightness: data.brightness ?? 0,
-            light_on: data.lightOn ? 1 : 0,
-            irrigation_on: data.irrigationOn ? 1 : 0,
-            temperature: data.temperature ?? null,
-            water_empty: data.waterEmpty ? 1 : 0,
-            updated_at: Date.now(),
-          })
+          oc.column("device_id").doUpdateSet({ ...next, updated_at: now })
         )
         .execute();
 
-      console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}`);
+      if (changed) {
+        await db
+          .insertInto("device_state_history")
+          .values({ device_id: device.id, ...next, recorded_at: now })
+          .execute();
+      }
+
+      console.log(`[State] ${mac}: B=${data.brightness} T=${data.temperature}${changed ? "" : " (no change)"}`);
+    } else if (type === "log") {
+      const data = safeJSON<unknown>(raw);
+      const parsed = logSchema.safeParse(data);
+      if (!parsed.success) return;
+
+      const device = await db
+        .selectFrom("devices")
+        .select(["id"])
+        .where("mac_address", "=", mac)
+        .executeTakeFirst();
+      if (!device) return;
+
+      await db
+        .insertInto("device_logs")
+        .values({
+          device_id: device.id,
+          level: parsed.data.level,
+          tag: parsed.data.tag,
+          message: parsed.data.message,
+          recorded_at: Date.now(),
+        })
+        .execute();
+
+      console.log(`[Log] ${mac} ${parsed.data.level}/${parsed.data.tag}: ${parsed.data.message}`);
     } else if (type === "ack") {
       const data = safeJSON<{ type: string }>(raw);
       if (!data?.type) return;

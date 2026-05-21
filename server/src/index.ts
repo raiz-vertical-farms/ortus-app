@@ -6,6 +6,7 @@ import "dotenv/config";
 import routes from "./routes";
 import fs from "fs";
 import { mqttClient } from "./services/mqtt";
+import "./services/retention";
 import { Scalar } from "@scalar/hono-api-reference";
 import { clerkMiddleware } from "@hono/clerk-auth";
 

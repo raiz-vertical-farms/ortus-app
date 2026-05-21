@@ -39,6 +39,7 @@ private:
     void broadcastState(bool force = false);
     void publishPresence();
     void publishAck(const String &cmdType);
+    void publishLog(const char *level, const char *tag, const String &message);
     void syncSystemTime();
     void recoverSchedules();
 
@@ -78,6 +79,13 @@ private:
     unsigned long lastTempPoll = 0;
     unsigned long lastWaterPoll = 0;
 
+    // Stale-connection escalation: 0 means "currently connected".
+    // Set to millis() at the moment WiFi/MQTT drops; used to decide when to
+    // escalate from soft retry → hard NVS-wipe → full reboot.
+    unsigned long wifiDisconnectedSinceMs = 0;
+    unsigned long mqttDisconnectedSinceMs = 0;
+    unsigned long lastWifiHardResetMs = 0;
+
     // Water sensor debounce: 0 means no candidate transition pending
     unsigned long waterPresentSince = 0;
 
@@ -92,6 +100,7 @@ private:
     bool timeSynced = false;
     int appliedBrightness = -1;
     bool wifiConnected = false;
+    bool bootLogged = false;
 
     static OrtusSystem *instance;
 };
