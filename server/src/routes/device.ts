@@ -150,6 +150,91 @@ async function dispatchSchedule(
   }
 }
 
+// --- Schedule read/write via device_state ---
+//
+// device_state is the only place schedules live. Reads convert the DB's
+// seconds back to the API's minutes / millisecond start_at so the frontend
+// contract is unchanged. start_off is server-tracked (firmware doesn't echo
+// it) — preserved across mqtt state broadcasts via the omit-if-missing
+// logic in services/mqtt.ts.
+
+type SchedulePatch = {
+  active?: boolean;
+  minutes_on?: number;
+  minutes_off?: number;
+  start_at_ms?: number;
+  start_off?: boolean;
+};
+
+type ScheduleRead = {
+  active: number;
+  minutes_on: number;
+  minutes_off: number;
+  start_at: number; // ms
+  start_off: number;
+};
+
+async function getLightSchedule(deviceId: number): Promise<ScheduleRead | null> {
+  const row = await db.selectFrom("device_state")
+    .select(["light_schedule_active", "light_on_seconds", "light_off_seconds", "light_start_at", "light_start_off"])
+    .where("device_id", "=", deviceId)
+    .executeTakeFirst();
+  if (!row) return null;
+  // No schedule has ever been configured — distinguish from a paused-but-configured schedule.
+  if (row.light_on_seconds === 0 && row.light_off_seconds === 0) return null;
+  return {
+    active: row.light_schedule_active,
+    minutes_on: Math.floor(row.light_on_seconds / 60),
+    minutes_off: Math.floor(row.light_off_seconds / 60),
+    start_at: row.light_start_at * 1000,
+    start_off: row.light_start_off,
+  };
+}
+
+async function getIrrigationSchedule(deviceId: number): Promise<ScheduleRead | null> {
+  const row = await db.selectFrom("device_state")
+    .select(["irrigation_schedule_active", "irrigation_on_seconds", "irrigation_off_seconds", "irrigation_start_at", "irrigation_start_off"])
+    .where("device_id", "=", deviceId)
+    .executeTakeFirst();
+  if (!row) return null;
+  if (row.irrigation_on_seconds === 0 && row.irrigation_off_seconds === 0) return null;
+  return {
+    active: row.irrigation_schedule_active,
+    minutes_on: Math.floor(row.irrigation_on_seconds / 60),
+    minutes_off: Math.floor(row.irrigation_off_seconds / 60),
+    start_at: row.irrigation_start_at * 1000,
+    start_off: row.irrigation_start_off,
+  };
+}
+
+async function setLightSchedule(deviceId: number, patch: SchedulePatch) {
+  const set = {
+    ...(patch.active !== undefined && { light_schedule_active: patch.active ? 1 : 0 }),
+    ...(patch.minutes_on !== undefined && { light_on_seconds: patch.minutes_on * 60 }),
+    ...(patch.minutes_off !== undefined && { light_off_seconds: patch.minutes_off * 60 }),
+    ...(patch.start_at_ms !== undefined && { light_start_at: Math.floor(patch.start_at_ms / 1000) }),
+    ...(patch.start_off !== undefined && { light_start_off: patch.start_off ? 1 : 0 }),
+  };
+  await db.insertInto("device_state")
+    .values({ device_id: deviceId, ...set })
+    .onConflict((oc) => oc.column("device_id").doUpdateSet(set))
+    .execute();
+}
+
+async function setIrrigationSchedule(deviceId: number, patch: SchedulePatch) {
+  const set = {
+    ...(patch.active !== undefined && { irrigation_schedule_active: patch.active ? 1 : 0 }),
+    ...(patch.minutes_on !== undefined && { irrigation_on_seconds: patch.minutes_on * 60 }),
+    ...(patch.minutes_off !== undefined && { irrigation_off_seconds: patch.minutes_off * 60 }),
+    ...(patch.start_at_ms !== undefined && { irrigation_start_at: Math.floor(patch.start_at_ms / 1000) }),
+    ...(patch.start_off !== undefined && { irrigation_start_off: patch.start_off ? 1 : 0 }),
+  };
+  await db.insertInto("device_state")
+    .values({ device_id: deviceId, ...set })
+    .onConflict((oc) => oc.column("device_id").doUpdateSet(set))
+    .execute();
+}
+
 const app = new Hono();
 
 app
@@ -232,8 +317,8 @@ app
       const [state, lightSchedule, irrigationSchedule] =
         await Promise.all([
           db.selectFrom("device_state").selectAll().where("device_id", "=", id).executeTakeFirst(),
-          db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
-          db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst(),
+          getLightSchedule(id),
+          getIrrigationSchedule(id),
         ]);
 
       return c.json({
@@ -392,36 +477,36 @@ app
       if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
       const { active, minutes_on, minutes_off } = c.req.valid("json");
-      const existing = await db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      const existing = await getLightSchedule(id);
 
       const resolvedOn = minutes_on ?? existing?.minutes_on ?? SCHEDULE_DEFAULTS.light.minutes_on;
       const resolvedOff = minutes_off ?? existing?.minutes_off ?? SCHEDULE_DEFAULTS.light.minutes_off;
       const now = Date.now();
 
-      if (existing) {
-        const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
-        await db.updateTable("light_schedules").where("device_id", "=", id)
-          .set({ active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
-          .execute();
-        await dispatchSchedule(mac, "setLightSchedule",
-          { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
-          async () => {
-            await db.updateTable("light_schedules").where("device_id", "=", id)
-              .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
-              .execute();
+      const patch: SchedulePatch = {
+        active,
+        minutes_on: resolvedOn,
+        minutes_off: resolvedOff,
+        ...(active ? { start_at_ms: now, start_off: false } : {}),
+      };
+      await setLightSchedule(id, patch);
+
+      await dispatchSchedule(mac, "setLightSchedule",
+        { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
+        async () => {
+          if (existing) {
+            await setLightSchedule(id, {
+              active: Boolean(existing.active),
+              minutes_on: existing.minutes_on,
+              minutes_off: existing.minutes_off,
+              start_at_ms: existing.start_at,
+              start_off: Boolean(existing.start_off),
+            });
+          } else {
+            await setLightSchedule(id, { active: false, minutes_on: 0, minutes_off: 0, start_at_ms: 0, start_off: false });
           }
-        );
-      } else {
-        await db.insertInto("light_schedules")
-          .values({ device_id: id, active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: 0 } : {}) })
-          .execute();
-        await dispatchSchedule(mac, "setLightSchedule",
-          { type: "setLightSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: false, start_at: Math.floor(now / 1000) },
-          async () => {
-            await db.deleteFrom("light_schedules").where("device_id", "=", id).execute();
-          }
-        );
-      }
+        }
+      );
 
       return c.json({ message: "Light schedule updated" });
     }
@@ -438,26 +523,22 @@ app
       const mac = await getDeviceMac(id, user.id);
       if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
-      const schedule = await db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      const schedule = await getLightSchedule(id);
       if (!schedule || !schedule.active) throw new HTTPException(400, { res: c.json({ message: "No active light schedule" }, 400) });
 
       const { isOn } = computePhase(schedule.start_at, Boolean(schedule.start_off), schedule.minutes_on, schedule.minutes_off);
       // Skip current phase: if ON → jump to OFF, if OFF → jump to ON
-      const newStartOff = isOn ? 1 : 0;
+      const newStartOff = isOn;
       const prevStartAt = schedule.start_at;
-      const prevStartOff = schedule.start_off;
+      const prevStartOff = Boolean(schedule.start_off);
       const now = Date.now();
 
-      await db.updateTable("light_schedules").where("device_id", "=", id)
-        .set({ start_at: now, start_off: newStartOff })
-        .execute();
+      await setLightSchedule(id, { start_at_ms: now, start_off: newStartOff });
 
       await dispatchSchedule(mac, "setLightSchedule",
-        { type: "setLightSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff), start_at: Math.floor(now / 1000) },
+        { type: "setLightSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: newStartOff, start_at: Math.floor(now / 1000) },
         async () => {
-          await db.updateTable("light_schedules").where("device_id", "=", id)
-            .set({ start_at: prevStartAt, start_off: prevStartOff })
-            .execute();
+          await setLightSchedule(id, { start_at_ms: prevStartAt, start_off: prevStartOff });
         }
       );
 
@@ -476,22 +557,18 @@ app
       const mac = await getDeviceMac(id, user.id);
       if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
-      const existing = await db.selectFrom("light_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      const existing = await getLightSchedule(id);
       if (!existing) throw new HTTPException(400, { res: c.json({ message: "No light schedule to restart" }, 400) });
 
       const now = Date.now();
-      const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
+      const prev = { active: Boolean(existing.active), start_at_ms: existing.start_at, start_off: Boolean(existing.start_off) };
 
-      await db.updateTable("light_schedules").where("device_id", "=", id)
-        .set({ active: 1, start_at: now, start_off: 0 })
-        .execute();
+      await setLightSchedule(id, { active: true, start_at_ms: now, start_off: false });
 
       await dispatchSchedule(mac, "setLightSchedule",
         { type: "setLightSchedule", active: true, minutes_on: existing.minutes_on, minutes_off: existing.minutes_off, start_off: false, start_at: Math.floor(now / 1000) },
         async () => {
-          await db.updateTable("light_schedules").where("device_id", "=", id)
-            .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
-            .execute();
+          await setLightSchedule(id, prev);
         }
       );
 
@@ -514,38 +591,38 @@ app
       if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
       const { active, minutes_on, minutes_off } = c.req.valid("json");
-      const existing = await db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      const existing = await getIrrigationSchedule(id);
 
       const resolvedOn = minutes_on ?? existing?.minutes_on ?? SCHEDULE_DEFAULTS.irrigation.minutes_on;
       const resolvedOff = minutes_off ?? existing?.minutes_off ?? SCHEDULE_DEFAULTS.irrigation.minutes_off;
-      // Irrigation starts in OFF phase by default (start_off=1) so first action is to water
-      const initialStartOff = 1;
+      // Irrigation starts in OFF phase by default (start_off=true) so first action is to water
+      const initialStartOff = true;
       const now = Date.now();
 
-      if (existing) {
-        const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
-        await db.updateTable("irrigation_schedules").where("device_id", "=", id)
-          .set({ active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: initialStartOff } : {}) })
-          .execute();
-        await dispatchSchedule(mac, "setIrrigationSchedule",
-          { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: Boolean(initialStartOff), start_at: Math.floor(now / 1000) },
-          async () => {
-            await db.updateTable("irrigation_schedules").where("device_id", "=", id)
-              .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
-              .execute();
+      const patch: SchedulePatch = {
+        active,
+        minutes_on: resolvedOn,
+        minutes_off: resolvedOff,
+        ...(active ? { start_at_ms: now, start_off: initialStartOff } : {}),
+      };
+      await setIrrigationSchedule(id, patch);
+
+      await dispatchSchedule(mac, "setIrrigationSchedule",
+        { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: initialStartOff, start_at: Math.floor(now / 1000) },
+        async () => {
+          if (existing) {
+            await setIrrigationSchedule(id, {
+              active: Boolean(existing.active),
+              minutes_on: existing.minutes_on,
+              minutes_off: existing.minutes_off,
+              start_at_ms: existing.start_at,
+              start_off: Boolean(existing.start_off),
+            });
+          } else {
+            await setIrrigationSchedule(id, { active: false, minutes_on: 0, minutes_off: 0, start_at_ms: 0, start_off: false });
           }
-        );
-      } else {
-        await db.insertInto("irrigation_schedules")
-          .values({ device_id: id, active: active ? 1 : 0, minutes_on: resolvedOn, minutes_off: resolvedOff, ...(active ? { start_at: now, start_off: initialStartOff } : {}) })
-          .execute();
-        await dispatchSchedule(mac, "setIrrigationSchedule",
-          { type: "setIrrigationSchedule", active, minutes_on: resolvedOn, minutes_off: resolvedOff, start_off: Boolean(initialStartOff), start_at: Math.floor(now / 1000) },
-          async () => {
-            await db.deleteFrom("irrigation_schedules").where("device_id", "=", id).execute();
-          }
-        );
-      }
+        }
+      );
 
       return c.json({ message: "Irrigation schedule updated" });
     }
@@ -562,25 +639,21 @@ app
       const mac = await getDeviceMac(id, user.id);
       if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
-      const schedule = await db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      const schedule = await getIrrigationSchedule(id);
       if (!schedule || !schedule.active) throw new HTTPException(400, { res: c.json({ message: "No active irrigation schedule" }, 400) });
 
       const { isOn } = computePhase(schedule.start_at, Boolean(schedule.start_off), schedule.minutes_on, schedule.minutes_off);
-      const newStartOff = isOn ? 1 : 0;
+      const newStartOff = isOn;
       const prevStartAt = schedule.start_at;
-      const prevStartOff = schedule.start_off;
+      const prevStartOff = Boolean(schedule.start_off);
       const now = Date.now();
 
-      await db.updateTable("irrigation_schedules").where("device_id", "=", id)
-        .set({ start_at: now, start_off: newStartOff, skipped_at: now })
-        .execute();
+      await setIrrigationSchedule(id, { start_at_ms: now, start_off: newStartOff });
 
       await dispatchSchedule(mac, "setIrrigationSchedule",
-        { type: "setIrrigationSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: Boolean(newStartOff), start_at: Math.floor(now / 1000) },
+        { type: "setIrrigationSchedule", active: true, minutes_on: schedule.minutes_on, minutes_off: schedule.minutes_off, start_off: newStartOff, start_at: Math.floor(now / 1000) },
         async () => {
-          await db.updateTable("irrigation_schedules").where("device_id", "=", id)
-            .set({ start_at: prevStartAt, start_off: prevStartOff, skipped_at: null })
-            .execute();
+          await setIrrigationSchedule(id, { start_at_ms: prevStartAt, start_off: prevStartOff });
         }
       );
 
@@ -599,23 +672,19 @@ app
       const mac = await getDeviceMac(id, user.id);
       if (!mac) throw new HTTPException(404, { res: c.json({ message: "Device not found" }, 404) });
 
-      const existing = await db.selectFrom("irrigation_schedules").selectAll().where("device_id", "=", id).executeTakeFirst();
+      const existing = await getIrrigationSchedule(id);
       if (!existing) throw new HTTPException(400, { res: c.json({ message: "No irrigation schedule to restart" }, 400) });
 
       const now = Date.now();
-      const prev = { active: existing.active, start_at: existing.start_at, start_off: existing.start_off };
+      const prev = { active: Boolean(existing.active), start_at_ms: existing.start_at, start_off: Boolean(existing.start_off) };
 
       // Restarting always resets to starting now and starting ON (watering)
-      await db.updateTable("irrigation_schedules").where("device_id", "=", id)
-        .set({ active: 1, start_at: now, start_off: 0 })
-        .execute();
+      await setIrrigationSchedule(id, { active: true, start_at_ms: now, start_off: false });
 
       await dispatchSchedule(mac, "setIrrigationSchedule",
         { type: "setIrrigationSchedule", active: true, minutes_on: existing.minutes_on, minutes_off: existing.minutes_off, start_off: false, start_at: Math.floor(now / 1000) },
         async () => {
-          await db.updateTable("irrigation_schedules").where("device_id", "=", id)
-            .set({ active: prev.active, start_at: prev.start_at, start_off: prev.start_off })
-            .execute();
+          await setIrrigationSchedule(id, prev);
         }
       );
 

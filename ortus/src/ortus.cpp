@@ -683,8 +683,14 @@ void OrtusSystem::broadcastState(bool force)
     doc["brightness"] = currentState.brightness;
     doc["lightOn"] = currentState.lightOn;
     doc["lightScheduleActive"] = currentState.lightScheduleActive;
+    doc["lightScheduleOnSeconds"] = currentState.lightScheduleOnSeconds;
+    doc["lightScheduleOffSeconds"] = currentState.lightScheduleOffSeconds;
+    doc["lightScheduleStartEpoch"] = currentState.lightScheduleStartEpoch;
     doc["irrigationOn"] = currentState.irrigationOn;
     doc["irrigationScheduleActive"] = currentState.irrigationScheduleActive;
+    doc["irrigationScheduleOnSeconds"] = currentState.irrigationScheduleOnSeconds;
+    doc["irrigationScheduleOffSeconds"] = currentState.irrigationScheduleOffSeconds;
+    doc["irrigationScheduleStartEpoch"] = currentState.irrigationScheduleStartEpoch;
     doc["temperature"] = currentState.temperatureC;
     doc["waterEmpty"] = currentState.waterEmpty;
 

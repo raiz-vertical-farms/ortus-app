@@ -17,6 +17,25 @@ export const mqttClient: MqttClient = mqtt.connect(
   MQTT_CONFIG.options
 );
 
+// READ_ONLY mode: blocks every outbound publish so a dev server can safely
+// shadow-subscribe to a production device without sending commands to it.
+// All inbound message handling is unaffected — only `mqttClient.publish` is.
+if (process.env.READ_ONLY === "true") {
+  console.warn("⚠️  READ_ONLY=true — all outbound MQTT publishes are blocked.");
+  const originalPublish = mqttClient.publish.bind(mqttClient);
+  mqttClient.publish = function (this: MqttClient, topic: any, ...rest: any[]) {
+    console.warn(`[READ_ONLY] Blocked publish to ${topic}`);
+    // mqtt.js callbacks can be the last arg — invoke with null error so awaiting
+    // callers don't hang. sendWithAck will still time out waiting for the device
+    // ACK, which is the correct UX: the user finds out the click was dropped.
+    const cb = rest[rest.length - 1];
+    if (typeof cb === "function") cb(null);
+    return mqttClient;
+  } as typeof mqttClient.publish;
+  // Keep the no-op active even if the underlying client reconnects.
+  void originalPublish;
+}
+
 console.log("Connecting to MQTT broker...");
 
 mqttClient.on("connect", () => {
@@ -77,6 +96,15 @@ const stateSchema = z.object({
   irrigationScheduleActive: z.boolean().optional(),
   temperature: z.number().nullable().optional(),
   waterEmpty: z.boolean().optional(),
+  // Schedule details — only sent by firmware that's been OTA'd in Phase 2.
+  // When absent we preserve the existing device_state values rather than
+  // zeroing them, so old firmware doesn't wipe the backfilled schedule.
+  lightScheduleOnSeconds: z.number().int().nonnegative().optional(),
+  lightScheduleOffSeconds: z.number().int().nonnegative().optional(),
+  lightScheduleStartEpoch: z.number().int().nonnegative().optional(),
+  irrigationScheduleOnSeconds: z.number().int().nonnegative().optional(),
+  irrigationScheduleOffSeconds: z.number().int().nonnegative().optional(),
+  irrigationScheduleStartEpoch: z.number().int().nonnegative().optional(),
 });
 
 const logSchema = z.object({
@@ -137,19 +165,37 @@ mqttClient.on("message", async (topic, payload) => {
         .executeTakeFirst();
       if (!device) return;
 
+      const prev = await db
+        .selectFrom("device_state")
+        .select([
+          "brightness", "light_on", "irrigation_on", "temperature", "water_empty",
+          "light_schedule_active", "light_on_seconds", "light_off_seconds", "light_start_at",
+          "irrigation_schedule_active", "irrigation_on_seconds", "irrigation_off_seconds", "irrigation_start_at",
+        ])
+        .where("device_id", "=", device.id)
+        .executeTakeFirst();
+
+      // Schedule fields from old firmware are undefined — fall back to the
+      // existing device_state values so we don't wipe a backfilled schedule.
       const next = {
         brightness: data.brightness ?? 0,
         light_on: data.lightOn ? 1 : 0,
         irrigation_on: data.irrigationOn ? 1 : 0,
         temperature: data.temperature ?? null,
         water_empty: data.waterEmpty ? 1 : 0,
+        light_schedule_active: data.lightScheduleActive === undefined
+          ? (prev?.light_schedule_active ?? 0)
+          : (data.lightScheduleActive ? 1 : 0),
+        light_on_seconds: data.lightScheduleOnSeconds ?? prev?.light_on_seconds ?? 0,
+        light_off_seconds: data.lightScheduleOffSeconds ?? prev?.light_off_seconds ?? 0,
+        light_start_at: data.lightScheduleStartEpoch ?? prev?.light_start_at ?? 0,
+        irrigation_schedule_active: data.irrigationScheduleActive === undefined
+          ? (prev?.irrigation_schedule_active ?? 0)
+          : (data.irrigationScheduleActive ? 1 : 0),
+        irrigation_on_seconds: data.irrigationScheduleOnSeconds ?? prev?.irrigation_on_seconds ?? 0,
+        irrigation_off_seconds: data.irrigationScheduleOffSeconds ?? prev?.irrigation_off_seconds ?? 0,
+        irrigation_start_at: data.irrigationScheduleStartEpoch ?? prev?.irrigation_start_at ?? 0,
       };
-
-      const prev = await db
-        .selectFrom("device_state")
-        .select(["brightness", "light_on", "irrigation_on", "temperature", "water_empty"])
-        .where("device_id", "=", device.id)
-        .executeTakeFirst();
 
       const changed =
         !prev ||
@@ -157,7 +203,15 @@ mqttClient.on("message", async (topic, payload) => {
         prev.light_on !== next.light_on ||
         prev.irrigation_on !== next.irrigation_on ||
         prev.temperature !== next.temperature ||
-        prev.water_empty !== next.water_empty;
+        prev.water_empty !== next.water_empty ||
+        prev.light_schedule_active !== next.light_schedule_active ||
+        prev.light_on_seconds !== next.light_on_seconds ||
+        prev.light_off_seconds !== next.light_off_seconds ||
+        prev.light_start_at !== next.light_start_at ||
+        prev.irrigation_schedule_active !== next.irrigation_schedule_active ||
+        prev.irrigation_on_seconds !== next.irrigation_on_seconds ||
+        prev.irrigation_off_seconds !== next.irrigation_off_seconds ||
+        prev.irrigation_start_at !== next.irrigation_start_at;
 
       const now = Date.now();
 
